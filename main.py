@@ -143,27 +143,18 @@ def check_api_validity(_response):
 # pippp = Movies(_id = 'tt0120755').get_search_by_id()
 
 
-def hash_item(__json_in):
+def hash_item(__json_in): # requires JSON object
     # print(type(__json_in))
     __json_hashed_out = {}
     for i in __json_in:
-        # print(i['_id'])
-        # hash = SHA256.new()
+
         to_hash = '{}'.format(i['_id'])
-        # print(to_hash)
         to_hash = to_hash.encode()
-        # print(to_hash)
-        # print(hash.update(b'bla'))
         hashed = SHA256.new(to_hash).hexdigest()
-        # print(hashed)
-        # print(hashed)
-        # hashed = hashed.hexdigest()
-        # h.update(b'Hello')
-        # >> > print
-        # h.hexdigest()
 
         populate_hashed_table(hashed, i['_id'])
         __json_hashed_out[hashed] = i
+
     return __json_hashed_out
 
 def get_hashed_json_dic(__json_hashed_in):
@@ -256,7 +247,9 @@ class Progression(Screen):
         Logger.info('Progression: Initialized {}'.format(self))
         # print(' progression {}'.format(self.parent))
 
-        self.sch_event = Clock.schedule_interval(self.progression_bar, 0.09)
+        # self.sch_event = Clock.schedule_interval(self.progression_bar, 0.09)
+        self.sch_event = Clock.schedule_interval(self.progression_bar, 1/60)
+
 
         # self.start_scan()
 
@@ -304,7 +297,7 @@ class Item(BoxLayout):
         self.megs = sname
         self.popup = Popup(title='Test popup',
                       content=Label(text=self.megs),
-                      size_hint=(None, None), size=(400, 400))
+                      size_hint=(None, None), size=(600, 600))
         self.add_widget(Button(text='show',on_release=self.oppop,size_hint_y=.1))
     def oppop(self, *args):
         self.popup.open()
@@ -320,7 +313,7 @@ class SeriesView(Screen):
 
         Clock.schedule_once(self.pr, 9)
 
-        layout = GridLayout(cols=4, padding=5, spacing=5,
+        layout = GridLayout(cols=3, padding=50, spacing=50,
                             size_hint=(None, None), width=ViewControl.width_x-30)
 
         # when we add children to the grid layout, its size doesn't change at
@@ -346,6 +339,7 @@ class SeriesView(Screen):
         for kk in hashed_dic_grouop:
         #     print('{}----{}'.format(kk, hashed_dic_grouop[kk]))
             _items = Item(hashed_dic_grouop[kk]['_id'])
+            _items.size = ((Window.size[0]/3)-80,(Window.size[1]/2)-30)
             _items.add_widget(AsyncImage(source=hashed_dic_grouop[kk]['images']['poster'],nocache=True))
             _items.add_widget(Label(text=hashed_dic_grouop[kk]['title'],size_hint_y=.1))
 
