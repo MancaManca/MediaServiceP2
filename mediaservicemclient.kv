@@ -380,5 +380,12 @@
 <Item>:
     id: ite
     orientation: 'vertical'
-    size:(350, 350)
+#    size:(400, 400)
     size_hint:(None, None)
+    canvas.before:
+        Color:
+            rgba: hex('#000000')
+        Rectangle:
+            # self here refers to the widget i.e BoxLayout
+            pos: self.pos
+            size: self.size
