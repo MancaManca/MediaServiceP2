@@ -1,0 +1,384 @@
+#:kivy 1.10.0
+#:import hex kivy.utils.get_color_from_hex
+<SettingsView>:
+    name: 'settings'
+    orientation: 'vertical'
+    id: settings_view
+
+
+    BoxLayout:
+        orientation: 'vertical'
+        id: main_view_container
+        opacity: 1
+        canvas.before:
+            Color:
+                rgba: 0.2, 0.5, 0.8, 1
+            Rectangle:
+                # self here refers to the widget i.e BoxLayout
+                pos: self.pos
+                size: self.size
+        Button:
+            text: 'go back'
+            on_release: root.pr()
+
+#        Label:
+#            id: vvv
+#            size_hint_y: 1
+#            size_hint_x: 1
+#
+#            opacity: 0.9
+#            pos_hint:{'center_x': 0.5, 'center_y': 0.5}
+#
+#            canvas.before:
+#                Rectangle:
+#                    pos: self.pos
+#                    size: self.size
+#                    source: 'logo.png'
+
+<ScanView>:
+    name: 'scan'
+    orientation: 'vertical'
+    id: scan_view
+
+
+    BoxLayout:
+        orientation: 'vertical'
+        id: scan_view_container
+        opacity: 1
+        canvas.before:
+            Color:
+                rgba: 0.2, 0.5, 0.8, 1
+            Rectangle:
+                # self here refers to the widget i.e BoxLayout
+                pos: self.pos
+                size: self.size
+        Button:
+            text: 'go back'
+            on_release: root.pr()
+        Button:
+            text: 'save'
+            on_release: root.pr()
+
+#        Label:
+#            id: vvv
+#            size_hint_y: 1
+#            size_hint_x: 1
+#
+#            opacity: 0.9
+#            pos_hint:{'center_x': 0.5, 'center_y': 0.5}
+#
+#            canvas.before:
+#                Rectangle:
+#                    pos: self.pos
+#                    size: self.size
+#                    source: 'logo.png'
+<MainView>:
+    name: 'main'
+    orientation: 'vertical'
+    id: main_view
+
+    BoxLayout:
+        orientation: 'vertical'
+        id: main_view_container
+        opacity: 1
+        BoxLayout:
+            size_hint_y: .1
+
+            FloatLayout:
+                id: navig
+                canvas.before:
+
+                    Color:
+                        rgba: hex('#ffff00')
+                    Rectangle:
+                        # self here refers to the widget i.e BoxLayout
+                        pos: self.pos
+                        size: self.size
+                BoxLayout:
+                    id: search
+                    pos_hint:{'center_x': 0.7, 'center_y': 0.5}
+#                    size_hint_y: None
+
+                    size_hint_x: None
+
+                    Button:
+                        text: 'search'
+                        width: dp(50)
+    #                    pos_hint:{'center_x': 0.5, 'center_y': 0.5}
+
+                        on_release: main_view_sc_manager.current = 'search_view'
+                BoxLayout:
+                    id: settings_button
+                    pos_hint:{'center_x': 0.3, 'center_y': 0.5}
+#                    size_hint_y: None
+
+                    size_hint_x: None
+
+                    Button:
+                        text: 'settings'
+                        width: dp(50)
+    #                    pos_hint:{'center_x': 0.5, 'center_y': 0.5}
+
+                        on_release: root.pr()
+        BoxLayout:
+            id: navigation_b
+            orientation: 'horizontal'
+            size_hint_y: .1
+
+            Button:
+                text: 'movies'
+                width: dp(50)
+
+#                pos_hint:{'center_x': 0.5, 'center_y': 0.5}
+
+                on_release: root.set_to_cur('movies_view')
+            Button:
+                text: 'series'
+                width: dp(50)
+#                pos_hint:{'center_x': 0.5, 'center_y': 0.5}
+
+                on_release: root.set_to_cur('series_view')
+            Button:
+                text: 'latest'
+                width: dp(50)
+#                pos_hint:{'center_x': 0.5, 'center_y': 0.5}
+
+                on_release: root.set_to_cur('latest_view')
+        BoxLayout:
+            id: screen_m_container
+            size_hint_y: .9
+
+            canvas.before:
+
+                Color:
+                    rgba: hex('#000000')
+                Rectangle:
+                    # self here refers to the widget i.e BoxLayout
+                    pos: self.pos
+                    size: self.size
+
+
+#                LatestView:
+#
+#
+#                MoviesView:
+#
+#                SeriesView:
+#
+#                SearchView:
+
+
+#        Label:
+#            id: dd
+#            size_hint_y: 1
+#            size_hint_x: 1
+#
+#            opacity: 0.9
+#            pos_hint:{'center_x': 0.5, 'center_y': 0.5}
+#
+#            canvas.before:
+#                Rectangle:
+#                    pos: self.pos
+#                    size: self.size
+#                    source: 'logo.png'
+<Progression>:
+    progress_barr: progress_bar_container
+    orientation: 'vertical'
+    id: progression_view
+
+#    canvas.before:
+#        Color:
+#            rgba: 0.2, 0.5, 0.8, 1
+#        Rectangle:
+#            # self here refers to the widget i.e BoxLayout
+#            pos: self.pos
+#            size: self.size
+    BoxLayout:
+        orientation: 'vertical'
+        id: progress_bar_container
+        opacity: 1
+
+#        BoxLayout:
+#            id: prod_b
+#            size_hint_x: .7
+#            size_hint_y: .2
+##            height: dp(15)
+#            orientation: 'horizontal'
+#            pos_hint:{'center_x': 0.5, 'center_y': 0.5}
+##            canvas.before:
+##                Color:
+##                    rgba: hex('#d3d3d3')
+##                Rectangle:
+##                    pos: self.pos
+##                    size: self.size
+#
+#            BoxLayout:
+#                id: dynamic_progress
+#                size_hint_x: 0.01
+#                size_hint_y: None
+#                height: dp(15)
+##                size_hint_y:1
+#                Label:
+#                    id: mm
+#                    canvas.before:
+#                        Color:
+#                            rgba: hex('#ff0000')
+#                        Rectangle:
+#                            pos: self.pos
+#                            size: self.size
+#            BoxLayout:
+#                id: static_progress
+#                size_hint_x: 0.99
+#                size_hint_y: None
+##                size_hint_y: 0.6
+#                height: dp(10)
+#
+#                Label:
+#                    id: kk
+#
+#                    height: dp(5)
+#                    size_hint_y: None
+#                    pos_hint:{'center_x': 0.5, 'center_y': .7}
+#                    canvas.before:
+#                        Color:
+#                            rgba: hex('#d3d3d3')
+#                        Rectangle:
+#                            pos: self.pos
+#                            size: self.size
+#
+        Label:
+            text: 'Loading: {}%'.format(int(pb.value))
+            size_hint_y: 0.1
+            size_hint_x: None
+            pos_hint:{'center_x': 0.5, 'center_y': 0.5}
+            width: dp(120)
+
+        ProgressBar:
+            id: pb
+            size_hint_y: 0.1
+            size_hint_x: 0.7
+            pos_hint:{'center_x': 0.5, 'center_y': 0.5}
+#            width: dp(800)
+    #        height: dp(50)
+
+            value: 0
+        BoxLayout:
+            size_hint_x: .8
+            size_hint_y: .2
+            height: dp(15)
+            orientation: 'horizontal'
+            pos_hint:{'center_x': 0.5, 'center_y': 0.5}
+            FloatLayout:
+
+                Label:
+                    id: dd
+                    size_hint_y: 1
+                    size_hint_x: 1
+
+                    opacity: 0.0
+                    pos_hint:{'center_x': 0.5, 'center_y': 0.5}
+
+                    canvas.before:
+                        Rectangle:
+                            pos: self.pos
+                            size: self.size
+                            source: 'images/logo.png'
+                Label:
+                    id: dv
+                    size_hint_y: 1
+                    size_hint_x: 1
+
+                    opacity: 1
+                    pos_hint:{'center_x': 0.5, 'center_y': 0.5}
+
+                    canvas.before:
+#                        Color:
+#                            rgba: hex('#d3d3d3')
+                        Rectangle:
+                            pos: self.pos
+                            size: self.size
+                            source: 'images/logon.png'
+
+<SearchView>:
+    name: 'search_view'
+
+    BoxLayout:
+        orientation: 'vertical'
+        id: search_view_container
+        opacity: 1
+        canvas.before:
+            Color:
+                rgba: hex('#8b4513')
+            Rectangle:
+                # self here refers to the widget i.e BoxLayout
+                pos: self.pos
+                size: self.size
+        Label:
+            text: root.name
+
+<SeriesView>:
+    name: 'series_view'
+    BoxLayout:
+        orientation: 'vertical'
+        id: series_view_container
+        opacity: 1
+        canvas.before:
+            Color:
+                rgba: hex('#ffa500')
+            Rectangle:
+                # self here refers to the widget i.e BoxLayout
+                pos: self.pos
+                size: self.size
+#        Label:
+#            text: root.name
+
+
+#        Label:
+#            text: root.name
+
+<MoviesView>:
+    name: 'movies_view'
+    BoxLayout:
+        orientation: 'vertical'
+        id: movies_view_container
+        opacity: 1
+        canvas.before:
+            Color:
+                rgba: hex('#ffa500')
+            Rectangle:
+                # self here refers to the widget i.e BoxLayout
+                pos: self.pos
+                size: self.size
+        Label:
+            text: root.name
+
+<LatestView>:
+    name: 'latest_view'
+    BoxLayout:
+        orientation: 'vertical'
+        id: latest_view_container
+        opacity: 1
+        canvas.before:
+            Color:
+                rgba: hex('#e6e8fa')
+            Rectangle:
+                # self here refers to the widget i.e BoxLayout
+                pos: self.pos
+                size: self.size
+        Label:
+            text: root.name
+        TextInput:
+            id: bbb
+
+
+        Button:
+            text: 'send'
+            on_release: root.cc(bbb.text)
+        Button:
+            text: 'reconnet'
+            on_release: root.reconnect()
+<Item>:
+    id: ite
+    orientation: 'vertical'
+    size:(350, 350)
+    size_hint:(None, None)
