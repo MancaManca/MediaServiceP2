@@ -292,19 +292,28 @@ class Progression(Screen):
 
 
 class MoviesViewMainSingle(Screen):
-    def __init__(self, **kwargs):
+    def __init__(self, movie_id, **kwargs):
         super(MoviesViewMainSingle, self).__init__(**kwargs)
+        self.movie_id = movie_id
         self.name = 'mvms'
         self.blak = self
         Logger.info('MoviesViewMainSingle: Initialized {}'.format(self))
-        self.add_widget(Label(text=self.name))
-        self.add_widget(Button(text='back',on_press = self.go_back_to_movies))
+        self.ids.mvmsingle.add_widget(Label(text=self.name))
+        self.ids.mvmsingle.add_widget(Button(text='back',on_press = self.go_back_to_movies))
+        get_api(Movies(_id = self.movie_id).get_search_by_id())
+        for i in hashed_dic_movie:
+            print(i)
+            for b in hashed_dic_movie[i]:
+                print(b)
+                self.ids.mvmsingle.add_widget(Label(text=b))
+
 
 
     def go_back_to_movies(self,*args):
         self.manager.current = 'movies view main screen'
         self.manager.remove_widget(self.blak)
     # def change_to_movies_single
+
 class MoviesViewMain(Screen):
     def __init__(self, **kwargs):
         super(MoviesViewMain, self).__init__(**kwargs)
@@ -345,14 +354,15 @@ class MoviesViewMain(Screen):
                 Logger.info('No image setting default cause of {}'.format(e))
                 _items.add_widget(Image(source='images/logo.png'))
             _items.add_widget(Label(text=hashed_dic_movies[kk]['title'], size_hint_y=.1,text_size=(250, None),shorten_from='right',halign='center',shorten=True))
+            _items.add_widget(Button(text = 'show',on_press = lambda x: self.change_to_movies_single(hashed_dic_movies[kk]['_id'])))
 
             movies_layout.add_widget(_items)
 
 
-    def change_to_movies_single(self,*args):
+    def change_to_movies_single(self, x,*args):
         print(self.manager)
 
-        self.manager.add_widget(MoviesViewMainSingle())
+        self.manager.add_widget(MoviesViewMainSingle(x))
         self.manager.current = 'mvms'
 class ScMaMovies(ScreenManager):
     def __init__(self, **kwargs):
@@ -386,9 +396,16 @@ class Item(BoxLayout):
         self.popup = Popup(title='Test popup',
                       content=Label(text=self.megs),
                       size_hint=(None, None), size=(600, 600))
-        self.add_widget(Button(text='show',on_release=self.oppop,size_hint_y=.1))
+        # self.add_widget(Button(text='show',on_release=self.change_to_movies_single,size_hint_y=.1))
     def oppop(self, *args):
+
         self.popup.open()
+
+    def change_to_movies_single(self,*args):
+        print(ScMaMovies)
+
+        ScMaMovies.add_widget(MoviesViewMainSingle(self.megs))
+        ScMaMovies.current = 'mvms'
 
 class SeriesView(Screen):
     def __init__(self, **kwargs):
