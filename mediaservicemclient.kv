@@ -336,6 +336,20 @@
 #        Label:
 #            text: root.name
 
+
+<MoviesViewMain>:
+    BoxLayout:
+        orientation: 'vertical'
+        id: movies_view_main_container
+        opacity: 1
+        canvas.before:
+            Color:
+                rgba: hex('#ffa500')
+            Rectangle:
+                # self here refers to the widget i.e BoxLayout
+                pos: self.pos
+                size: self.size
+
 <MoviesView>:
     name: 'movies_view'
     BoxLayout:
@@ -389,3 +403,16 @@
             # self here refers to the widget i.e BoxLayout
             pos: self.pos
             size: self.size
+<MoviesViewMainSingle>:
+    BoxLayout:
+        id: mvmsingle
+        orientation: 'vertical'
+    #    size:(400, 400)
+#        size_hint:(None, None)
+        canvas.before:
+            Color:
+                rgba: hex('#000000')
+            Rectangle:
+                # self here refers to the widget i.e BoxLayout
+                pos: self.pos
+                size: self.size
