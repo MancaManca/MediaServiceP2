@@ -27,8 +27,12 @@ import threading
 import json
 import requests
 
-hashed_dic = {}
-hashed_dic_grouop = {}
+hashed_dic_shows = {}
+hashed_dic_show = {}
+hashed_dic_movie = {}
+hashed_dic_movies = {}
+hashed_dic_search = {}
+
 class ApiContentError(Exception):
     """An API Content Error Exception"""
 
@@ -129,9 +133,6 @@ def api_request_handler(_response):
         raise ApiContentError('Error response type {}'.format(_response.headers['Content-Type']))
     if _response.status_code != 200:
         raise ApiError('Error occurred: {}'.format(_response.status_code))
-    # print('Got response: {}'.format(_response.json()))
-    # print(json.dumps(_response.json(), sort_keys=True, indent=4))
-    get_hashed_json_dic(hash_item(_response.json()))
 
 
 # pippp = Shows().get_pages()
@@ -142,42 +143,53 @@ def api_request_handler(_response):
 # pippp = Movies(keywords='mission impossible', order='1', sort='name').get_search()
 # pippp = Movies(_id = 'tt0120755').get_search_by_id()
 
-def item_level_():
-    pass
 def hash_item_m(x):
-    to_hash = '{}'.format(i['_id'])
-    to_hash = to_hash.encode()
-    hashed = SHA256.new(to_hash).hexdigest()
+    to_hash = '{}'.format(x)
+    hashed_item = SHA256.new(to_hash.encode()).hexdigest()
+    return  hashed_item
 
-def hash_item(__json_in): # requires JSON object
+def hash_item(__json_in, method_flag): # requires JSON object
     # print(type(__json_in))
     __json_hashed_out = {}
-    for i in __json_in:
-        print(i)
-        to_hash = '{}'.format(i['_id'])
-        to_hash = to_hash.encode()
-        hashed = SHA256.new(to_hash).hexdigest()
+    if method_flag:
+        print('going for multi flag {}'.format(method_flag))
+        for i in __json_in:
+            hashed = hash_item_m(i['_id'])
+            __json_hashed_out[hashed] = i
+    else:
+        print('going for multi flag {}'.format(method_flag))
+        hashed = hash_item_m(__json_in['_id'])
+        __json_hashed_out[hashed] = __json_in
 
-        populate_hashed_table(hashed, i['_id'])
-        __json_hashed_out[hashed] = i
+
 
     return __json_hashed_out
 
-def get_hashed_json_dic(__json_hashed_in):
+def populate_hashed_json_dic(__json_hashed_in, to_dic):
 
+    to_dic.clear()
     for i in __json_hashed_in:
+        to_dic[i] = __json_hashed_in[i]
+    print('populated dic')
+def api_request_controler(_api_call_response):
 
-        # print('>'*90)
-        # Logger.info('>'*90)
-        # to_hash = 'b"{}"'.format(i)
-        # Logger.info('{} {} '.format(i, __json_hashed_in[i]))
-        # hashlib.sha224(to_hash).hexdigest()
-        # Logger.info('>'*90)
-        # Logger.info('\n')
-        hashed_dic_grouop[i] = __json_hashed_in[i]
+    if Shows().short_url in _api_call_response.url:
+        populate_hashed_json_dic(hash_item(_api_call_response.json(), False), hashed_dic_show)
+    if Movies().short_url in _api_call_response.url:
+        populate_hashed_json_dic(hash_item(_api_call_response.json(), False), hashed_dic_movie)
+    if Movies().url in _api_call_response.url:
+        populate_hashed_json_dic(hash_item(_api_call_response.json(), True), hashed_dic_movies)
+    if Shows().url in _api_call_response.url:
+        populate_hashed_json_dic(hash_item(_api_call_response.json(), True), hashed_dic_shows)
 
-def populate_hashed_table(_key, _pair):
-    hashed_dic[_key] = _pair
+def get_api(_api_call):
+    print(_api_call.url)
+
+    try:
+        api_request_handler(_api_call)
+        api_request_controler(_api_call)
+    except Exception as e:
+        print(e)
 #######################################____________API_REQUESTS___________________######################################
 
 
@@ -279,12 +291,81 @@ class Progression(Screen):
             self.manager.switch_to(ScanView(),transition=FadeTransition(), duration=1)
 
 
+class MoviesViewMainSingle(Screen):
+    def __init__(self, **kwargs):
+        super(MoviesViewMainSingle, self).__init__(**kwargs)
+        self.name = 'mvms'
+        self.blak = self
+        Logger.info('MoviesViewMainSingle: Initialized {}'.format(self))
+        self.add_widget(Label(text=self.name))
+        self.add_widget(Button(text='back',on_press = self.go_back_to_movies))
 
+
+    def go_back_to_movies(self,*args):
+        self.manager.current = 'movies view main screen'
+        self.manager.remove_widget(self.blak)
+    # def change_to_movies_single
+class MoviesViewMain(Screen):
+    def __init__(self, **kwargs):
+        super(MoviesViewMain, self).__init__(**kwargs)
+        Logger.info('MoviesViewMain: Initialized {}'.format(self))
+        self.name = 'movies view main screen'
+        self.add_widget(Button(text='go to single movie',on_press = self.change_to_movies_single,size_hint_y=0.1))
+
+        movies_layout = GridLayout(cols=3, padding=50, spacing=50,
+                            size_hint=(None, None), width=ViewControl.width_x - 30)
+
+        # when we add children to the grid layout, its size doesn't change at
+        # all. we need to ensure that the height will be the minimum required
+        # to contain all the childs. (otherwise, we'll child outside the
+        # bounding box of the childs)
+        movies_layout.bind(minimum_height=movies_layout.setter('height'))
+
+        movies_scroll_list = ScrollView(size_hint=(None, None), size=(ViewControl.width_x - 20, ViewControl.height_x - 190),
+                          pos_hint={'center_x': .5, 'center_y': .5}, do_scroll_x=False)
+        movies_scroll_list.add_widget(movies_layout)
+        # print(self.ids)
+        self.ids.movies_view_main_container.add_widget(movies_scroll_list)
+
+        # pippp = Shows(genre='animation', order='1', sort='name').get_search()
+        # check_api_validity(pippp)
+        # Logger.info(json.dumps(pippp.json(), sort_keys=True, indent=4))
+
+        # _items = Item()
+        # _items.add_widget(AsyncImage(source=hashed_dic_grouop['6b43cd1e32c32983ff0b1a520812ecc7b008c32097ead5812168d33967246151']['images']['poster']))
+        # self.add_widget(_items)
+        for kk in hashed_dic_movies:
+            #     print('{}----{}'.format(kk, hashed_dic_grouop[kk]))
+            _items = Item(hashed_dic_movies[kk]['_id'])
+            _items.size = ((Window.size[0] / 3) - 80, (Window.size[1] / 2) - 30)
+            try:
+                _items.add_widget(AsyncImage(source=hashed_dic_movies[kk]['images']['poster'], nocache=True))
+            except Exception as e:
+                pass
+                Logger.info('No image setting default cause of {}'.format(e))
+                _items.add_widget(Image(source='images/logo.png'))
+            _items.add_widget(Label(text=hashed_dic_movies[kk]['title'], size_hint_y=.1,text_size=(250, None),shorten_from='right',halign='center',shorten=True))
+
+            movies_layout.add_widget(_items)
+
+
+    def change_to_movies_single(self,*args):
+        print(self.manager)
+
+        self.manager.add_widget(MoviesViewMainSingle())
+        self.manager.current = 'mvms'
+class ScMaMovies(ScreenManager):
+    def __init__(self, **kwargs):
+        super(ScMaMovies, self).__init__(**kwargs)
+        Logger.info('ScMaMovies: Initialized {}'.format(self))
+        self.add_widget(MoviesViewMain())
 class MoviesView(Screen):
     def __init__(self, **kwargs):
         super(MoviesView, self).__init__(**kwargs)
         Logger.info('MoviesView: Initialized {}'.format(self))
         Clock.schedule_once(self.pr, 9)
+
+        self.add_widget(ScMaMovies())
     def set_to_cur(self, scn, *args):
         self.manager.current = scn
     def pr(self, *args):
@@ -301,6 +382,7 @@ class Item(BoxLayout):
         super(Item, self).__init__(**kwargs)
         Logger.info('Item: Initialized {}'.format(self))
         self.megs = sname
+        print(self.megs)
         self.popup = Popup(title='Test popup',
                       content=Label(text=self.megs),
                       size_hint=(None, None), size=(600, 600))
@@ -319,20 +401,20 @@ class SeriesView(Screen):
 
         Clock.schedule_once(self.pr, 9)
 
-        layout = GridLayout(cols=3, padding=50, spacing=50,
+        shows_layout = GridLayout(cols=3, padding=50, spacing=50,
                             size_hint=(None, None), width=ViewControl.width_x-30)
 
         # when we add children to the grid layout, its size doesn't change at
         # all. we need to ensure that the height will be the minimum required
         # to contain all the childs. (otherwise, we'll child outside the
         # bounding box of the childs)
-        layout.bind(minimum_height=layout.setter('height'))
+        shows_layout.bind(minimum_height=shows_layout.setter('height'))
 
-        oooo = ScrollView(size_hint=(None, None), size=(ViewControl.width_x-20, ViewControl.height_x-150),
+        shows_scroll_list = ScrollView(size_hint=(None, None), size=(ViewControl.width_x-20, ViewControl.height_x-190),
                           pos_hint={'center_x': .5, 'center_y': .5}, do_scroll_x=False)
-        oooo.add_widget(layout)
+        shows_scroll_list.add_widget(shows_layout)
         # print(self.ids)
-        self.ids.series_view_container.add_widget(oooo)
+        self.ids.series_view_container.add_widget(shows_scroll_list)
 
         # pippp = Shows(genre='animation', order='1', sort='name').get_search()
         # check_api_validity(pippp)
@@ -342,19 +424,19 @@ class SeriesView(Screen):
         # _items = Item()
         # _items.add_widget(AsyncImage(source=hashed_dic_grouop['6b43cd1e32c32983ff0b1a520812ecc7b008c32097ead5812168d33967246151']['images']['poster']))
         # self.add_widget(_items)
-        for kk in hashed_dic_grouop:
+        for kk in hashed_dic_shows:
         #     print('{}----{}'.format(kk, hashed_dic_grouop[kk]))
-            _items = Item(hashed_dic_grouop[kk]['_id'])
+            _items = Item(hashed_dic_shows[kk]['_id'])
             _items.size = ((Window.size[0]/3)-80,(Window.size[1]/2)-30)
             try:
-                _items.add_widget(AsyncImage(source=hashed_dic_grouop[kk]['images']['poster'],nocache=True))
-            except KeyError:
-                Logger.info('No image setting default')
+                _items.add_widget(AsyncImage(source=hashed_dic_shows[kk]['images']['poster'],nocache=True))
+            except Exception as e:
+                pass
+                Logger.info('No image setting default cause of {}'.format(e))
                 _items.add_widget(Image(source='images/logo.png'))
-            _items.add_widget(Label(text=hashed_dic_grouop[kk]['title'],size_hint_y=.1))
+            _items.add_widget(Label(text=hashed_dic_shows[kk]['title'],size_hint_y=.1))
 
-             
-            layout.add_widget(_items)
+            shows_layout.add_widget(_items)
         #     _items.add_widget(Label(text=hashed_dic_grouop[kk]['title']))
         #
         #
@@ -483,10 +565,14 @@ class ScanView(Screen):
 
     def start_service(self, *args):
         # pippp = Shows(order='1', sort='name').get_search()
-        pippp = Shows(_id = 'tt4209752').get_search_by_id()
+        """get inital latest movies and series, populate shows dictionary populate movies dicionary"""
+        get_api(Shows(order='-1', sort='name').get_search())
+        get_api(Movies(order='-1', sort='name').get_search())
+        """"""
+        # pippp = Shows(_id = 'tt4209752').get_search_by_id()
 
         # pippp = Movies(order='1', sort='name').get_search()
-        api_request_handler(pippp)
+        # api_request_handler(pippp)
         # Logger.info(json.dumps(pippp.json(), sort_keys=True, indent=4))
 
         # for kk in hashed_dic_grouop:
@@ -497,11 +583,11 @@ class ScanView(Screen):
         # for i in hashed_dic:
         #     print('{} {} '.format(i, hashed_dic[i]))
 
-    def get_u(self, vz, *args):
-
-        Logger.info(hashed_dic[vz])
-        pipd = Shows(_id=hashed_dic[vz]).get_search_by_id()
-        Logger.info(json.dumps(pipd.json(), sort_keys=True, indent=4))
+    # def get_u(self, vz, *args):
+    #
+    #     Logger.info(hashed_dic[vz])
+    #     pipd = Shows(_id=hashed_dic[vz]).get_search_by_id()
+    #     Logger.info(json.dumps(pipd.json(), sort_keys=True, indent=4))
 
 #################################_________________API_IMPL__________________________####################################
 

@@ -336,6 +336,20 @@
 #        Label:
 #            text: root.name
 
+
+<MoviesViewMain>:
+    BoxLayout:
+        orientation: 'vertical'
+        id: movies_view_main_container
+        opacity: 1
+        canvas.before:
+            Color:
+                rgba: hex('#ffa500')
+            Rectangle:
+                # self here refers to the widget i.e BoxLayout
+                pos: self.pos
+                size: self.size
+
 <MoviesView>:
     name: 'movies_view'
     BoxLayout:
