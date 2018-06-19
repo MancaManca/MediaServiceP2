@@ -1,17 +1,17 @@
+from kivy import Logger
 from kivy.app import App
 from kivy.clock import mainthread, Clock
 from kivy.core.window import Window
 from kivy.metrics import dp
-from kivy.properties import ObjectProperty, Logger
+from kivy.properties import ObjectProperty
 from kivy.storage.jsonstore import JsonStore
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.button import Button
 from kivy.uix.gridlayout import GridLayout
-from kivy.uix.image import AsyncImage
+from kivy.uix.image import AsyncImage, Image
 from kivy.uix.label import Label
 from kivy.uix.popup import Popup
-from kivy.uix.screenmanager import ScreenManager, Screen, FadeTransition, SwapTransition, RiseInTransition, \
-    CardTransition
+from kivy.uix.screenmanager import ScreenManager, Screen, FadeTransition
 from kivy.uix.scrollview import ScrollView
 
 from kivy.utils import get_color_from_hex
@@ -124,7 +124,7 @@ class Shows(api):
         if keywords:
             self.query['keywords'] = str(keywords).replace(' ', '%20')
 
-def check_api_validity(_response):
+def api_request_handler(_response):
     if 'application/json' not in _response.headers['Content-Type']:
         raise ApiContentError('Error response type {}'.format(_response.headers['Content-Type']))
     if _response.status_code != 200:
@@ -142,12 +142,18 @@ def check_api_validity(_response):
 # pippp = Movies(keywords='mission impossible', order='1', sort='name').get_search()
 # pippp = Movies(_id = 'tt0120755').get_search_by_id()
 
+def item_level_():
+    pass
+def hash_item_m(x):
+    to_hash = '{}'.format(i['_id'])
+    to_hash = to_hash.encode()
+    hashed = SHA256.new(to_hash).hexdigest()
 
 def hash_item(__json_in): # requires JSON object
     # print(type(__json_in))
     __json_hashed_out = {}
     for i in __json_in:
-
+        print(i)
         to_hash = '{}'.format(i['_id'])
         to_hash = to_hash.encode()
         hashed = SHA256.new(to_hash).hexdigest()
@@ -200,10 +206,13 @@ class Connector:
         try:
             # self.sock = socket.create_connection(source_address=(self.host, self.port))
             self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            self.sock.settimeout(3)
             self.sock.connect((host,port))
             self.receive()
         except:
             print'bla'
+            self.server_state = False
+
             pass
 
 
@@ -216,6 +225,8 @@ class Connector:
                 self.receive()
             except:
                 pass
+        else:
+            Logger.info('No connection to server')
 
 
     def receive(self, *args):
@@ -245,26 +256,21 @@ class Progression(Screen):
     def __init__(self, **kwargs):
         super(Progression, self).__init__(**kwargs)
         Logger.info('Progression: Initialized {}'.format(self))
-        # print(' progression {}'.format(self.parent))
 
         # self.sch_event = Clock.schedule_interval(self.progression_bar, 0.09)
-        self.sch_event = Clock.schedule_interval(self.progression_bar, 1/60)
+        self.sch_event = Clock.schedule_interval(self.progression_bar_handler, 1/60)
 
-
-        # self.start_scan()
-
-
-    def progression_bar(self, *args):
+    def progression_bar_handler(self, *args):
         # Logger.info('Progression: Progress Bar progress {}'.format(self.ids.pb.value))
 
         # print(self.ids.zz.size_hint_x)
         if self.ids.pb.value < 100:
-            self.ids.pb.value += 1
+            self.ids.pb.value += 1 #add value to progress bar
             # self.ids.dynamic_progress.size_hint_x += 0.01
             # self.ids.static_progress.size_hint_x -= 0.01
             # self.ids.dv.size_hint_x -= 0.01
-            self.ids.dv.opacity -= 0.01
-            self.ids.dd.opacity += 0.01
+            self.ids.dv.opacity -= 0.01 # fade out overlay
+            self.ids.dd.opacity += 0.01 # fade in main image
         else:
             Logger.info('Progression: Progress bar scheduler event stopped')
 
@@ -340,7 +346,11 @@ class SeriesView(Screen):
         #     print('{}----{}'.format(kk, hashed_dic_grouop[kk]))
             _items = Item(hashed_dic_grouop[kk]['_id'])
             _items.size = ((Window.size[0]/3)-80,(Window.size[1]/2)-30)
-            _items.add_widget(AsyncImage(source=hashed_dic_grouop[kk]['images']['poster'],nocache=True))
+            try:
+                _items.add_widget(AsyncImage(source=hashed_dic_grouop[kk]['images']['poster'],nocache=True))
+            except KeyError:
+                Logger.info('No image setting default')
+                _items.add_widget(Image(source='images/logo.png'))
             _items.add_widget(Label(text=hashed_dic_grouop[kk]['title'],size_hint_y=.1))
 
              
@@ -460,10 +470,11 @@ class ScanView(Screen):
     def __init__(self, **kwargs):
         super(ScanView, self).__init__(**kwargs)
         Logger.info('ScanView: Initialized {}'.format(self))
-        self.llist = self.urls_list
-        for it in self.llist:
+
+        self._urls_list = self.urls_list
+        for it in self._urls_list:
             # print(it)
-            self.ids.scan_view_container.add_widget(Button(text='{}/{}'.format(it, self.llist[it]), on_press=self.set_as_host))
+            self.ids.scan_view_container.add_widget(Button(text='{}/{}'.format(it, self._urls_list[it]), on_press=self.set_as_host))
 
 #################################_________________API_IMPL__________________________####################################
 
@@ -471,8 +482,11 @@ class ScanView(Screen):
 
 
     def start_service(self, *args):
-        pippp = Shows(order='1', sort='name').get_search()
-        check_api_validity(pippp)
+        # pippp = Shows(order='1', sort='name').get_search()
+        pippp = Shows(_id = 'tt4209752').get_search_by_id()
+
+        # pippp = Movies(order='1', sort='name').get_search()
+        api_request_handler(pippp)
         # Logger.info(json.dumps(pippp.json(), sort_keys=True, indent=4))
 
         # for kk in hashed_dic_grouop:
@@ -535,20 +549,19 @@ class ViewControl(ScreenManager):
         super(ViewControl, self).__init__(**kwargs)
         Logger.info('ViewControl: Initialized {}'.format(self))
 
-        self.t1 = threading.Thread(name="Hello1", target=self.start_loading_screen())
+        self.t1 = threading.Thread(name="Loading screen", target=self.init_loading_screen())
         self.t1.start()
 
         for _subnet in range(9,13):
 
-            self.thr = threading.Thread(target=self.scanner, args=(_subnet,))
-            self.thr.start()
+            self.t2 = threading.Thread(target=self.scan_network, args=(_subnet,))
+            self.t2.start()
 
-    def start_loading_screen(self, *args):
+    def init_loading_screen(self, *args):
         self.add_widget(Progression(name='loading'))
 
-    def scanner(self ,_subnet, *args):
+    def scan_network(self ,_subnet, *args):
         # Logger.info('entered scanner for {}'.format(threading.currentThread().getName()))
-
 
         network = '192.168.0.{}'.format(_subnet)
         Logger.info('Scanner for {}'.format(network))
@@ -556,9 +569,9 @@ class ViewControl(ScreenManager):
         s = So()
 
         try:
-            _socker = s.sock.connect_ex((network, 8000))
+            _socket = s.sock.connect_ex((network, 8000))
 
-            if _socker == 0:
+            if _socket == 0:
                 Logger.info('Found online at {}'.format(network))
 
                 responded_msgs = s.sock.recv(2048)
@@ -566,7 +579,7 @@ class ViewControl(ScreenManager):
                 s.sock.close()
 
             else:
-                Logger.info('{} responded {}'.format(network, _socker))
+                Logger.info('{} responded {}'.format(network, _socket))
 
         finally:
             s.sock.close()
@@ -593,9 +606,7 @@ class MediaServiceMclientApp(App):
 
 
 if __name__ == '__main__':
-    try:
-        MediaServiceMclientApp().run()
-    except KeyError:
-        Logger.info('Image could not be loaded')
-        pass
+
+    MediaServiceMclientApp().run()
+
 
