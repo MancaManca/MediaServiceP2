@@ -10,9 +10,11 @@ from kivy.uix.button import Button
 from kivy.uix.gridlayout import GridLayout
 from kivy.uix.image import AsyncImage, Image
 from kivy.uix.label import Label
+from kivy.uix.modalview import ModalView
 from kivy.uix.popup import Popup
 from kivy.uix.screenmanager import ScreenManager, Screen, FadeTransition
 from kivy.uix.scrollview import ScrollView
+from kivy.uix.stacklayout import StackLayout
 
 from kivy.utils import get_color_from_hex
 from Crypto.Hash import SHA256
@@ -152,12 +154,12 @@ def hash_item(__json_in, method_flag): # requires JSON object
     # print(type(__json_in))
     __json_hashed_out = {}
     if method_flag:
-        print('going for multi flag {}'.format(method_flag))
+        Logger.info('going for multi flag {}'.format(method_flag))
         for i in __json_in:
             hashed = hash_item_m(i['_id'])
             __json_hashed_out[hashed] = i
     else:
-        print('going for multi flag {}'.format(method_flag))
+        Logger.info('going for multi flag {}'.format(method_flag))
         hashed = hash_item_m(__json_in['_id'])
         __json_hashed_out[hashed] = __json_in
 
@@ -170,7 +172,7 @@ def populate_hashed_json_dic(__json_hashed_in, to_dic):
     to_dic.clear()
     for i in __json_hashed_in:
         to_dic[i] = __json_hashed_in[i]
-    print('populated dic')
+    Logger.info('populated dic')
 def api_request_controler(_api_call_response):
 
     if Shows().short_url in _api_call_response.url:
@@ -183,13 +185,13 @@ def api_request_controler(_api_call_response):
         populate_hashed_json_dic(hash_item(_api_call_response.json(), True), hashed_dic_shows)
 
 def get_api(_api_call):
-    print(_api_call.url)
+    Logger.info(_api_call.url)
 
     try:
         api_request_handler(_api_call)
         api_request_controler(_api_call)
     except Exception as e:
-        print(e)
+        Logger.info(e)
 #######################################____________API_REQUESTS___________________######################################
 
 
@@ -222,7 +224,7 @@ class Connector:
             self.sock.connect((host,port))
             self.receive()
         except:
-            print'bla'
+            Logger.info('no connection to server')
             self.server_state = False
 
             pass
@@ -302,9 +304,9 @@ class MoviesViewMainSingle(Screen):
         self.ids.mvmsingle.add_widget(Button(text='back',on_press = self.go_back_to_movies))
         get_api(Movies(_id = self.movie_id).get_search_by_id())
         for i in hashed_dic_movie:
-            print(i)
+            # print(i)
             for b in hashed_dic_movie[i]:
-                print(b)
+                # print(b)
                 self.ids.mvmsingle.add_widget(Label(text=b))
 
 
@@ -319,9 +321,9 @@ class MoviesViewMain(Screen):
         super(MoviesViewMain, self).__init__(**kwargs)
         Logger.info('MoviesViewMain: Initialized {}'.format(self))
         self.name = 'movies view main screen'
-        self.add_widget(Button(text='go to single movie',on_press = self.change_to_movies_single,size_hint_y=0.1))
+        # self.add_widget(Button(text='go to single movie',on_press = self.change_to_movies_single,size_hint_y=0.1))
 
-        movies_layout = GridLayout(cols=3, padding=50, spacing=50,
+        movies_layout = GridLayout(cols=3, padding=20, spacing=20,
                             size_hint=(None, None), width=ViewControl.width_x - 30)
 
         # when we add children to the grid layout, its size doesn't change at
@@ -330,8 +332,8 @@ class MoviesViewMain(Screen):
         # bounding box of the childs)
         movies_layout.bind(minimum_height=movies_layout.setter('height'))
 
-        movies_scroll_list = ScrollView(size_hint=(None, None), size=(ViewControl.width_x - 20, ViewControl.height_x - 190),
-                          pos_hint={'center_x': .5, 'center_y': .5}, do_scroll_x=False)
+        movies_scroll_list = ScrollView(size_hint=(None, None), size=(ViewControl.width_x - 20, ViewControl.height_x - 150),
+                          pos_hint={'center_x': 0.5, 'center_y': 1}, do_scroll_x=False)
         movies_scroll_list.add_widget(movies_layout)
         # print(self.ids)
         self.ids.movies_view_main_container.add_widget(movies_scroll_list)
@@ -346,21 +348,21 @@ class MoviesViewMain(Screen):
         for kk in hashed_dic_movies:
             #     print('{}----{}'.format(kk, hashed_dic_grouop[kk]))
             _items = Item(hashed_dic_movies[kk]['_id'])
-            _items.size = ((Window.size[0] / 3) - 80, (Window.size[1] / 2) - 30)
+            _items.size = ((Window.size[0] / 3) - 30, (Window.size[1] / 2) - 100)
             try:
                 _items.add_widget(AsyncImage(source=hashed_dic_movies[kk]['images']['poster'], nocache=True))
             except Exception as e:
                 pass
                 Logger.info('No image setting default cause of {}'.format(e))
                 _items.add_widget(Image(source='images/logo.png'))
-            _items.add_widget(Label(text=hashed_dic_movies[kk]['title'], size_hint_y=.1,text_size=(250, None),shorten_from='right',halign='center',shorten=True))
-            _items.add_widget(Button(text = 'show',on_press = lambda x: self.change_to_movies_single(hashed_dic_movies[kk]['_id'])))
+            _items.add_widget(Label(text=hashed_dic_movies[kk]['title'], size_hint_y=.1,text_size=(170, None),shorten_from='right',halign='center',shorten=True))
+            _items.add_widget(Button(text = 'show',on_press = lambda x: self.change_to_movies_single(hashed_dic_movies[kk]['_id']),size_hint_y=.1))
 
             movies_layout.add_widget(_items)
 
 
     def change_to_movies_single(self, x,*args):
-        print(self.manager)
+        # print(self.manager)
 
         self.manager.add_widget(MoviesViewMainSingle(x))
         self.manager.current = 'mvms'
@@ -369,13 +371,26 @@ class ScMaMovies(ScreenManager):
         super(ScMaMovies, self).__init__(**kwargs)
         Logger.info('ScMaMovies: Initialized {}'.format(self))
         self.add_widget(MoviesViewMain())
+# class Paginator(StackLayout):
+#     def __init__(self, **kwargs):
+#         super(Paginator, self).__init__(**kwargs)
+#         Logger.info('Paginator: Initialized {}'.format(self))
+
 class MoviesView(Screen):
     def __init__(self, **kwargs):
         super(MoviesView, self).__init__(**kwargs)
         Logger.info('MoviesView: Initialized {}'.format(self))
         Clock.schedule_once(self.pr, 9)
 
-        self.add_widget(ScMaMovies())
+
+        self.paginator = GridLayout(rows=1,cols=5,padding=5, spacing=5)
+        for i in range(1,5):
+            btn = Button(text=str(i),on_press=lambda instance: self.set_p(instance))
+            self.paginator.add_widget(btn)
+        self.ids.pag_holder.add_widget(self.paginator)
+
+        self.ids.mov_view_holder.add_widget(ScMaMovies())
+
     def set_to_cur(self, scn, *args):
         self.manager.current = scn
     def pr(self, *args):
@@ -384,6 +399,18 @@ class MoviesView(Screen):
         # print(' MainView {}'.format(self.parent))
         # print(self.manager.screen_names)
         pass
+
+    def set_p(instance,num,*args):
+        # print(self)
+        # print(num)
+        # print('num {}'.format(num.text))
+        # print('ist {}'.format(instance))
+        # print(instance.ids.mov_view_holder.children)
+        instance.ids.mov_view_holder.remove_widget(instance.ids.mov_view_holder.children[0])
+        get_api(Movies(page=num.text,inorder='-1', sort='name').get_search())
+
+        instance.ids.mov_view_holder.add_widget(ScMaMovies())
+
     pass
 
 
@@ -392,7 +419,7 @@ class Item(BoxLayout):
         super(Item, self).__init__(**kwargs)
         Logger.info('Item: Initialized {}'.format(self))
         self.megs = sname
-        print(self.megs)
+        # print(self.megs)
         self.popup = Popup(title='Test popup',
                       content=Label(text=self.megs),
                       size_hint=(None, None), size=(600, 600))
@@ -402,7 +429,7 @@ class Item(BoxLayout):
         self.popup.open()
 
     def change_to_movies_single(self,*args):
-        print(ScMaMovies)
+        # print(ScMaMovies)
 
         ScMaMovies.add_widget(MoviesViewMainSingle(self.megs))
         ScMaMovies.current = 'mvms'
@@ -427,7 +454,7 @@ class SeriesView(Screen):
         # bounding box of the childs)
         shows_layout.bind(minimum_height=shows_layout.setter('height'))
 
-        shows_scroll_list = ScrollView(size_hint=(None, None), size=(ViewControl.width_x-20, ViewControl.height_x-190),
+        shows_scroll_list = ScrollView(size_hint=(None, None), size=(ViewControl.width_x-20, ViewControl.height_x-300),
                           pos_hint={'center_x': .5, 'center_y': .5}, do_scroll_x=False)
         shows_scroll_list.add_widget(shows_layout)
         # print(self.ids)
@@ -540,6 +567,10 @@ class MainViewScManager(ScreenManager):
         self.add_widget(MoviesView())
         self.add_widget(SeriesView())
 
+class FilterModalView(ModalView):
+    def __init__(self, **kwargs):
+        super(FilterModalView, self).__init__(**kwargs)
+        Logger.info('FilterModalView: Initialized {}'.format(self))
 
 class MainView(Screen):
     def __init__(self, **kwargs):
@@ -550,6 +581,10 @@ class MainView(Screen):
         self.ids.screen_m_container.add_widget(self.scm)
         # print(self.ids)
 
+        self.view = ModalView(auto_dismiss=True,size_hint=(None, None), size=(400, 400))
+        self.view.add_widget(Label(text='Hello world'))
+    def op_m(self, *args):
+        self.view.open()
     def set_to_cur(self, scn, *args):
         self.scm.current = scn
     def pr(self, *args):
@@ -562,6 +597,9 @@ class MainView(Screen):
             self.manager.switch_to(SettingsView(), transition=FadeTransition())
         else:
             self.manager.current = 'settings'
+
+    # def change_to_search(self,*args):
+    #     self.scm.current = 'search_view'
     pass
 
 class ScanView(Screen):
@@ -586,25 +624,7 @@ class ScanView(Screen):
         get_api(Shows(order='-1', sort='name').get_search())
         get_api(Movies(order='-1', sort='name').get_search())
         """"""
-        # pippp = Shows(_id = 'tt4209752').get_search_by_id()
 
-        # pippp = Movies(order='1', sort='name').get_search()
-        # api_request_handler(pippp)
-        # Logger.info(json.dumps(pippp.json(), sort_keys=True, indent=4))
-
-        # for kk in hashed_dic_grouop:
-        #     self.thr = threading.Thread(target=self.get_u, args=(kk,))
-        #     self.thr.start()
-            # self.get_u(kk)
-
-        # for i in hashed_dic:
-        #     print('{} {} '.format(i, hashed_dic[i]))
-
-    # def get_u(self, vz, *args):
-    #
-    #     Logger.info(hashed_dic[vz])
-    #     pipd = Shows(_id=hashed_dic[vz]).get_search_by_id()
-    #     Logger.info(json.dumps(pipd.json(), sort_keys=True, indent=4))
 
 #################################_________________API_IMPL__________________________####################################
 
