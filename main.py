@@ -3,10 +3,11 @@ from kivy.app import App
 from kivy.clock import mainthread, Clock
 from kivy.core.window import Window
 from kivy.metrics import dp
-from kivy.properties import ObjectProperty
+from kivy.properties import ObjectProperty, BooleanProperty, StringProperty
 from kivy.storage.jsonstore import JsonStore
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.button import Button
+from kivy.uix.checkbox import CheckBox
 from kivy.uix.gridlayout import GridLayout
 from kivy.uix.image import AsyncImage, Image
 from kivy.uix.label import Label
@@ -14,17 +15,58 @@ from kivy.uix.modalview import ModalView
 from kivy.uix.popup import Popup
 from kivy.uix.screenmanager import ScreenManager, Screen, FadeTransition
 from kivy.uix.scrollview import ScrollView
-
 from kivy.utils import get_color_from_hex
+
 from Crypto.Hash import SHA256
 
-
+import requests
 import socket
 import threading
 
+#######################################____________SCAN___________________######################################
+
+
+def scan_network_for_single_connection(_subnet):
+    Logger.info('Network scanning initializes on thread {}'.format(threading.currentThread().getName()))
+
+    network_address = '192.168.0.{}'.format(_subnet)
+    Logger.info('Scanner for {}'.format(network_address))
+    # network = '10.85.180.{}'.format(_subnet)
+    s = So()
+
+    try:
+        _socket = s.sock.connect_ex((network_address, 8000))
+
+        if _socket == 0:
+            Logger.info('Found online at {}'.format(network_address))
+
+            responded_msgs = s.sock.recv(2048)
+            # ScanView.urls_list[network_address] = str(responded_msgs.decode())
+            scanned_online_urls[network_address] = str(responded_msgs.decode())
+
+            Logger.info('Server on address {} responded with message {}'.format(network_address,
+                                                                                str(responded_msgs.decode())))
+            s.sock.close()
+
+        else:
+            Logger.info('{} responded {}'.format(network_address, _socket))
+
+    finally:
+        s.sock.close()
+        Logger.info(
+            'Current :{} Exiting for {} and closing {}'.format(threading.currentThread().getName(), _subnet, s))
+
+
+def start_scanning(*args):
+    for _subnet_in in range(9, 13):
+        t2 = threading.Thread(target=scan_network_for_single_connection, args=(_subnet_in,))
+        t2.start()
+
+#######################################____________SCAN___________________######################################
+
+
 #######################################____________API_REQUESTS___________________######################################
 
-import requests
 
 hashed_dic_shows = {}
 hashed_dic_show = {}
@@ -32,6 +74,8 @@ hashed_dic_movie = {}
 hashed_dic_movies = {}
 hashed_dic_search = {}
 scanned_online_urls = {}
+chosen_scanned_url = ''
+# current = None
 
 class ApiContentError(Exception):
     """An API Content Error Exception"""
@@ -207,6 +251,8 @@ class Connector:
             self.host = '192.168.0.10'
         self.port = 8000
         self.server_state = True
+        MainView.mika(True)
+
         self.connects(self.host, self.port)
 
     def connects(self, host, port, *args):
@@ -218,6 +264,8 @@ class Connector:
         except:
             Logger.info('no connection to server')
             self.server_state = False
+            # MainView.connection_status_indicator = False
+            MainView.mika(False)
 
             pass
 
@@ -240,6 +288,8 @@ class Connector:
             Logger.info('false')
 
             self.server_state = False
+            # MainView.connection_status_indicator = False
+            MainView.mika(False)
             try:
                 self.sock.close()
             except OSError:
@@ -249,6 +299,8 @@ class Connector:
 
         else:
             self.server_state = True
+            # MainView.connection_status_indicator = True
+            MainView.mika(True)
             Logger.info('true')
 
 #######################################____________CONNECTOR___________________#########################################
@@ -500,6 +552,8 @@ class FilterModalView(ModalView):
         Logger.info('FilterModalView: Initialized {}'.format(self))
 
 class MainView(Screen):
+    connection_status_indicator = BooleanProperty(None)
+
     def __init__(self, **kwargs):
         super(MainView, self).__init__(**kwargs)
         Logger.info('MainView: Initialized {}'.format(self))
@@ -507,9 +561,19 @@ class MainView(Screen):
         self.scm = MainViewScManager()
         self.ids.screen_m_container.add_widget(self.scm)
         # Logger.info(self.ids)
-
+        self.csi = self.connection_status_indicator
         self.view = ModalView(auto_dismiss=True,size_hint=(None, None), size=(Window.size[0]/2, Window.size[1]/2))
         self.view.add_widget(Label(text='Hello world'))
+        if not self.csi:
+            self.update_status_in(self.csi)
+            print(self.csi)
+        else:
+            self.update_status_in(self.csi)
+            print(self.csi)
+    @staticmethod
+    def mika(fl):
+        MainView.connection_status_indicator = fl
+        print('mika')
     def op_m(self, *args):
         self.view.open()
     def set_to_cur(self, scn, *args):
@@ -524,20 +588,60 @@ class MainView(Screen):
             self.manager.switch_to(SettingsView(), transition=FadeTransition())
         else:
             self.manager.current = 'settings'
-
+    def update_status_in(self, status_flagger_flag, *args):
+        print('123')
+        if status_flagger_flag:
+            self.ids.connection_status_ind_l.source = 'images/gr.png'
+        else:
+            self.ids.connection_status_ind_l.source = 'images/re.png'
     pass
 
-class ScanView(Screen):
+class ScanViewItem(BoxLayout):
+    def __init__(self, n, **kwargs):
+        super(ScanViewItem, self).__init__(**kwargs)
+        Logger.info('ScanViewItem: Initialized {}'.format(self))
+        self.nn = n
+        self.ids.scan_view_i_name.text = self.nn
 
+
+    def return_on_active_name(self, b, c,  *args):
+        print(ScanView.save_button)
+        if b:
+            chosen_scanned_url = c
+            ScanView.choosen_device = c
+            ScanView.save_button = False
+            print('when checked set button to enable')
+
+
+        else:
+            ScanView.choosen_device = b
+            ScanView.save_button = True
+            print('when checked set button to disable')
+
+
+            # ScanView.save_button.disabled = True
+
+        # print(self)
+        # print(b)
+        # print(c)
+class ScanView(Screen):
+    choosen_device = StringProperty()
+    save_button = BooleanProperty()
     def __init__(self, **kwargs):
         super(ScanView, self).__init__(**kwargs)
         Logger.info('ScanView: Initialized {}'.format(self))
 
         self._urls_list = scanned_online_urls
+        # self.choosen_device = self.choosen_device
+        # self.ids.save_chosen_device_and_go_to_main.disabled = True
+        # self.save_b = self.save_button
+        print(self.save_button)
 
-        for it in self._urls_list:
+        for _urls_list_item in self._urls_list:
             # Logger.info(it)
-            self.ids.scanned_devices_list.add_widget(Button(text='{}/{}'.format(it, self._urls_list[it]), on_press=self.set_as_host))
+            self.formated_dev_name_address = '{}/{}'.format(_urls_list_item, self._urls_list[_urls_list_item])
+
+            self.ids.scanned_devices_list_grid.add_widget(ScanViewItem(self.formated_dev_name_address))
 
 #################################_________________API_IMPL__________________________####################################
 
@@ -554,16 +658,35 @@ class ScanView(Screen):
 
 #################################_________________API_IMPL__________________________####################################
 
-    def set_as_host(parent, instance):
-        breaker = instance.text.find('/')
-        prepare_url = instance.text[:breaker]
-        # Logger.info(prepare_url)
-        Connector.url = prepare_url
+    def set_as_host(self, host_in):
+        if host_in:
+            print(host_in)
+            # print(instance)
+            # print(args)
+            breaker = host_in.find('/')
+            prepare_url = host_in[:breaker]
+            # # Logger.info(prepare_url)
+            Connector.url = prepare_url
+            return True
+        else:
+            print(host_in)
+            return False
 
     def pr(self, *args):
         # Logger.info(self.parent)
+        print('pr')
+        print(self.save_button)
+        print(self.ids.save_chosen_device_and_go_to_main.disabled )
+        # if self.set_as_host(self.choosen_device):
+        #     # self.ids.save_chosen_device_and_go_to_main.disabled = False
+        #     # self.manager.switch_to(MainView(), transition=FadeTransition(), duration=1)
+        #     print(self.choosen_device)
+        # else:
+        #     # self.ids.save_chosen_device_and_go_to_main.disabled = True
+        #     print(self.ids.save_chosen_device_and_go_to_main.disabled)
+
         # Logger.info(self.manager.screens)
-        self.manager.switch_to(MainView(), transition=FadeTransition(), duration=1)
+        # self.manager.switch_to(MainView(), transition=FadeTransition(), duration=1)
 
 
 
@@ -574,16 +697,18 @@ class SettingsView(Screen):
 
         self.settings_scanned_devices = scanned_online_urls
 
-        Clock.schedule_once(self.return_to_main_view, 9)
+        # Clock.schedule_once(self.return_to_main_view, 9)
         self.update_list_devices()
 
     def scan_again(self, *args):
         # ViewControl.start_scanning()
+        start_scanning()
         Clock.schedule_once(self.update_list_devices, 9)
     def update_list_devices(self, *args):
         self.ids.settings_view_container_list_container.clear_widgets()
         for i in self.settings_scanned_devices:
             self.ids.settings_view_container_list_container.add_widget(Label(text=self.settings_scanned_devices[i]))
+
     def return_to_main_view(self, *args):
         # Logger.info(self.parent)
         # Logger.info(self.manager.screens)
@@ -597,6 +722,7 @@ class So:
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.sock.settimeout(2)
         self.sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+
 class Progression(Screen):
 
     def __init__(self, **kwargs):
@@ -635,46 +761,10 @@ class ViewControl(ScreenManager):
         self.t1 = threading.Thread(name="Loading screen thread", target=self.init_loading_screen())
         self.t1.start()
 
-        self.start_scanning()
-
-    def scan_network_for_single_connection(self, _subnet):
-        Logger.info('Network scanning initializes on thread {}'.format(threading.currentThread().getName()))
-
-        network_address = '192.168.0.{}'.format(_subnet)
-        Logger.info('Scanner for {}'.format(network_address))
-        # network = '10.85.180.{}'.format(_subnet)
-        s = So()
-
-        try:
-            _socket = s.sock.connect_ex((network_address, 8000))
-
-            if _socket == 0:
-                Logger.info('Found online at {}'.format(network_address))
-
-                responded_msgs = s.sock.recv(2048)
-                # ScanView.urls_list[network_address] = str(responded_msgs.decode())
-                scanned_online_urls[network_address] = str(responded_msgs.decode())
-
-                Logger.info('Server on address {} responded with message {}'.format(network_address,
-                                                                                    str(responded_msgs.decode())))
-                s.sock.close()
-
-            else:
-                Logger.info('{} responded {}'.format(network_address, _socket))
-
-        finally:
-            s.sock.close()
-            Logger.info(
-                'Current :{} Exiting for {} and closing {}'.format(threading.currentThread().getName(), _subnet, s))
-
-    def start_scanning(self, *args):
-        for _subnet_in in range(9,13):
-            self.t2 = threading.Thread(target=self.scan_network_for_single_connection, args=(_subnet_in,))
-            self.t2.start()
+        start_scanning()
 
     def init_loading_screen(self, *args):
         self.add_widget(Progression(name='loading'))
-
 
 
 class MediaServiceMclientApp(App):

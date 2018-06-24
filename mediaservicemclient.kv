@@ -91,7 +91,7 @@
     name: 'scan'
     orientation: 'vertical'
     id: scan_view
-
+    save_button: save_chosen_device_and_go_to_main.disabled
 
     BoxLayout:
         orientation: 'vertical'
@@ -119,6 +119,14 @@
         BoxLayout:
             id: scanned_devices_list
             size_hint_y: .6
+            GridLayout:
+                id: scanned_devices_list_grid
+                cols:1
+                rows: 6
+                size_hint_y: 0.2
+                padding: 5,5,5,5
+                spacing: 5,5
+
         BoxLayout:
             id: scan_view_button_container
             size_hint_y: .2
@@ -126,7 +134,9 @@
             FloatLayout:
 
                 Button:
+                    id: save_chosen_device_and_go_to_main
                     text: 'save'
+                    disabled: None
                     size_hint_x: None
                     size_hint_y: None
                     pos_hint:{'center_x': 0.5, 'center_y': 0.5}
@@ -149,6 +159,7 @@
 <MainView>:
     name: 'main'
     orientation: 'vertical'
+    connection_status_indicator: status_flagger.active
     BoxLayout:
         id: main_view_c
         orientation: 'vertical'
@@ -212,6 +223,23 @@
     #                    pos_hint:{'center_x': 0.5, 'center_y': 0.5}
 
                         on_release: root.pr()
+                BoxLayout:
+                    id: connection_status_ind
+                    orientation: 'vertical'
+#                    pos_hint:{'center_x': 0.3, 'center_y': 0.5}
+#                    size_hint_y: None
+
+#                    size_hint_x: None
+                    CheckBox:
+                        id: status_flagger
+                        opacity: 0
+                        size_hint_y:0
+                        active: False
+                        on_active: root.update_status_in(self.active)
+                    Image:
+                        id: connection_status_ind_l
+                        source: 'images/gr.png'
+
             BoxLayout:
                 id: navigation_b
                 orientation: 'horizontal'
@@ -429,3 +457,25 @@
                 # self here refers to the widget i.e BoxLayout
                 pos: self.pos
                 size: self.size
+<ScanViewItem>:
+    id: scan_view_i
+    orientation: 'horizontal'
+    size_hint_y: .4
+#    size:(400, 400)
+#        size_hint:(None, None)
+    canvas.before:
+        Color:
+            rgba: hex('#ffa500')
+        Rectangle:
+            # self here refers to the widget i.e BoxLayout
+            pos: self.pos
+            size: self.size
+    Label:
+        id: scan_view_i_name
+        size_hint_x: .8
+        text: ''
+    CheckBox:
+        id: scan_view_i_check
+        size_hint_x: .2
+        group: 'address_setter'
+        on_press: root.return_on_active_name(self.active, scan_view_i_name.text)
