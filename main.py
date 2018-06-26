@@ -212,6 +212,7 @@ def populate_hashed_json_dic(__json_hashed_in, to_dic):
     for i in __json_hashed_in:
         to_dic[i] = __json_hashed_in[i]
     Logger.info('populated dic')
+
 def api_request_controler(_api_call_response):
 
     if Shows().short_url in _api_call_response.url:
@@ -310,7 +311,6 @@ class Connector:
 #######################################____________APP___________________#########################################
 
 
-
 class MoviesViewMainSingle(Screen):
     def __init__(self, movie_id, **kwargs):
         super(MoviesViewMainSingle, self).__init__(**kwargs)
@@ -405,11 +405,15 @@ class MoviesView(Screen):
         Clock.schedule_once(self.pr, 9)
 
 
-        self.paginator = GridLayout(rows=1,cols=5,padding=5, spacing=5)
-        for i in range(1,5):
-            btn = Button(text=str(i),on_press=lambda instance: self.set_p(instance))
-            self.paginator.add_widget(btn)
-        self.ids.pag_holder.add_widget(self.paginator)
+        self.movies_paginator = GridLayout(rows=1,cols=50,padding=5, spacing=5,size_hint=(None,None))
+        self.movies_paginator.bind(minimum_width=self.movies_paginator.setter('width'))
+        for i in range(1,50):
+            self.btn = Button(text=str(i),on_press=lambda instance: self.set_p(instance), size_hint=(None, None), size=(100,80))
+            self.movies_paginator.add_widget(self.btn)
+        self.scroll = ScrollView(size_hint=(1, 1), do_scroll_x=True, do_scroll_y=False)
+
+        self.scroll.add_widget(self.movies_paginator)
+        self.ids.movies_pag_holder.add_widget(self.scroll)
 
         self.ids.mov_view_holder.add_widget(ScMaMovies())
 
@@ -430,7 +434,7 @@ class MoviesView(Screen):
         # Logger.info('ist {}'.format(instance))
         # Logger.info(instance.ids.mov_view_holder.children)
         instance.ids.mov_view_holder.remove_widget(instance.ids.mov_view_holder.children[0])
-        get_api(Movies(page=num.text,inorder='-1', sort='name').get_search())
+        get_api(Movies(page=num.text,order='-1', sort='name').get_search())
 
         instance.ids.mov_view_holder.add_widget(ScMaMovies())
 
@@ -455,61 +459,135 @@ class Item(BoxLayout):
         ScMaMovies.add_widget(MoviesViewMainSingle(self.megs))
         ScMaMovies.current = 'mvms'
 
-class SeriesView(Screen):
-    def __init__(self, **kwargs):
-        super(SeriesView, self).__init__(**kwargs)
-        Logger.info('SeriesView: Initialized {}'.format(self))
-        Logger.info('This is window size {}'.format(Window.size))
-        Logger.info('This is container size {}'.format(self.size))
+class SeriesViewMainSingle(Screen):
+    def __init__(self, series_id, **kwargs):
+        super(SeriesViewMainSingle, self).__init__(**kwargs)
+        self.series_id = series_id
+        self.name = 'svms'
+        self.blak = self
+        Logger.info('SeriesViewMainSingle: Initialized {}'.format(self))
+        self.ids.svmsingle.add_widget(Label(text=self.name))
+        self.ids.svmsingle.add_widget(Button(text='back',on_press = self.go_back_to_series))
+        self.ids.svmsingle.add_widget(Button(text='send',on_press = lambda x: self.send_me('single ladies')))
+
+        get_api(Shows(_id = self.series_id).get_search_by_id())
+        for i in hashed_dic_show:
+            for b in hashed_dic_show[i]:
+                self.ids.svmsingle.add_widget(Label(text=b))
+
+        self.series_single_connector = Connector()
 
 
 
-        Clock.schedule_once(self.pr, 9)
 
-        shows_layout = GridLayout(cols=3, padding=50, spacing=50,
-                            size_hint=(None, None), width=ViewControl.width_x-30)
+    def send_me(self, msg, *args):
+        self.series_single_connector.mysend(msg)
 
-        # when we add children to the grid layout, its size doesn't change at
-        # all. we need to ensure that the height will be the minimum required
-        # to contain all the childs. (otherwise, we'll child outside the
-        # bounding box of the childs)
-        shows_layout.bind(minimum_height=shows_layout.setter('height'))
 
-        shows_scroll_list = ScrollView(size_hint=(None, None), size=(ViewControl.width_x-20, ViewControl.height_x-300),
-                          pos_hint={'center_x': .5, 'center_y': .5}, do_scroll_x=False)
-        shows_scroll_list.add_widget(shows_layout)
-        # Logger.info(self.ids)
-        self.ids.series_view_container.add_widget(shows_scroll_list)
 
-        # pippp = Shows(genre='animation', order='1', sort='name').get_search()
-        # check_api_validity(pippp)
-        # Logger.info(json.dumps(pippp.json(), sort_keys=True, indent=4))
-
-        for kk in hashed_dic_shows:
-        # Logger.info('{}----{}'.format(kk, hashed_dic_grouop[kk]))
-            _items = Item(hashed_dic_shows[kk]['_id'])
-            _items.size = ((Window.size[0]/3)-80,(Window.size[1]/2)-80)
-            try:
-                _items.add_widget(AsyncImage(source=hashed_dic_shows[kk]['images']['poster'],nocache=True))
-            except Exception as e:
-                pass
-                Logger.info('No image setting default cause of {}'.format(e))
-                _items.add_widget(Image(source='images/logo.png'))
-            _items.add_widget(Label(text=hashed_dic_shows[kk]['title'],size_hint_y=.1))
-
-            shows_layout.add_widget(_items)
-        #
-        #
-        #     """{'_id': 'tt3793630', 'imdb_id': 'tt3793630', 'tvdb_id': '282756', 'title': 'The Lion Guard', 'year': '2016', 'slug': 'the-lion-guard', 'rating': {'percentage': 68, 'watching': 0, 'votes': 42, 'loved': 100, 'hated': 100}, 'num_seasons': 2, 'images': {'poster': 'http://image.tmdb.org/t/p/w500/AtDL8ZrOZxW1jakT2R3LcMdLvQD.jpg', 'fanart': 'http://image.tmdb.org/t/p/w500/6nArW4w8UVJyElJpgS7f1MuO3QO.jpg', 'banner': 'http://image.tmdb.org/t/p/w500/AtDL8ZrOZxW1jakT2R3LcMdLvQD.jpg'}}"""
-        #
-    def set_to_cur(self, scn, *args):
-        self.manager.current = scn
     def pr(self, *args):
         # Logger.info(self.parent)
         # Logger.info(self.manager.screens)
         # Logger.info(' MainView {}'.format(self.parent))
         # Logger.info(self.manager.screen_names)
         pass
+
+    def go_back_to_series(self,*args):
+        self.manager.current = 'series view main screen'
+        self.manager.remove_widget(self.blak)
+
+class SeriesViewMain(Screen):
+    def __init__(self, **kwargs):
+        super(SeriesViewMain, self).__init__(**kwargs)
+        Logger.info('SeriesViewMain: Initialized {}'.format(self))
+        self.name = 'series view main screen'
+
+        series_layout = GridLayout(cols=3, padding=20, spacing=20,
+                                   size_hint=(None, None), width=ViewControl.width_x - 30)
+
+        # when we add children to the grid layout, its size doesn't change at
+        # all. we need to ensure that the height will be the minimum required
+        # to contain all the childs. (otherwise, we'll child outside the
+        # bounding box of the childs)
+        series_layout.bind(minimum_height=series_layout.setter('height'))
+
+        series_scroll_list = ScrollView(size_hint=(None, None),
+                                        size=(ViewControl.width_x - 20, ViewControl.height_x * 0.75),
+                                        pos_hint={'center_x': 0.5, 'center_y': 1}, do_scroll_x=False)
+        series_scroll_list.add_widget(series_layout)
+        # Logger.info(self.ids)
+        self.ids.series_view_main_container.add_widget(series_scroll_list)
+
+        for ss in hashed_dic_shows:
+            #     Logger.info('{}----{}'.format(kk, hashed_dic_grouop[kk]))
+            _items = Item(hashed_dic_shows[ss]['_id'])
+            _items.size = ((Window.size[0] / 3) - 30, (Window.size[1] / 2) - 200)
+            try:
+                _items.add_widget(AsyncImage(source=hashed_dic_shows[ss]['images']['poster'], nocache=True))
+            except Exception as e:
+                pass
+                Logger.info('No image setting default cause of {}'.format(e))
+                _items.add_widget(Image(source='images/logo.png'))
+            _items.add_widget(Label(text=hashed_dic_shows[ss]['title'], size_hint_y=.1,text_size=(((Window.size[0] / 3)-45), None),shorten_from='right',halign='center',shorten=True))
+            _items.add_widget(Button(text = 'show',on_press = lambda x: self.change_to_series_single(hashed_dic_shows[ss]['_id']),size_hint_y=.1))
+
+            series_layout.add_widget(_items)
+
+    def change_to_series_single(self, x,*args):
+        # Logger.info(self.manager)
+
+        self.manager.add_widget(SeriesViewMainSingle(x))
+        self.manager.current = 'svms'
+
+class ScMaSeries(ScreenManager):
+    def __init__(self, **kwargs):
+        super(ScMaSeries, self).__init__(**kwargs)
+        Logger.info('ScMaSeries: Initialized {}'.format(self))
+        self.add_widget(SeriesViewMain())
+
+class SeriesView(Screen):
+    def __init__(self, **kwargs):
+        super(SeriesView, self).__init__(**kwargs)
+        Logger.info('SeriesView: Initialized {}'.format(self))
+        Logger.info('This is window size {}'.format(Window.size))
+        Logger.info('This is container size {}'.format(self.size))
+        Clock.schedule_once(self.pr, 9)
+
+        self.series_paginator = GridLayout(rows=1, cols=50, padding=5, spacing=5, size_hint=(None, None))
+        self.series_paginator.bind(minimum_width=self.series_paginator.setter('width'))
+        for i in range(1, 50):
+            self.btn = Button(text=str(i), on_press=lambda instance: self.set_p(instance), size_hint=(None, None),
+                              size=(100, 80))
+            self.series_paginator.add_widget(self.btn)
+        self.scroll = ScrollView(size_hint=(1, 1), do_scroll_x=True, do_scroll_y=False)
+
+        self.scroll.add_widget(self.series_paginator)
+        self.ids.series_pag_holder.add_widget(self.scroll)
+
+        self.ids.ser_view_holder.add_widget(ScMaSeries())
+
+
+    def set_to_cur(self, scn, *args):
+        self.manager.current = scn
+
+    def pr(self, *args):
+        # Logger.info(self.parent)
+        # Logger.info(self.manager.screens)
+        # Logger.info(' MainView {}'.format(self.parent))
+        # Logger.info(self.manager.screen_names)
+        pass
+    def set_p(instance,num,*args):
+        # Logger.info(self)
+        # Logger.info(num)
+        # Logger.info('num {}'.format(num.text))
+        # Logger.info('ist {}'.format(instance))
+        # Logger.info(instance.ids.mov_view_holder.children)
+        instance.ids.ser_view_holder.remove_widget(instance.ids.ser_view_holder.children[0])
+        get_api(Shows(page=num.text, order='-1', sort='name').get_search())
+
+        instance.ids.ser_view_holder.add_widget(ScMaSeries())
+
+    pass
     pass
 
 class SearchView(Screen):
@@ -608,6 +686,7 @@ class MainView(Screen):
         self.view.open()
 
     def set_as_current_screen(self, scn, *args):
+
         self.scm.current = scn
 
     def navigate_to_settings(self, *args):

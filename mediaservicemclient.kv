@@ -291,6 +291,7 @@
 
                 Button:
                     text: 'movies'
+                    id: mov_b
 #                    width: dp(50)
 
     #                pos_hint:{'center_x': 0.5, 'center_y': 0.5}
@@ -298,12 +299,14 @@
                     on_release: root.set_as_current_screen('movies_view')
                 Button:
                     text: 'series'
+                    id: ser_b
 #                    width: dp(50)
     #                pos_hint:{'center_x': 0.5, 'center_y': 0.5}
 
                     on_release: root.set_as_current_screen('series_view')
                 Button:
                     text: 'latest'
+                    id: lat_b
 #                    width: dp(50)
     #                pos_hint:{'center_x': 0.5, 'center_y': 0.5}
 
@@ -388,6 +391,32 @@
         Label:
             text: root.name
 
+<SeriesViewMainSingle>:
+    BoxLayout:
+        id: svmsingle
+        orientation: 'vertical'
+    #    size:(400, 400)
+#        size_hint:(None, None)
+        canvas.before:
+            Color:
+                rgba: hex('#000000')
+            Rectangle:
+                # self here refers to the widget i.e BoxLayout
+                pos: self.pos
+                size: self.size
+<SeriesViewMain>:
+    BoxLayout:
+        orientation: 'vertical'
+        id: series_view_main_container
+        opacity: 1
+        canvas.before:
+            Color:
+                rgba: hex('#8e8000')
+            Rectangle:
+                # self here refers to the widget i.e BoxLayout
+                pos: self.pos
+                size: self.size
+
 <SeriesView>:
     name: 'series_view'
     BoxLayout:
@@ -396,19 +425,46 @@
         opacity: 1
         canvas.before:
             Color:
-                rgba: hex('#ffa500')
+                rgba: hex('#8e8000')
+            Rectangle:
+
+                pos: self.pos
+                size: self.size
+        BoxLayout:
+            id: series_pag_holder
+            size_hint_y: .09
+            padding: 5,0
+            canvas.before:
+                Color:
+                    rgba: hex('#000000')
+                Rectangle:
+
+                    pos: self.pos
+                    size: self.size
+        BoxLayout:
+            id: ser_view_holder
+            size_hint_y: .91
+            canvas.before:
+                Color:
+                    rgba: hex('#c9bf04')
+                Rectangle:
+
+                    pos: self.pos
+                    size: self.size
+
+<MoviesViewMainSingle>:
+    BoxLayout:
+        id: mvmsingle
+        orientation: 'vertical'
+    #    size:(400, 400)
+#        size_hint:(None, None)
+        canvas.before:
+            Color:
+                rgba: hex('#000000')
             Rectangle:
                 # self here refers to the widget i.e BoxLayout
                 pos: self.pos
                 size: self.size
-#        Label:
-#            text: root.name
-
-
-#        Label:
-#            text: root.name
-
-
 <MoviesViewMain>:
     BoxLayout:
         orientation: 'vertical'
@@ -416,7 +472,7 @@
         opacity: 1
         canvas.before:
             Color:
-                rgba: hex('#0000ff')
+                rgba: hex('#000000')
             Rectangle:
                 # self here refers to the widget i.e BoxLayout
                 pos: self.pos
@@ -430,20 +486,20 @@
         opacity: 1
         canvas.before:
             Color:
-                rgba: hex('#ffa500')
+                rgba: hex('#000000')
             Rectangle:
                 # self here refers to the widget i.e BoxLayout
                 pos: self.pos
                 size: self.size
         BoxLayout:
-            id: pag_holder
+            id: movies_pag_holder
             size_hint_y: .09
         BoxLayout:
             id: mov_view_holder
             size_hint_y: .91
             canvas.before:
                 Color:
-                    rgba: hex('#551a8b')
+                    rgba: hex('#000000')
                 Rectangle:
                     # self here refers to the widget i.e BoxLayout
                     pos: self.pos
@@ -483,24 +539,12 @@
     size_hint:(None, None)
     canvas.before:
         Color:
-            rgba: hex('#000000')
+            rgba: hex('#00000')
         Rectangle:
             # self here refers to the widget i.e BoxLayout
             pos: self.pos
             size: self.size
-<MoviesViewMainSingle>:
-    BoxLayout:
-        id: mvmsingle
-        orientation: 'vertical'
-    #    size:(400, 400)
-#        size_hint:(None, None)
-        canvas.before:
-            Color:
-                rgba: hex('#000000')
-            Rectangle:
-                # self here refers to the widget i.e BoxLayout
-                pos: self.pos
-                size: self.size
+
 <ScanViewItem>:
     id: scan_view_i
     orientation: 'horizontal'
