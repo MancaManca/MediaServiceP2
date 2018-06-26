@@ -8,6 +8,29 @@
     pos_hint:{'center_x': 0.5, 'center_y': 0.5}
 
 
+<SettingsViewItem>:
+    id: settings_view_i
+    orientation: 'horizontal'
+    size_hint_y: .4
+#    size:(400, 400)
+#        size_hint:(None, None)
+    canvas.before:
+        Color:
+            rgba: hex('#ffa500')
+        Rectangle:
+            # self here refers to the widget i.e BoxLayout
+            pos: self.pos
+            size: self.size
+    Label:
+        id: settings_view_i_name
+        size_hint_x: .8
+        text: ''
+    CheckBox:
+        id: settings_view_i_check
+        size_hint_x: .2
+        group: 'settings_address_setter'
+        on_press: root.return_on_active_name(self.active, settings_view_i_name.text)
+
 <SettingsView>:
     name: 'settings'
     orientation: 'vertical'
@@ -66,6 +89,23 @@
             Button:
                 text: 'Scan Again'
                 on_release: root.scan_again()
+
+        BoxLayout:
+            id: settings_view_save_button_container
+            size_hint_y: .2
+            orientation: 'horizontal'
+            FloatLayout:
+
+                Button:
+                    id: settings_save_chosen_device_and_go_to_main
+                    text: 'Save'
+                    disabled: None
+                    size_hint_x: None
+                    size_hint_y: None
+                    width: dp(200)
+                    height: dp(70)
+                    pos_hint:{'center_x': 0.5, 'center_y': 0.5}
+                    on_release: root.save_settings()
 #
 #            Label:
 #                text: 'scanned 1'
@@ -109,6 +149,8 @@
             Label:
                 text: 'Scanned devices'
                 opacity: .8
+                font_hinting: 'mono'
+                font_size: dp(40)
                 canvas.before:
                     Color:
                         rgba: hex('#ffa500')
@@ -122,10 +164,10 @@
             GridLayout:
                 id: scanned_devices_list_grid
                 cols:1
-                rows: 6
-                size_hint_y: 0.2
-                padding: 5,5,5,5
-                spacing: 5,5
+                rows: 3
+                size_hint_y: 1
+                padding: 45,45,45,45
+                spacing: 45,45
 
         BoxLayout:
             id: scan_view_button_container
@@ -135,13 +177,14 @@
 
                 Button:
                     id: save_chosen_device_and_go_to_main
-                    text: 'save'
+                    text: 'Save'
                     disabled: None
                     size_hint_x: None
                     size_hint_y: None
+                    width: dp(200)
+                    height: dp(70)
                     pos_hint:{'center_x': 0.5, 'center_y': 0.5}
-
-                    on_release: root.pr()
+                    on_release: root.save_and_go_to_main()
 
 #        Label:
 #            id: vvv
@@ -160,6 +203,7 @@
     name: 'main'
     orientation: 'vertical'
     connection_status_indicator: status_flagger.active
+    on_enter: root.connect_on_enter()
     BoxLayout:
         id: main_view_c
         orientation: 'vertical'
@@ -194,7 +238,7 @@
 #                        width: dp(50)
     #                    pos_hint:{'center_x': 0.5, 'center_y': 0.5}
 
-                        on_release: root.set_to_cur('search_view')
+                        on_release: root.set_as_current_screen('search_view')
                 BoxLayout:
                     id:filter_modal
 #                    pos_hint:{'center_x': 0.5, 'center_y': 0.5}
@@ -207,7 +251,7 @@
 #                        width: dp(50)
     #                    pos_hint:{'center_x': 0.5, 'center_y': 0.5}
 
-                        on_release: root.op_m()
+                        on_release: root.open_modal_view()
 
 
                 BoxLayout:
@@ -222,7 +266,7 @@
 #                        width: dp(50)
     #                    pos_hint:{'center_x': 0.5, 'center_y': 0.5}
 
-                        on_release: root.pr()
+                        on_release: root.navigate_to_settings()
                 BoxLayout:
                     id: connection_status_ind
                     orientation: 'vertical'
@@ -230,7 +274,7 @@
 #                    size_hint_y: None
 
 #                    size_hint_x: None
-                    CheckBox:
+                    Switch:
                         id: status_flagger
                         opacity: 0
                         size_hint_y:0
@@ -251,19 +295,19 @@
 
     #                pos_hint:{'center_x': 0.5, 'center_y': 0.5}
 
-                    on_release: root.set_to_cur('movies_view')
+                    on_release: root.set_as_current_screen('movies_view')
                 Button:
                     text: 'series'
 #                    width: dp(50)
     #                pos_hint:{'center_x': 0.5, 'center_y': 0.5}
 
-                    on_release: root.set_to_cur('series_view')
+                    on_release: root.set_as_current_screen('series_view')
                 Button:
                     text: 'latest'
 #                    width: dp(50)
     #                pos_hint:{'center_x': 0.5, 'center_y': 0.5}
 
-                    on_release: root.set_to_cur('latest_view')
+                    on_release: root.set_as_current_screen('latest_view')
             BoxLayout:
                 id: screen_m_container
                 size_hint_y: .82
@@ -393,10 +437,10 @@
                 size: self.size
         BoxLayout:
             id: pag_holder
-            size_hint_y: .1
+            size_hint_y: .09
         BoxLayout:
             id: mov_view_holder
-            size_hint_y: .9
+            size_hint_y: .91
             canvas.before:
                 Color:
                     rgba: hex('#551a8b')
@@ -479,3 +523,23 @@
         size_hint_x: .2
         group: 'address_setter'
         on_press: root.return_on_active_name(self.active, scan_view_i_name.text)
+
+
+<FilterModalView>:
+    auto_dismiss: True
+    size_hint: (None, None)
+    BoxLayout:
+        id: filter_view_container
+        orientation: 'vertical'
+        BoxLayout:
+            orientation: 'vertical'
+            Spinner:
+                text: 'Genre'
+                values: ['action','adventure','animation','comedy','crime','documentary','drama','eastern','family','fan-film','fantasy','film-noir','history','horror','indie','mystery','none','romance','science-fiction','thriller','tv-movie','western']
+
+            Spinner:
+                text: 'order'
+                values: ['-1','1']
+            Spinner:
+                text: 'sort'
+                values: ['name','rating','trending','updated','year','last added']

@@ -248,10 +248,11 @@ class Connector:
             self.host = self.url
             # Logger.info(self.host)
         else:
-            self.host = '192.168.0.10'
+            # self.host = '192.168.0.10'
+            self.host = None
         self.port = 8000
         self.server_state = True
-        MainView.mika(True)
+        # MainView.mika(True)
 
         self.connects(self.host, self.port)
 
@@ -261,11 +262,12 @@ class Connector:
             self.sock.settimeout(3)
             self.sock.connect((host,port))
             self.receive()
+            Logger.info('Connected to host {}'.format(host))
         except:
             Logger.info('no connection to server')
             self.server_state = False
             # MainView.connection_status_indicator = False
-            MainView.mika(False)
+            # MainView.mika(False)
 
             pass
 
@@ -289,7 +291,7 @@ class Connector:
 
             self.server_state = False
             # MainView.connection_status_indicator = False
-            MainView.mika(False)
+            # MainView.mika(False)
             try:
                 self.sock.close()
             except OSError:
@@ -300,7 +302,7 @@ class Connector:
         else:
             self.server_state = True
             # MainView.connection_status_indicator = True
-            MainView.mika(True)
+            # MainView.mika(True)
             Logger.info('true')
 
 #######################################____________CONNECTOR___________________#########################################
@@ -318,12 +320,29 @@ class MoviesViewMainSingle(Screen):
         Logger.info('MoviesViewMainSingle: Initialized {}'.format(self))
         self.ids.mvmsingle.add_widget(Label(text=self.name))
         self.ids.mvmsingle.add_widget(Button(text='back',on_press = self.go_back_to_movies))
+        self.ids.mvmsingle.add_widget(Button(text='send',on_press = lambda x: self.send_me('single ladies')))
+
         get_api(Movies(_id = self.movie_id).get_search_by_id())
         for i in hashed_dic_movie:
             for b in hashed_dic_movie[i]:
                 self.ids.mvmsingle.add_widget(Label(text=b))
 
+        self.movies_single_connector = Connector()
 
+
+
+
+    def send_me(self, msg, *args):
+        self.movies_single_connector.mysend(msg)
+
+
+
+    def pr(self, *args):
+        # Logger.info(self.parent)
+        # Logger.info(self.manager.screens)
+        # Logger.info(' MainView {}'.format(self.parent))
+        # Logger.info(self.manager.screen_names)
+        pass
 
     def go_back_to_movies(self,*args):
         self.manager.current = 'movies view main screen'
@@ -344,7 +363,7 @@ class MoviesViewMain(Screen):
         # bounding box of the childs)
         movies_layout.bind(minimum_height=movies_layout.setter('height'))
 
-        movies_scroll_list = ScrollView(size_hint=(None, None), size=(ViewControl.width_x - 20, ViewControl.height_x/1.5 - 50),
+        movies_scroll_list = ScrollView(size_hint=(None, None), size=(ViewControl.width_x - 20, ViewControl.height_x*0.75),
                           pos_hint={'center_x': 0.5, 'center_y': 1}, do_scroll_x=False)
         movies_scroll_list.add_widget(movies_layout)
         # Logger.info(self.ids)
@@ -371,6 +390,7 @@ class MoviesViewMain(Screen):
 
         self.manager.add_widget(MoviesViewMainSingle(x))
         self.manager.current = 'mvms'
+
 class ScMaMovies(ScreenManager):
     def __init__(self, **kwargs):
         super(ScMaMovies, self).__init__(**kwargs)
@@ -395,6 +415,7 @@ class MoviesView(Screen):
 
     def set_to_cur(self, scn, *args):
         self.manager.current = scn
+
     def pr(self, *args):
         # Logger.info(self.parent)
         # Logger.info(self.manager.screens)
@@ -521,8 +542,10 @@ class LatestView(Screen):
 
 
         self.connn = Connector()
-    def set_to_cur(self, scn, *args):
+
+    def set_as_current_screen(self, scn, *args):
         self.manager.current = scn
+
     def cc(self, msg, *args):
         self.connn.mysend(msg)
 
@@ -550,6 +573,10 @@ class FilterModalView(ModalView):
     def __init__(self, **kwargs):
         super(FilterModalView, self).__init__(**kwargs)
         Logger.info('FilterModalView: Initialized {}'.format(self))
+        self.size = (Window.size[0] / 1.5, Window.size[1] / 1.5)
+
+
+
 
 class MainView(Screen):
     connection_status_indicator = BooleanProperty(None)
@@ -558,27 +585,32 @@ class MainView(Screen):
         super(MainView, self).__init__(**kwargs)
         Logger.info('MainView: Initialized {}'.format(self))
         # Clock.schedule_once(self.pr, 9)
+
+
         self.scm = MainViewScManager()
         self.ids.screen_m_container.add_widget(self.scm)
+
+
         # Logger.info(self.ids)
-        self.csi = self.connection_status_indicator
-        self.view = ModalView(auto_dismiss=True,size_hint=(None, None), size=(Window.size[0]/2, Window.size[1]/2))
-        self.view.add_widget(Label(text='Hello world'))
-        if not self.csi:
-            self.update_status_in(self.csi)
-            print(self.csi)
+        self.view = FilterModalView()
+        # self.view.add_widget(Label(text='Hello world'))
+
+
+    def connect_on_enter(self, *args):
+        self.connector = Connector()
+        Logger.info(self.connector.server_state)
+        if self.connector.server_state:
+            self.update_status_in(self.connector.server_state)
         else:
-            self.update_status_in(self.csi)
-            print(self.csi)
-    @staticmethod
-    def mika(fl):
-        MainView.connection_status_indicator = fl
-        print('mika')
-    def op_m(self, *args):
+            self.update_status_in(self.connector.server_state)
+
+    def open_modal_view(self, *args):
         self.view.open()
-    def set_to_cur(self, scn, *args):
+
+    def set_as_current_screen(self, scn, *args):
         self.scm.current = scn
-    def pr(self, *args):
+
+    def navigate_to_settings(self, *args):
         # Logger.info(self.parent)
         # Logger.info(self.manager.screens)
         # Logger.info(' MainView {}'.format(self.parent))
@@ -588,8 +620,10 @@ class MainView(Screen):
             self.manager.switch_to(SettingsView(), transition=FadeTransition())
         else:
             self.manager.current = 'settings'
+
     def update_status_in(self, status_flagger_flag, *args):
-        print('123')
+        Logger.info('Updating connection status')
+
         if status_flagger_flag:
             self.ids.connection_status_ind_l.source = 'images/gr.png'
         else:
@@ -597,48 +631,32 @@ class MainView(Screen):
     pass
 
 class ScanViewItem(BoxLayout):
-    def __init__(self, n, **kwargs):
+    def __init__(self, device_name_for_label, **kwargs):
         super(ScanViewItem, self).__init__(**kwargs)
         Logger.info('ScanViewItem: Initialized {}'.format(self))
-        self.nn = n
-        self.ids.scan_view_i_name.text = self.nn
 
+        self.dev_name_for_l = device_name_for_label
+        self.ids.scan_view_i_name.text = self.dev_name_for_l
 
-    def return_on_active_name(self, b, c,  *args):
-        print(ScanView.save_button)
-        if b:
-            chosen_scanned_url = c
-            ScanView.choosen_device = c
-            ScanView.save_button = False
-            print('when checked set button to enable')
+    def return_on_active_name(self, scan_item_checkobox_flag, scan_item_checkobox_value,  *args):
+        if scan_item_checkobox_flag:
 
+            ScanView.choosen_device = scan_item_checkobox_value
 
         else:
-            ScanView.choosen_device = b
-            ScanView.save_button = True
-            print('when checked set button to disable')
+            ScanView.choosen_device = ''
 
 
-            # ScanView.save_button.disabled = True
-
-        # print(self)
-        # print(b)
-        # print(c)
 class ScanView(Screen):
     choosen_device = StringProperty()
-    save_button = BooleanProperty()
+
     def __init__(self, **kwargs):
         super(ScanView, self).__init__(**kwargs)
         Logger.info('ScanView: Initialized {}'.format(self))
 
         self._urls_list = scanned_online_urls
-        # self.choosen_device = self.choosen_device
-        # self.ids.save_chosen_device_and_go_to_main.disabled = True
-        # self.save_b = self.save_button
-        print(self.save_button)
 
         for _urls_list_item in self._urls_list:
-            # Logger.info(it)
             self.formated_dev_name_address = '{}/{}'.format(_urls_list_item, self._urls_list[_urls_list_item])
 
             self.ids.scanned_devices_list_grid.add_widget(ScanViewItem(self.formated_dev_name_address))
@@ -659,61 +677,74 @@ class ScanView(Screen):
 #################################_________________API_IMPL__________________________####################################
 
     def set_as_host(self, host_in):
-        if host_in:
-            print(host_in)
-            # print(instance)
-            # print(args)
-            breaker = host_in.find('/')
-            prepare_url = host_in[:breaker]
-            # # Logger.info(prepare_url)
-            Connector.url = prepare_url
-            return True
+        Logger.info('init scan set_as_host')
+
+        breaker = host_in.find('/')
+        prepare_url = host_in[:breaker]
+        Connector.url = prepare_url
+
+    def save_and_go_to_main(self, *args):
+        if self.choosen_device:
+            self.set_as_host(self.choosen_device)
+
+        self.manager.switch_to(MainView(), transition=FadeTransition(), duration=1)
+
+
+class SettingsViewItem(BoxLayout):
+    def __init__(self, device_name_for_label, **kwargs):
+        super(SettingsViewItem, self).__init__(**kwargs)
+        Logger.info('SettingsViewItem: Initialized {}'.format(self))
+
+        self.dev_name_for_l = device_name_for_label
+        self.ids.settings_view_i_name.text = self.dev_name_for_l
+
+    def return_on_active_name(self, settings_item_checkobox_flag, settings_item_checkobox_value,  *args):
+        if settings_item_checkobox_flag:
+
+            SettingsView.choosen_device = settings_item_checkobox_value
+
         else:
-            print(host_in)
-            return False
-
-    def pr(self, *args):
-        # Logger.info(self.parent)
-        print('pr')
-        print(self.save_button)
-        print(self.ids.save_chosen_device_and_go_to_main.disabled )
-        # if self.set_as_host(self.choosen_device):
-        #     # self.ids.save_chosen_device_and_go_to_main.disabled = False
-        #     # self.manager.switch_to(MainView(), transition=FadeTransition(), duration=1)
-        #     print(self.choosen_device)
-        # else:
-        #     # self.ids.save_chosen_device_and_go_to_main.disabled = True
-        #     print(self.ids.save_chosen_device_and_go_to_main.disabled)
-
-        # Logger.info(self.manager.screens)
-        # self.manager.switch_to(MainView(), transition=FadeTransition(), duration=1)
-
-
+            SettingsView.choosen_device = ''
 
 class SettingsView(Screen):
+    choosen_device = StringProperty()
+
     def __init__(self, **kwargs):
         super(SettingsView, self).__init__(**kwargs)
         Logger.info('SettingsView: Initialized {}'.format(self))
 
         self.settings_scanned_devices = scanned_online_urls
-
         # Clock.schedule_once(self.return_to_main_view, 9)
         self.update_list_devices()
 
     def scan_again(self, *args):
-        # ViewControl.start_scanning()
         start_scanning()
-        Clock.schedule_once(self.update_list_devices, 9)
+        Clock.schedule_once(self.update_list_devices, 8)
+
     def update_list_devices(self, *args):
         self.ids.settings_view_container_list_container.clear_widgets()
-        for i in self.settings_scanned_devices:
-            self.ids.settings_view_container_list_container.add_widget(Label(text=self.settings_scanned_devices[i]))
+
+        for _urls_settings_list_item in self.settings_scanned_devices:
+
+            self.formated_dev_name_address = '{}/{}'.format(_urls_settings_list_item, self.settings_scanned_devices[_urls_settings_list_item])
+
+            self.ids.settings_view_container_list_container.add_widget(SettingsViewItem(self.formated_dev_name_address))
+
+    def save_settings(self, *args):
+        Logger.info('save settings set_as_host')
+
+        if self.choosen_device:
+            Logger.info('save settings set_as_host {}'.format(self.choosen_device))
+            self.settings_set_as_host(self.choosen_device)
+
+    def settings_set_as_host(self, host_in):
+
+        breaker = host_in.find('/')
+        prepare_url = host_in[:breaker]
+        Connector.url = prepare_url
 
     def return_to_main_view(self, *args):
-        # Logger.info(self.parent)
-        # Logger.info(self.manager.screens)
-        self.manager.current = 'main'
-        # Logger.info(' MainView {}'.format(self.parent))
+       self.manager.current = 'main'
 
 class So:
     def __init__(self, **kwargs):
@@ -729,7 +760,9 @@ class Progression(Screen):
         super(Progression, self).__init__(**kwargs)
         Logger.info('Progression: Initialized {}'.format(self))
 
-        self.sch_event = Clock.schedule_interval(self.progression_bar_handler, 0.08)
+        # self.sch_event = Clock.schedule_interval(self.progression_bar_handler, 0.08)
+        self.sch_event = Clock.schedule_interval(self.progression_bar_handler, 1/60)
+
 
     def progression_bar_handler(self, *args):
 
