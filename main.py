@@ -681,8 +681,13 @@ class MainView(Screen):
     def open_modal_view(self, *args):
         self.view.open()
 
-    def set_as_current_screen(self, scn, *args):
-
+    def set_as_current_screen(self, button_instance, scn, other_but_f, other_but_s, *args):
+        print('main v check instance button')
+        button_instance.background_normal = "./images/n_b.png"
+        other_but_f.background_normal = "./images/n_n.png"
+        other_but_s.background_normal = "./images/n_n.png"
+        print(self)
+        print(args)
         self.scm.current = scn
 
     def navigate_to_settings(self, *args):

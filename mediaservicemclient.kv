@@ -105,6 +105,8 @@
                     width: dp(200)
                     height: dp(70)
                     pos_hint:{'center_x': 0.5, 'center_y': 0.5}
+                    background_down: "./images/b_b.png"
+                    background_normal: "./images/b_a.png"
                     on_release: root.save_settings()
 #
 #            Label:
@@ -184,6 +186,8 @@
                     width: dp(200)
                     height: dp(70)
                     pos_hint:{'center_x': 0.5, 'center_y': 0.5}
+                    background_down: "./images/b_b.png"
+                    background_normal: "./images/b_a.png"
                     on_release: root.save_and_go_to_main()
 
 #        Label:
@@ -295,22 +299,22 @@
 #                    width: dp(50)
 
     #                pos_hint:{'center_x': 0.5, 'center_y': 0.5}
-
-                    on_release: root.set_as_current_screen('movies_view')
+                    background_normal: "./images/n_n.png"
+                    on_release: root.set_as_current_screen(self, 'movies_view', ser_b, lat_b)
                 Button:
                     text: 'series'
                     id: ser_b
 #                    width: dp(50)
     #                pos_hint:{'center_x': 0.5, 'center_y': 0.5}
-
-                    on_release: root.set_as_current_screen('series_view')
+                    background_normal: "./images/n_n.png"
+                    on_release: root.set_as_current_screen(self,'series_view', mov_b, lat_b)
                 Button:
                     text: 'latest'
                     id: lat_b
 #                    width: dp(50)
     #                pos_hint:{'center_x': 0.5, 'center_y': 0.5}
-
-                    on_release: root.set_as_current_screen('latest_view')
+                    background_normal: "./images/n_n.png"
+                    on_release: root.set_as_current_screen(self,'latest_view', mov_b, ser_b)
             BoxLayout:
                 id: screen_m_container
                 size_hint_y: .82
