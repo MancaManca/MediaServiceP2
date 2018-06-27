@@ -319,8 +319,8 @@ class MoviesViewMainSingle(Screen):
         self.blak = self
         Logger.info('MoviesViewMainSingle: Initialized {}'.format(self))
         self.ids.mvmsingle.add_widget(Label(text=self.name))
-        self.ids.mvmsingle.add_widget(Button(text='back',on_press = self.go_back_to_movies))
-        self.ids.mvmsingle.add_widget(Button(text='send',on_press = lambda x: self.send_me('single ladies')))
+        self.ids.mvmsingle.add_widget(Button(text='back', on_press = self.go_back_to_movies))
+        self.ids.mvmsingle.add_widget(Button(text='send', on_press = lambda x: self.send_me('single ladies')))
 
         get_api(Movies(_id = self.movie_id).get_search_by_id())
         for i in hashed_dic_movie:
@@ -328,8 +328,6 @@ class MoviesViewMainSingle(Screen):
                 self.ids.mvmsingle.add_widget(Label(text=b))
 
         self.movies_single_connector = Connector()
-
-
 
 
     def send_me(self, msg, *args):
@@ -357,14 +355,11 @@ class MoviesViewMain(Screen):
         movies_layout = GridLayout(cols=3, padding=20, spacing=20,
                             size_hint=(None, None), width=ViewControl.width_x - 30)
 
-        # when we add children to the grid layout, its size doesn't change at
-        # all. we need to ensure that the height will be the minimum required
-        # to contain all the childs. (otherwise, we'll child outside the
-        # bounding box of the childs)
         movies_layout.bind(minimum_height=movies_layout.setter('height'))
 
-        movies_scroll_list = ScrollView(size_hint=(None, None), size=(ViewControl.width_x - 20, ViewControl.height_x*0.75),
+        movies_scroll_list = ScrollView(size_hint=(None, None), size=(ViewControl.width_x - 20, ViewControl.height_x * 0.75),
                           pos_hint={'center_x': 0.5, 'center_y': 1}, do_scroll_x=False)
+
         movies_scroll_list.add_widget(movies_layout)
         # Logger.info(self.ids)
         self.ids.movies_view_main_container.add_widget(movies_scroll_list)
@@ -407,8 +402,9 @@ class MoviesView(Screen):
 
         self.movies_paginator = GridLayout(rows=1,cols=50,padding=5, spacing=5,size_hint=(None,None))
         self.movies_paginator.bind(minimum_width=self.movies_paginator.setter('width'))
+
         for i in range(1,50):
-            self.btn = Button(text=str(i),on_press=lambda instance: self.set_p(instance), size_hint=(None, None), size=(100,80))
+            self.btn = Button(text=str(i),on_press=lambda instance: self.set_p(instance), size_hint=(None, None), size=(120,90))
             self.movies_paginator.add_widget(self.btn)
         self.scroll = ScrollView(size_hint=(1, 1), do_scroll_x=True, do_scroll_y=False)
 
@@ -557,7 +553,7 @@ class SeriesView(Screen):
         self.series_paginator.bind(minimum_width=self.series_paginator.setter('width'))
         for i in range(1, 50):
             self.btn = Button(text=str(i), on_press=lambda instance: self.set_p(instance), size_hint=(None, None),
-                              size=(100, 80))
+                              size=(120, 90))
             self.series_paginator.add_widget(self.btn)
         self.scroll = ScrollView(size_hint=(1, 1), do_scroll_x=True, do_scroll_y=False)
 

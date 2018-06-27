@@ -220,7 +220,7 @@
                 canvas.before:
 
                     Color:
-                        rgba: hex('#ffff00')
+                        rgba: hex('#000000')
                     Rectangle:
                         # self here refers to the widget i.e BoxLayout
                         pos: self.pos
@@ -318,7 +318,7 @@
                 canvas.before:
 
                     Color:
-                        rgba: hex('#000000')
+                        rgba: hex('#ffa500')
                     Rectangle:
                         # self here refers to the widget i.e BoxLayout
                         pos: self.pos
@@ -411,7 +411,7 @@
         opacity: 1
         canvas.before:
             Color:
-                rgba: hex('#8e8000')
+                rgba: hex('#ffa500')
             Rectangle:
                 # self here refers to the widget i.e BoxLayout
                 pos: self.pos
@@ -425,7 +425,7 @@
         opacity: 1
         canvas.before:
             Color:
-                rgba: hex('#8e8000')
+                rgba: hex('#ffa500')
             Rectangle:
 
                 pos: self.pos
@@ -446,7 +446,7 @@
             size_hint_y: .91
             canvas.before:
                 Color:
-                    rgba: hex('#c9bf04')
+                    rgba: hex('#ffa500')
                 Rectangle:
 
                     pos: self.pos
@@ -460,7 +460,7 @@
 #        size_hint:(None, None)
         canvas.before:
             Color:
-                rgba: hex('#000000')
+                rgba: hex('#ffa500')
             Rectangle:
                 # self here refers to the widget i.e BoxLayout
                 pos: self.pos
@@ -472,7 +472,7 @@
         opacity: 1
         canvas.before:
             Color:
-                rgba: hex('#000000')
+                rgba: hex('#ffa500')
             Rectangle:
                 # self here refers to the widget i.e BoxLayout
                 pos: self.pos
@@ -486,7 +486,7 @@
         opacity: 1
         canvas.before:
             Color:
-                rgba: hex('#000000')
+                rgba: hex('#ffa500')
             Rectangle:
                 # self here refers to the widget i.e BoxLayout
                 pos: self.pos
@@ -494,6 +494,13 @@
         BoxLayout:
             id: movies_pag_holder
             size_hint_y: .09
+            canvas.before:
+                Color:
+                    rgba: hex('#000000')
+                Rectangle:
+                    # self here refers to the widget i.e BoxLayout
+                    pos: self.pos
+                    size: self.size
         BoxLayout:
             id: mov_view_holder
             size_hint_y: .91
