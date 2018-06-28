@@ -104,6 +104,7 @@ class api:
         return 'https://tv-v2.api-fetch.website' + path
 
     def get_search(self):
+
         self.query_str = '/'
         if 'page' not in self.query:
             self.page = '1'
@@ -149,6 +150,9 @@ class Movies(api):
             self.query['genre'] = genre
         if keywords:
             self.query['keywords'] = str(keywords).replace(' ', '%20')
+
+
+
 
 class Shows(api):
     def __init__(self, page=None, sort=None, order=None, keywords=None, _id=None, genre=None, **kwargs):
@@ -367,7 +371,7 @@ class MoviesViewMain(Screen):
         for kk in hashed_dic_movies:
             #     Logger.info('{}----{}'.format(kk, hashed_dic_grouop[kk]))
             _items = Item(hashed_dic_movies[kk]['_id'])
-            _items.size = ((Window.size[0] / 3) - 30, (Window.size[1] / 2) - 200)
+            _items.size = ((Window.size[0] / 3) - 30, (Window.size[1] / 2) - 300)
             try:
                 _items.add_widget(AsyncImage(source=hashed_dic_movies[kk]['images']['poster'], nocache=True))
             except Exception as e:
@@ -390,7 +394,10 @@ class ScMaMovies(ScreenManager):
     def __init__(self, **kwargs):
         super(ScMaMovies, self).__init__(**kwargs)
         Logger.info('ScMaMovies: Initialized {}'.format(self))
+        lk = Lo()
+        lk.open()
         self.add_widget(MoviesViewMain())
+        lk.dismiss()
 
 
 class MoviesView(Screen):
@@ -400,11 +407,12 @@ class MoviesView(Screen):
         Clock.schedule_once(self.pr, 9)
 
 
+
         self.movies_paginator = GridLayout(rows=1,cols=50,padding=5, spacing=5,size_hint=(None,None))
         self.movies_paginator.bind(minimum_width=self.movies_paginator.setter('width'))
 
         for i in range(1,50):
-            self.btn = Button(text=str(i),on_press=lambda instance: self.set_p(instance), size_hint=(None, None), size=(120,90))
+            self.btn = Button(text=str(i),on_press=lambda instance: self.set_p(instance), size_hint=(None, None), size=(170, 150))
             self.movies_paginator.add_widget(self.btn)
         self.scroll = ScrollView(size_hint=(1, 1), do_scroll_x=True, do_scroll_y=False)
 
@@ -517,7 +525,7 @@ class SeriesViewMain(Screen):
         for ss in hashed_dic_shows:
             #     Logger.info('{}----{}'.format(kk, hashed_dic_grouop[kk]))
             _items = Item(hashed_dic_shows[ss]['_id'])
-            _items.size = ((Window.size[0] / 3) - 30, (Window.size[1] / 2) - 200)
+            _items.size = ((Window.size[0] / 3) - 30, (Window.size[1] / 2) - 300)
             try:
                 _items.add_widget(AsyncImage(source=hashed_dic_shows[ss]['images']['poster'], nocache=True))
             except Exception as e:
@@ -553,7 +561,7 @@ class SeriesView(Screen):
         self.series_paginator.bind(minimum_width=self.series_paginator.setter('width'))
         for i in range(1, 50):
             self.btn = Button(text=str(i), on_press=lambda instance: self.set_p(instance), size_hint=(None, None),
-                              size=(120, 90))
+                              size=(170, 150))
             self.series_paginator.add_widget(self.btn)
         self.scroll = ScrollView(size_hint=(1, 1), do_scroll_x=True, do_scroll_y=False)
 
@@ -682,12 +690,9 @@ class MainView(Screen):
         self.view.open()
 
     def set_as_current_screen(self, button_instance, scn, other_but_f, other_but_s, *args):
-        print('main v check instance button')
         button_instance.background_normal = "./images/n_b.png"
         other_but_f.background_normal = "./images/n_n.png"
         other_but_s.background_normal = "./images/n_n.png"
-        print(self)
-        print(args)
         self.scm.current = scn
 
     def navigate_to_settings(self, *args):
@@ -726,6 +731,20 @@ class ScanViewItem(BoxLayout):
         else:
             ScanView.choosen_device = ''
 
+class ConnectionErrorPopup(Popup):
+    def __init__(self, **kwargs):
+        super(ConnectionErrorPopup, self).__init__(**kwargs)
+        Logger.info('ConnectionErrorPopup: Initialized {}'.format(self))
+        self.size = (Window.size[0] / 1.5, Window.size[1] / 1.5)
+
+    def quit_app_cl(self, *args):
+        App.stop(App.get_running_app())
+
+    def retry(self, *args):
+        App.get_running_app().root.clear_widgets()
+        App.get_running_app().root.add_widget(ViewControl())
+        self.dismiss()
+
 
 class ScanView(Screen):
     choosen_device = StringProperty()
@@ -734,7 +753,11 @@ class ScanView(Screen):
         super(ScanView, self).__init__(**kwargs)
         Logger.info('ScanView: Initialized {}'.format(self))
 
+        self.connection_error = ConnectionErrorPopup()
+
+
         self._urls_list = scanned_online_urls
+
 
         for _urls_list_item in self._urls_list:
             self.formated_dev_name_address = '{}/{}'.format(_urls_list_item, self._urls_list[_urls_list_item])
@@ -749,9 +772,13 @@ class ScanView(Screen):
     def start_service(self, *args):
         # pippp = Shows(order='1', sort='name').get_search()
         """get inital latest movies and series, populate shows dictionary populate movies dicionary"""
-        get_api(Shows(order='-1', sort='name').get_search())
-        get_api(Movies(order='-1', sort='name').get_search())
-        """"""
+        try:
+            get_api(Shows(order='-1', sort='name').get_search())
+            get_api(Movies(order='-1', sort='name').get_search())
+        except Exception as e:
+            self.connection_error.open()
+            pass
+
 
 
 #################################_________________API_IMPL__________________________####################################
@@ -855,6 +882,12 @@ class Progression(Screen):
 
             self.sch_event.cancel()
             self.manager.switch_to(ScanView(), transition=FadeTransition(), duration=1)
+
+class Lo(ModalView):
+    def __init__(self, **kwargs):
+        super(Lo, self).__init__(**kwargs)
+        Logger.info('Lo: Initialized {}'.format(self))
+        self.size = (Window.size[0] / 1.5, Window.size[1] / 1.5)
 
 
 class ViewControl(ScreenManager):

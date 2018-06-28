@@ -99,7 +99,6 @@
                 Button:
                     id: settings_save_chosen_device_and_go_to_main
                     text: 'Save'
-                    disabled: None
                     size_hint_x: None
                     size_hint_y: None
                     width: dp(200)
@@ -180,7 +179,6 @@
                 Button:
                     id: save_chosen_device_and_go_to_main
                     text: 'Save'
-                    disabled: None
                     size_hint_x: None
                     size_hint_y: None
                     width: dp(200)
@@ -598,3 +596,55 @@
             Spinner:
                 text: 'sort'
                 values: ['name','rating','trending','updated','year','last added']
+
+<ConnectionErrorPopup>:
+    auto_dismiss: False
+    size_hint: (None, None)
+    separator_color: hex('#ffa500')
+    title: 'Connection error'
+    title_align: 'center'
+    BoxLayout:
+        id: con_er_m
+        orientation: 'vertical'
+        canvas.before:
+            Color:
+                rgba: hex('#000000')
+            Rectangle:
+                # self here refers to the widget i.e BoxLayout
+                pos: self.pos
+                size: self.size
+        Label:
+            text: 'No connection to internet'
+
+        Button:
+            text: 'Retry'
+            size_hint_x: None
+            size_hint_y: None
+            width: dp(200)
+            height: dp(70)
+            pos_hint:{'center_x': 0.5, 'center_y': 0.5}
+            background_down: "./images/b_b.png"
+            background_normal: "./images/b_a.png"
+            on_release: root.retry()
+
+        Button:
+            text: 'Quit'
+            size_hint_x: None
+            size_hint_y: None
+            width: dp(200)
+            height: dp(70)
+            pos_hint:{'center_x': 0.5, 'center_y': 0.5}
+            background_down: "./images/b_b.png"
+            background_normal: "./images/b_a.png"
+            on_release: root.quit_app_cl()
+
+<Lo>:
+    auto_dismiss: True
+    size_hint: (None, None)
+    BoxLayout:
+        id: lo_container
+        orientation: 'vertical'
+        BoxLayout:
+            orientation: 'vertical'
+            Image:
+                source: './images/logo.png'
