@@ -312,6 +312,22 @@ class Connector:
 
 #######################################____________CONNECTOR___________________#########################################
 
+def start_loade(*args):
+    App.get_running_app().lod.open()
+    Logger.info('start')
+
+
+def stop_loade(*args):
+    App.get_running_app().lod.dismiss()
+    Logger.info('stop')
+
+def waiter(entry, finish):
+    Clock.schedule_once(start_loade,entry)
+    Clock.schedule_once(stop_loade, finish)
+
+
+
+
 #######################################____________APP___________________#########################################
 
 
@@ -391,16 +407,34 @@ class MoviesViewMain(Screen):
         self.manager.current = 'mvms'
 
 class ScMaMovies(ScreenManager):
+
     def __init__(self, **kwargs):
         super(ScMaMovies, self).__init__(**kwargs)
         Logger.info('ScMaMovies: Initialized {}'.format(self))
-        lk = Lo()
-        lk.open()
-        self.add_widget(MoviesViewMain())
-        lk.dismiss()
 
+        if MoviesView.skipper:
+            Clock.schedule_once(self.add_scmm, 0)
+
+        else:
+
+            Clock.schedule_once(self.start_loade, -1)
+            Clock.schedule_once(self.add_scmm, 0.5)
+            Clock.schedule_once(self.stop_loade, 3)
+
+
+    def start_loade(self, *args):
+        App.get_running_app().lod.open()
+        Logger.info('start')
+    def stop_loade(self,*args):
+        App.get_running_app().lod.dismiss()
+        Logger.info('stop')
+    def add_scmm(self, *args):
+        self.add_widget(MoviesViewMain())
+        MoviesView.skipper = False
 
 class MoviesView(Screen):
+    skipper = BooleanProperty(True)
+
     def __init__(self, **kwargs):
         super(MoviesView, self).__init__(**kwargs)
         Logger.info('MoviesView: Initialized {}'.format(self))
@@ -547,9 +581,31 @@ class ScMaSeries(ScreenManager):
     def __init__(self, **kwargs):
         super(ScMaSeries, self).__init__(**kwargs)
         Logger.info('ScMaSeries: Initialized {}'.format(self))
+
+        if SeriesView.skipper:
+            Clock.schedule_once(self.add_scms, 0)
+        else:
+
+            Clock.schedule_once(self.start_loade, -1)
+            Clock.schedule_once(self.add_scms, 0.5)
+            Clock.schedule_once(self.stop_loade, 3)
+
+    def start_loade(self, *args):
+        App.get_running_app().lod.open()
+        Logger.info('start')
+
+    def stop_loade(self, *args):
+        App.get_running_app().lod.dismiss()
+        Logger.info('stop')
+
+    def add_scms(self, *args):
         self.add_widget(SeriesViewMain())
+        SeriesView.skipper = False
+
 
 class SeriesView(Screen):
+    skipper = BooleanProperty(True)
+
     def __init__(self, **kwargs):
         super(SeriesView, self).__init__(**kwargs)
         Logger.info('SeriesView: Initialized {}'.format(self))
@@ -666,17 +722,11 @@ class MainView(Screen):
     def __init__(self, **kwargs):
         super(MainView, self).__init__(**kwargs)
         Logger.info('MainView: Initialized {}'.format(self))
-        # Clock.schedule_once(self.pr, 9)
+        self.view = FilterModalView()
 
 
         self.scm = MainViewScManager()
         self.ids.screen_m_container.add_widget(self.scm)
-
-
-        # Logger.info(self.ids)
-        self.view = FilterModalView()
-        # self.view.add_widget(Label(text='Hello world'))
-
 
     def connect_on_enter(self, *args):
         self.connector = Connector()
@@ -795,6 +845,17 @@ class ScanView(Screen):
             self.set_as_host(self.choosen_device)
 
         self.manager.switch_to(MainView(), transition=FadeTransition(), duration=1)
+        waiter( -0.5, 7)
+    #     Clock.schedule_once(self.start_loade, -1)
+    #     Clock.schedule_once(self.stop_loade, 7)
+    #
+    # def start_loade(self, *args):
+    #     App.get_running_app().lod.open()
+    #     Logger.info('start')
+    #
+    # def stop_loade(self, *args):
+    #     App.get_running_app().lod.dismiss()
+    #     Logger.info('stop')
 
 
 class SettingsViewItem(BoxLayout):
@@ -899,7 +960,6 @@ class ViewControl(ScreenManager):
     width_x = Window.size[0]
     Logger.info('Window height in dp {}'.format(width_x))
 
-
     def __init__(self, **kwargs):
         super(ViewControl, self).__init__(**kwargs)
         Logger.info('ViewControl: Initialized {}'.format(self))
@@ -919,6 +979,7 @@ class MediaServiceMclientApp(App):
         Logger.info('Application : Initialized {}'.format(self))
 
         self.root = BoxLayout(orientation='vertical')
+        self.lod = Lo()
 
         return self.root
 
