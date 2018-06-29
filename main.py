@@ -1,5 +1,3 @@
-from urllib2 import URLError
-
 from kivy import Logger
 from kivy.app import App
 from kivy.clock import mainthread, Clock
