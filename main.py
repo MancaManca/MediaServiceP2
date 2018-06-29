@@ -1,3 +1,5 @@
+from urllib2 import URLError
+
 from kivy import Logger
 from kivy.app import App
 from kivy.clock import mainthread, Clock
@@ -119,17 +121,28 @@ class api:
         self._url_prepared = self.url + self.query_str[:-1]
 
         # Logger.info(self._url_prepared)
-        return requests.get(self._url_prepared)
+        try:
+            return requests.get(self._url_prepared)
+        except:
+            App.get_running_app().conn_e.open()
+            Logger.warning('no connection')
 
     def get_search_by_id(self):
 
         self._url_prepared = self.short_url + self.query['_id']
         # priLogger.infont(self._url_prepared)
-        return requests.get(self._url_prepared)
+        try:
+            return requests.get(self._url_prepared)
+        except:
+            App.get_running_app().conn_e.open()
+            Logger.warning('no connection')
 
     def get_pages(self):
-        return requests.get(self.url)
-
+        try:
+            return requests.get(self.url)
+        except:
+            App.get_running_app().conn_e.open()
+            Logger.warning('no connection')
 
 class Movies(api):
     def __init__(self, page=None, sort=None, order=None, keywords=None, _id=None, genre=None, **kwargs):
@@ -229,13 +242,15 @@ def api_request_controler(_api_call_response):
         populate_hashed_json_dic(hash_item(_api_call_response.json(), True), hashed_dic_shows)
 
 def get_api(_api_call):
-    Logger.info(_api_call.url)
+    # Logger.info(_api_call.url)
 
     try:
         api_request_handler(_api_call)
         api_request_controler(_api_call)
-    except Exception as e:
-        Logger.info(e)
+    except :
+        Logger.info('caught at get api')
+        raise Exception
+
 #######################################____________API_REQUESTS___________________######################################
 
 
@@ -389,7 +404,7 @@ class MoviesViewMain(Screen):
             _items = Item(hashed_dic_movies[kk]['_id'])
             _items.size = ((Window.size[0] / 3) - 30, (Window.size[1] / 2) - 300)
             try:
-                _items.add_widget(AsyncImage(source=hashed_dic_movies[kk]['images']['poster'], nocache=True))
+                _items.add_widget(AsyncImage(source=hashed_dic_movies[kk]['images']['poster'], nocache=True, on_error=self.async_image_error_load))
             except Exception as e:
                 pass
                 Logger.info('No image setting default cause of {}'.format(e))
@@ -399,6 +414,9 @@ class MoviesViewMain(Screen):
 
             movies_layout.add_widget(_items)
 
+    def async_image_error_load(self, instance, *args):
+
+        instance.source = './images/logo.png'
 
     def change_to_movies_single(self, x,*args):
         # Logger.info(self.manager)
@@ -561,15 +579,20 @@ class SeriesViewMain(Screen):
             _items = Item(hashed_dic_shows[ss]['_id'])
             _items.size = ((Window.size[0] / 3) - 30, (Window.size[1] / 2) - 300)
             try:
-                _items.add_widget(AsyncImage(source=hashed_dic_shows[ss]['images']['poster'], nocache=True))
-            except Exception as e:
+                _items.add_widget(AsyncImage(source=hashed_dic_shows[ss]['images']['poster'], nocache=True, on_error=self.async_image_error_load))
+            except:
+
+                Logger.info('No image setting default cause of ')
+                _items.add_widget(Image(source='/images/logo.png'))
                 pass
-                Logger.info('No image setting default cause of {}'.format(e))
-                _items.add_widget(Image(source='images/logo.png'))
             _items.add_widget(Label(text=hashed_dic_shows[ss]['title'], size_hint_y=.1,text_size=(((Window.size[0] / 3)-45), None),shorten_from='right',halign='center',shorten=True))
             _items.add_widget(Button(text = 'show',on_press = lambda x: self.change_to_series_single(hashed_dic_shows[ss]['_id']),size_hint_y=.1))
 
             series_layout.add_widget(_items)
+
+    def async_image_error_load(self, instance, *args):
+
+        instance.source = './images/logo.png'
 
     def change_to_series_single(self, x,*args):
         # Logger.info(self.manager)
@@ -643,9 +666,13 @@ class SeriesView(Screen):
         # Logger.info('ist {}'.format(instance))
         # Logger.info(instance.ids.mov_view_holder.children)
         instance.ids.ser_view_holder.remove_widget(instance.ids.ser_view_holder.children[0])
-        get_api(Shows(page=num.text, order='-1', sort='name').get_search())
+        try:
+            get_api(Shows(page=num.text, order='-1', sort='name').get_search())
+            instance.ids.ser_view_holder.add_widget(ScMaSeries())
 
-        instance.ids.ser_view_holder.add_widget(ScMaSeries())
+        except Exception as e:
+            App.get_running_app().conn_e.open()
+            pass
 
     pass
     pass
@@ -714,8 +741,6 @@ class FilterModalView(ModalView):
         self.size = (Window.size[0] / 1.5, Window.size[1] / 1.5)
 
 
-
-
 class MainView(Screen):
     connection_status_indicator = BooleanProperty(None)
 
@@ -744,6 +769,13 @@ class MainView(Screen):
         other_but_f.background_normal = "./images/n_n.png"
         other_but_s.background_normal = "./images/n_n.png"
         self.scm.current = scn
+
+    def set_as_current_screen_seartch(self, scn, ot_1, ot_2, ot_3, *args):
+        ot_1.background_normal = "./images/n_n.png"
+        ot_2.background_normal = "./images/n_n.png"
+        ot_3.background_normal = "./images/n_n.png"
+        self.scm.current = scn
+
 
     def navigate_to_settings(self, *args):
         # Logger.info(self.parent)
@@ -785,15 +817,17 @@ class ConnectionErrorPopup(Popup):
     def __init__(self, **kwargs):
         super(ConnectionErrorPopup, self).__init__(**kwargs)
         Logger.info('ConnectionErrorPopup: Initialized {}'.format(self))
+
         self.size = (Window.size[0] / 1.5, Window.size[1] / 1.5)
 
     def quit_app_cl(self, *args):
         App.stop(App.get_running_app())
 
     def retry(self, *args):
+        self.dismiss()
         App.get_running_app().root.clear_widgets()
         App.get_running_app().root.add_widget(ViewControl())
-        self.dismiss()
+
 
 
 class ScanView(Screen):
@@ -802,9 +836,6 @@ class ScanView(Screen):
     def __init__(self, **kwargs):
         super(ScanView, self).__init__(**kwargs)
         Logger.info('ScanView: Initialized {}'.format(self))
-
-        self.connection_error = ConnectionErrorPopup()
-
 
         self._urls_list = scanned_online_urls
 
@@ -826,7 +857,7 @@ class ScanView(Screen):
             get_api(Shows(order='-1', sort='name').get_search())
             get_api(Movies(order='-1', sort='name').get_search())
         except Exception as e:
-            self.connection_error.open()
+            App.get_running_app().conn_e.open()
             pass
 
 
@@ -980,6 +1011,7 @@ class MediaServiceMclientApp(App):
 
         self.root = BoxLayout(orientation='vertical')
         self.lod = Lo()
+        self.conn_e = ConnectionErrorPopup()
 
         return self.root
 
