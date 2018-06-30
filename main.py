@@ -41,10 +41,9 @@ def scan_network_for_single_connection(_subnet):
             Logger.info('Found online at {}'.format(network_address))
 
             responded_msgs = s.sock.recv(2048)
-            # ScanView.urls_list[network_address] = str(responded_msgs.decode())
             scanned_online_urls[network_address] = str(responded_msgs.decode())
 
-            Logger.info('Server on address {} responded with message {}'.format(network_address,
+            Logger.info('Device on address {} responded with message {}'.format(network_address,
                                                                                 str(responded_msgs.decode())))
             s.sock.close()
 
@@ -86,6 +85,7 @@ class ApiContentError(Exception):
     def __str__(self):
         return "ApiContentError: content={}".format(self.content)
 
+
 class ApiError(Exception):
     """An API Error Exception"""
 
@@ -94,6 +94,7 @@ class ApiError(Exception):
 
     def __str__(self):
         return "ApiError: status={}".format(self.status)
+
 
 class api:
 
@@ -104,7 +105,6 @@ class api:
         return 'https://tv-v2.api-fetch.website' + path
 
     def get_search(self):
-
         self.query_str = '/'
         if 'page' not in self.query:
             self.page = '1'
@@ -118,29 +118,27 @@ class api:
 
         self._url_prepared = self.url + self.query_str[:-1]
 
-        # Logger.info(self._url_prepared)
         try:
             return requests.get(self._url_prepared)
         except:
-            App.get_running_app().conn_e.open()
+            App.get_running_app().conn_error_popup.open()
             Logger.warning('no connection')
 
     def get_search_by_id(self):
-
         self._url_prepared = self.short_url + self.query['_id']
-        # priLogger.infont(self._url_prepared)
         try:
             return requests.get(self._url_prepared)
         except:
-            App.get_running_app().conn_e.open()
+            App.get_running_app().conn_error_popup.open()
             Logger.warning('no connection')
 
     def get_pages(self):
         try:
             return requests.get(self.url)
         except:
-            App.get_running_app().conn_e.open()
+            App.get_running_app().conn_error_popup.open()
             Logger.warning('no connection')
+
 
 class Movies(api):
     def __init__(self, page=None, sort=None, order=None, keywords=None, _id=None, genre=None, **kwargs):
@@ -163,8 +161,6 @@ class Movies(api):
             self.query['keywords'] = str(keywords).replace(' ', '%20')
 
 
-
-
 class Shows(api):
     def __init__(self, page=None, sort=None, order=None, keywords=None, _id=None, genre=None, **kwargs):
 
@@ -185,12 +181,12 @@ class Shows(api):
         if keywords:
             self.query['keywords'] = str(keywords).replace(' ', '%20')
 
+
 def api_request_handler(_response):
     if 'application/json' not in _response.headers['Content-Type']:
         raise ApiContentError('Error response type {}'.format(_response.headers['Content-Type']))
     if _response.status_code != 200:
         raise ApiError('Error occurred: {}'.format(_response.status_code))
-
 
 # pippp = Shows().get_pages()
 # pippp = Shows(_id = 'tt4209752').get_search_by_id()
@@ -203,7 +199,8 @@ def api_request_handler(_response):
 def hash_item_m(x):
     to_hash = '{}'.format(x)
     hashed_item = SHA256.new(to_hash.encode()).hexdigest()
-    return  hashed_item
+    return hashed_item
+
 
 def hash_item(__json_in, method_flag): # requires JSON object
     __json_hashed_out = {}
@@ -217,16 +214,15 @@ def hash_item(__json_in, method_flag): # requires JSON object
         hashed = hash_item_m(__json_in['_id'])
         __json_hashed_out[hashed] = __json_in
 
-
-
     return __json_hashed_out
 
-def populate_hashed_json_dic(__json_hashed_in, to_dic):
 
+def populate_hashed_json_dic(__json_hashed_in, to_dic):
     to_dic.clear()
     for i in __json_hashed_in:
         to_dic[i] = __json_hashed_in[i]
     Logger.info('populated dic')
+
 
 def api_request_controler(_api_call_response):
 
@@ -239,39 +235,32 @@ def api_request_controler(_api_call_response):
     if Shows().url in _api_call_response.url:
         populate_hashed_json_dic(hash_item(_api_call_response.json(), True), hashed_dic_shows)
 
-def get_api(_api_call):
-    # Logger.info(_api_call.url)
 
+def get_api(_api_call):
     try:
         api_request_handler(_api_call)
         api_request_controler(_api_call)
-    except :
+    except:
         Logger.info('caught at get api')
         raise Exception
 
 #######################################____________API_REQUESTS___________________######################################
 
-
-
-
 #######################################____________CONNECTOR___________________#########################################
+
+
 class Connector:
     url = ''
+
     def __init__(self, **kwargs):
         Logger.info('Connector: Initialized {}'.format(self))
 
-
-        # self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         if self.url:
             self.host = self.url
-            # Logger.info(self.host)
         else:
-            # self.host = '192.168.0.10'
             self.host = None
         self.port = 8000
         self.server_state = True
-        # MainView.mika(True)
-
         self.connects(self.host, self.port)
 
     def connects(self, host, port, *args):
@@ -281,14 +270,12 @@ class Connector:
             self.sock.connect((host,port))
             self.receive()
             Logger.info('Connected to host {}'.format(host))
+
         except:
             Logger.info('no connection to server')
+
             self.server_state = False
-            # MainView.connection_status_indicator = False
-            # MainView.mika(False)
-
             pass
-
 
     def mysend(self, msg, *args):
         if self.server_state:
@@ -300,7 +287,6 @@ class Connector:
         else:
             Logger.info('No connection to server')
 
-
     def receive(self, *args):
         responded_msg = self.sock.recv(2048)
         # Logger.info(responded_msg.decode())
@@ -308,33 +294,32 @@ class Connector:
             Logger.info('false')
 
             self.server_state = False
-            # MainView.connection_status_indicator = False
-            # MainView.mika(False)
             try:
                 self.sock.close()
             except OSError:
                 Logger.info('not able to close')
+
                 pass
             self.connects(self.host, self.port)
 
         else:
             self.server_state = True
-            # MainView.connection_status_indicator = True
-            # MainView.mika(True)
             Logger.info('true')
 
 #######################################____________CONNECTOR___________________#########################################
 
+
 def start_loade(*args):
-    App.get_running_app().lod.open()
+    App.get_running_app().loader_overlay.open()
     Logger.info('start')
 
 
 def stop_loade(*args):
-    App.get_running_app().lod.dismiss()
+    App.get_running_app().loader_overlay.dismiss()
     Logger.info('stop')
 
-def waiter(entry, finish):
+
+def busy_loading_overlay(entry, finish):
     Clock.schedule_once(start_loade,entry)
     Clock.schedule_once(stop_loade, finish)
 
@@ -439,11 +424,13 @@ class ScMaMovies(ScreenManager):
 
 
     def start_loade(self, *args):
-        App.get_running_app().lod.open()
+        App.get_running_app().loader_overlay.open()
         Logger.info('start')
+
     def stop_loade(self,*args):
-        App.get_running_app().lod.dismiss()
+        App.get_running_app().loader_overlay.dismiss()
         Logger.info('stop')
+
     def add_scmm(self, *args):
         self.add_widget(MoviesViewMain())
         MoviesView.skipper = False
@@ -612,11 +599,11 @@ class ScMaSeries(ScreenManager):
             Clock.schedule_once(self.stop_loade, 3)
 
     def start_loade(self, *args):
-        App.get_running_app().lod.open()
+        App.get_running_app().loader_overlay.open()
         Logger.info('start')
 
     def stop_loade(self, *args):
-        App.get_running_app().lod.dismiss()
+        App.get_running_app().loader_overlay.dismiss()
         Logger.info('stop')
 
     def add_scms(self, *args):
@@ -669,7 +656,7 @@ class SeriesView(Screen):
             instance.ids.ser_view_holder.add_widget(ScMaSeries())
 
         except Exception as e:
-            App.get_running_app().conn_e.open()
+            App.get_running_app().conn_error_popup.open()
             pass
 
     pass
@@ -837,27 +824,22 @@ class ScanView(Screen):
 
         self._urls_list = scanned_online_urls
 
-
         for _urls_list_item in self._urls_list:
             self.formated_dev_name_address = '{}/{}'.format(_urls_list_item, self._urls_list[_urls_list_item])
-
             self.ids.scanned_devices_list_grid.add_widget(ScanViewItem(self.formated_dev_name_address))
 
 #################################_________________API_IMPL__________________________####################################
 
         self.start_service()
 
-
     def start_service(self, *args):
-        # pippp = Shows(order='1', sort='name').get_search()
         """get inital latest movies and series, populate shows dictionary populate movies dicionary"""
         try:
             get_api(Shows(order='-1', sort='name').get_search())
             get_api(Movies(order='-1', sort='name').get_search())
-        except Exception as e:
-            App.get_running_app().conn_e.open()
+        except:
+            App.get_running_app().conn_error_popup.open()
             pass
-
 
 
 #################################_________________API_IMPL__________________________####################################
@@ -874,17 +856,7 @@ class ScanView(Screen):
             self.set_as_host(self.choosen_device)
 
         self.manager.switch_to(MainView(), transition=FadeTransition(), duration=1)
-        waiter( -0.5, 7)
-    #     Clock.schedule_once(self.start_loade, -1)
-    #     Clock.schedule_once(self.stop_loade, 7)
-    #
-    # def start_loade(self, *args):
-    #     App.get_running_app().lod.open()
-    #     Logger.info('start')
-    #
-    # def stop_loade(self, *args):
-    #     App.get_running_app().lod.dismiss()
-    #     Logger.info('stop')
+        busy_loading_overlay(-0.5, 7)
 
 
 class SettingsViewItem(BoxLayout):
@@ -895,13 +867,12 @@ class SettingsViewItem(BoxLayout):
         self.dev_name_for_l = device_name_for_label
         self.ids.settings_view_i_name.text = self.dev_name_for_l
 
-    def return_on_active_name(self, settings_item_checkobox_flag, settings_item_checkobox_value,  *args):
-        if settings_item_checkobox_flag:
-
-            SettingsView.choosen_device = settings_item_checkobox_value
-
+    def return_on_active_name(self, settings_item_checkbox_flag, settings_item_checkbox_value,  *args):
+        if settings_item_checkbox_flag:
+            SettingsView.choosen_device = settings_item_checkbox_value
         else:
             SettingsView.choosen_device = ''
+
 
 class SettingsView(Screen):
     choosen_device = StringProperty()
@@ -911,7 +882,6 @@ class SettingsView(Screen):
         Logger.info('SettingsView: Initialized {}'.format(self))
 
         self.settings_scanned_devices = scanned_online_urls
-        # Clock.schedule_once(self.return_to_main_view, 9)
         self.update_list_devices()
 
     def scan_again(self, *args):
@@ -928,20 +898,18 @@ class SettingsView(Screen):
             self.ids.settings_view_container_list_container.add_widget(SettingsViewItem(self.formated_dev_name_address))
 
     def save_settings(self, *args):
-        Logger.info('save settings set_as_host')
-
         if self.choosen_device:
             Logger.info('save settings set_as_host {}'.format(self.choosen_device))
             self.settings_set_as_host(self.choosen_device)
 
     def settings_set_as_host(self, host_in):
-
         breaker = host_in.find('/')
         prepare_url = host_in[:breaker]
         Connector.url = prepare_url
 
     def return_to_main_view(self, *args):
-       self.manager.current = 'main'
+        self.manager.current = 'main'
+
 
 class So:
     def __init__(self, **kwargs):
@@ -951,6 +919,7 @@ class So:
         self.sock.settimeout(2)
         self.sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 
+
 class Progression(Screen):
 
     def __init__(self, **kwargs):
@@ -959,7 +928,6 @@ class Progression(Screen):
 
         # self.sch_event = Clock.schedule_interval(self.progression_bar_handler, 0.08)
         self.sch_event = Clock.schedule_interval(self.progression_bar_handler, 1/60)
-
 
     def progression_bar_handler(self, *args):
 
@@ -972,12 +940,6 @@ class Progression(Screen):
 
             self.sch_event.cancel()
             self.manager.switch_to(ScanView(), transition=FadeTransition(), duration=1)
-
-class Lo(ModalView):
-    def __init__(self, **kwargs):
-        super(Lo, self).__init__(**kwargs)
-        Logger.info('Lo: Initialized {}'.format(self))
-        self.size = (Window.size[0] / 1.5, Window.size[1] / 1.5)
 
 
 class ViewControl(ScreenManager):
@@ -1002,14 +964,21 @@ class ViewControl(ScreenManager):
         self.add_widget(Progression(name='loading'))
 
 
+class LoaderOverlay(ModalView):
+    def __init__(self, **kwargs):
+        super(LoaderOverlay, self).__init__(**kwargs)
+        Logger.info('LoaderOverlay: Initialized {}'.format(self))
+        self.size = (Window.size[0] / 1.5, Window.size[1] / 1.5)
+
+
 class MediaServiceMclientApp(App):
 
     def build(self):
         Logger.info('Application : Initialized {}'.format(self))
 
         self.root = BoxLayout(orientation='vertical')
-        self.lod = Lo()
-        self.conn_e = ConnectionErrorPopup()
+        self.loader_overlay = LoaderOverlay()
+        self.conn_error_popup = ConnectionErrorPopup()
 
         return self.root
 
