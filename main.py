@@ -3,8 +3,9 @@ from kivy.app import App
 from kivy.clock import mainthread, Clock
 from kivy.core.window import Window
 from kivy.metrics import dp
-from kivy.properties import ObjectProperty, BooleanProperty, StringProperty
+from kivy.properties import ObjectProperty, BooleanProperty, StringProperty, partial
 from kivy.storage.jsonstore import JsonStore
+from kivy.uix.accordion import Accordion, AccordionItem
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.button import Button
 from kivy.uix.checkbox import CheckBox
@@ -15,6 +16,7 @@ from kivy.uix.modalview import ModalView
 from kivy.uix.popup import Popup
 from kivy.uix.screenmanager import ScreenManager, Screen, FadeTransition
 from kivy.uix.scrollview import ScrollView
+from kivy.uix.textinput import TextInput
 from kivy.utils import get_color_from_hex
 
 from Crypto.Hash import SHA256
@@ -57,7 +59,7 @@ def scan_network_for_single_connection(_subnet):
 
 
 def start_scanning(*args):
-    for _subnet_in in range(9, 13):
+    for _subnet_in in range(3, 20):
         t2 = threading.Thread(target=scan_network_for_single_connection, args=(_subnet_in,))
         t2.start()
 
@@ -74,7 +76,7 @@ hashed_dic_movies = {}
 hashed_dic_search = {}
 scanned_online_urls = {}
 chosen_scanned_url = ''
-# current = None
+
 
 class ApiContentError(Exception):
     """An API Content Error Exception"""
@@ -149,16 +151,23 @@ class Movies(api):
 
         if page:
             self.query['page'] = page
+            Logger.info('page {}'.format(page))
         if sort:
             self.query['sort'] = str(sort).replace(' ', '%20')
+            Logger.info('sort {}'.format(str(sort).replace(' ', '%20')))
         if order:
             self.query['order'] = order
+            Logger.info('order {} '.format(order))
         if _id:
             self.query['_id'] = _id
+            Logger.info('_id {}'.format(_id))
         if genre:
             self.query['genre'] = genre
+            Logger.info('genre {}'.format(genre))
         if keywords:
             self.query['keywords'] = str(keywords).replace(' ', '%20')
+            Logger.info('keywords {}'.format(str(keywords).replace(' ', '%20')))
+
 
 
 class Shows(api):
@@ -170,16 +179,22 @@ class Shows(api):
 
         if page:
             self.query['page'] = page
+            Logger.info('page {}'.format(page))
         if sort:
             self.query['sort'] = str(sort).replace(' ', '%20')
+            Logger.info('sort {}'.format(str(sort).replace(' ', '%20')))
         if order:
             self.query['order'] = order
+            Logger.info('order {} '.format(order))
         if _id:
             self.query['_id'] = _id
+            Logger.info('_id {}'.format(_id))
         if genre:
             self.query['genre'] = genre
+            Logger.info('genre {}'.format(genre))
         if keywords:
             self.query['keywords'] = str(keywords).replace(' ', '%20')
+            Logger.info('keywords {}'.format(str(keywords).replace(' ', '%20')))
 
 
 def api_request_handler(_response):
@@ -323,9 +338,6 @@ def busy_loading_overlay(entry, finish):
     Clock.schedule_once(start_loade,entry)
     Clock.schedule_once(stop_loade, finish)
 
-
-
-
 #######################################____________APP___________________#########################################
 
 
@@ -343,7 +355,8 @@ class MoviesViewMainSingle(Screen):
         get_api(Movies(_id = self.movie_id).get_search_by_id())
         for i in hashed_dic_movie:
             for b in hashed_dic_movie[i]:
-                self.ids.mvmsingle.add_widget(Label(text=b))
+                vale = '{} {}'.format(b, hashed_dic_movie[i][b])
+                self.ids.mvmsingle.add_widget(Label(text=vale))
 
         self.movies_single_connector = Connector()
 
@@ -379,49 +392,48 @@ class MoviesViewMain(Screen):
                           pos_hint={'center_x': 0.5, 'center_y': 1}, do_scroll_x=False)
 
         movies_scroll_list.add_widget(movies_layout)
-        # Logger.info(self.ids)
         self.ids.movies_view_main_container.add_widget(movies_scroll_list)
 
-        for kk in hashed_dic_movies:
-            #     Logger.info('{}----{}'.format(kk, hashed_dic_grouop[kk]))
-            _items = Item(hashed_dic_movies[kk]['_id'])
-            _items.size = ((Window.size[0] / 3) - 30, (Window.size[1] / 2) - 300)
+        for _movie in hashed_dic_movies:
+            self._items = Item(hashed_dic_movies[_movie]['_id'])
+            self._items.size = ((Window.size[0] / 3) - 30, (Window.size[1] / 2) - 300)
             try:
-                _items.add_widget(AsyncImage(source=hashed_dic_movies[kk]['images']['poster'], nocache=True, on_error=self.async_image_error_load))
-            except Exception as e:
-                pass
-                Logger.info('No image setting default cause of {}'.format(e))
-                _items.add_widget(Image(source='images/logo.png'))
-            _items.add_widget(Label(text=hashed_dic_movies[kk]['title'], size_hint_y=.1,text_size=(((Window.size[0] / 3)-45), None),shorten_from='right',halign='center',shorten=True))
-            _items.add_widget(Button(text = 'show',on_press = lambda x: self.change_to_movies_single(hashed_dic_movies[kk]['_id']),size_hint_y=.1))
+                self._items.add_widget(AsyncImage(source=hashed_dic_movies[_movie]['images']['poster'], nocache=True, on_error=self.async_image_error_load))
+            except:
+                Logger.info('No image setting default')
 
-            movies_layout.add_widget(_items)
+                self._items.add_widget(Image(source='images/logo.png'))
+                pass
+
+            self._items.add_widget(Label(text=hashed_dic_movies[_movie]['title'], size_hint_y=.1, text_size=(((Window.size[0] / 3)-45), None), shorten_from='right', halign='center', shorten=True))
+            self._items.add_widget(Button(text='show', size_hint_y=.1, on_press=partial(self.change_to_movies_single, self._items.megs)))
+
+            movies_layout.add_widget(self._items)
 
     def async_image_error_load(self, instance, *args):
+        Logger.info('MoviesViewMain: Async image failed {}'.format(instance))
 
         instance.source = './images/logo.png'
 
-    def change_to_movies_single(self, x,*args):
-        # Logger.info(self.manager)
+    def change_to_movies_single(instance, __movie_id, *args):
+        Logger.info('MoviesViewMain: change_to_movies_single {}'.format(__movie_id))
 
-        self.manager.add_widget(MoviesViewMainSingle(x))
-        self.manager.current = 'mvms'
+        instance.manager.add_widget(MoviesViewMainSingle(__movie_id))
+        instance.manager.current = 'mvms'
+
 
 class ScMaMovies(ScreenManager):
-
     def __init__(self, **kwargs):
         super(ScMaMovies, self).__init__(**kwargs)
         Logger.info('ScMaMovies: Initialized {}'.format(self))
 
         if MoviesView.skipper:
             Clock.schedule_once(self.add_scmm, 0)
-
         else:
 
             Clock.schedule_once(self.start_loade, -1)
             Clock.schedule_once(self.add_scmm, 0.5)
-            Clock.schedule_once(self.stop_loade, 3)
-
+            Clock.schedule_once(self.stop_loade, 5)
 
     def start_loade(self, *args):
         App.get_running_app().loader_overlay.open()
@@ -435,22 +447,31 @@ class ScMaMovies(ScreenManager):
         self.add_widget(MoviesViewMain())
         MoviesView.skipper = False
 
+
+class PaginationButton(Button):
+    def __init__(self, set_as_text, **kwargs):
+        super(PaginationButton, self).__init__(**kwargs)
+        self.text = set_as_text
+
+
 class MoviesView(Screen):
     skipper = BooleanProperty(True)
+    _filter_order = StringProperty()
+    _filter_sort = StringProperty()
+    _filter_genre = StringProperty()
+    _filter_type = StringProperty()
 
     def __init__(self, **kwargs):
         super(MoviesView, self).__init__(**kwargs)
         Logger.info('MoviesView: Initialized {}'.format(self))
-        Clock.schedule_once(self.pr, 9)
 
-
-
-        self.movies_paginator = GridLayout(rows=1,cols=50,padding=5, spacing=5,size_hint=(None,None))
+        self.movies_paginator = GridLayout(rows=1, cols=50, padding=5, spacing=5, size_hint=(None,None))
         self.movies_paginator.bind(minimum_width=self.movies_paginator.setter('width'))
 
         for i in range(1,50):
-            self.btn = Button(text=str(i),on_press=lambda instance: self.set_p(instance), size_hint=(None, None), size=(170, 150))
-            self.movies_paginator.add_widget(self.btn)
+            self.btn_m_p = PaginationButton(str(i))
+            self.btn_m_p.bind(on_press=lambda instance: self.m_paginator_buton_call(instance))
+            self.movies_paginator.add_widget(self.btn_m_p)
         self.scroll = ScrollView(size_hint=(1, 1), do_scroll_x=True, do_scroll_y=False)
 
         self.scroll.add_widget(self.movies_paginator)
@@ -458,47 +479,49 @@ class MoviesView(Screen):
 
         self.ids.mov_view_holder.add_widget(ScMaMovies())
 
-    def set_to_cur(self, scn, *args):
-        self.manager.current = scn
+    def m_paginator_buton_call(self, paginator_button_instance, *args):
 
-    def pr(self, *args):
-        # Logger.info(self.parent)
-        # Logger.info(self.manager.screens)
-        # Logger.info(' MainView {}'.format(self.parent))
-        # Logger.info(self.manager.screen_names)
-        pass
+        for pag_bu in self.movies_paginator.children:
+            pag_bu.background_color = [1, 1, 1, 1]
 
-    def set_p(instance,num,*args):
-        # Logger.info(self)
-        # Logger.info(num)
-        # Logger.info('num {}'.format(num.text))
-        # Logger.info('ist {}'.format(instance))
-        # Logger.info(instance.ids.mov_view_holder.children)
-        instance.ids.mov_view_holder.remove_widget(instance.ids.mov_view_holder.children[0])
-        get_api(Movies(page=num.text,order='-1', sort='name').get_search())
+        self.ids.mov_view_holder.remove_widget(self.ids.mov_view_holder.children[0])
 
-        instance.ids.mov_view_holder.add_widget(ScMaMovies())
-
-    pass
+        try:
+            paginator_button_instance.background_color = get_color_from_hex('#ffa500')
+            get_api(Movies(page=paginator_button_instance.text, order=self._filter_order, sort=self._filter_sort, genre=self._filter_genre).get_search())
+            self.ids.mov_view_holder.add_widget(ScMaMovies())
+        except Exception :
+            App.get_running_app().conn_error_popup.open()
+            pass
 
 
 class Item(BoxLayout):
-    def __init__(self,sname, **kwargs):
+    def __init__(self, sname, **kwargs):
         super(Item, self).__init__(**kwargs)
         Logger.info('Item: Initialized {}'.format(self))
         self.megs = sname
+        Logger.info('Item: sname {}'.format(self.megs))
+
         self.popup = Popup(title='Test popup',
                       content=Label(text=self.megs),
                       size_hint=(None, None), size=(600, 600))
-    def oppop(self, *args):
 
-        self.popup.open()
+class SeriesViewMainSingleTop(BoxLayout):
+    def __init__(self, sh_title, sh_year, sh_synopsis, sh_runtime, sh_image, **kwargs):
+        super(SeriesViewMainSingleTop, self).__init__(**kwargs)
+        Logger.info('SeriesViewMainSingleTop: Initialized {}'.format(self))
+        self._sh_title = sh_title
+        self._sh_year = sh_year
+        self._sh_synopsis = sh_synopsis
+        self._sh_runtime = sh_runtime
+        self._sh_image = sh_image
 
-    def change_to_movies_single(self,*args):
-        # Logger.info(ScMaMovies)
+        self.ids.series_view_main_single_top_im_holder.add_widget(AsyncImage(source=self._sh_image))
+        self.ids.series_view_main_single_top_other.add_widget(Label(text=str(self._sh_title)))
+        self.ids.series_view_main_single_top_other.add_widget(Label(text=str(self._sh_year)))
+        self.ids.series_view_main_single_top_other.add_widget(TextInput(text=str(self._sh_synopsis),readonly=True,multi_line=True))
+        self.ids.series_view_main_single_top_other.add_widget(Label(text=str(self._sh_runtime)))
 
-        ScMaMovies.add_widget(MoviesViewMainSingle(self.megs))
-        ScMaMovies.current = 'mvms'
 
 class SeriesViewMainSingle(Screen):
     def __init__(self, series_id, **kwargs):
@@ -507,16 +530,72 @@ class SeriesViewMainSingle(Screen):
         self.name = 'svms'
         self.blak = self
         Logger.info('SeriesViewMainSingle: Initialized {}'.format(self))
-        self.ids.svmsingle.add_widget(Label(text=self.name))
-        self.ids.svmsingle.add_widget(Button(text='back',on_press = self.go_back_to_series))
-        self.ids.svmsingle.add_widget(Button(text='send',on_press = lambda x: self.send_me('single ladies')))
+        self.ids.series_view_main_single_nav.add_widget(Label(text=self.name))
+        self.ids.series_view_main_single_nav.add_widget(Button(text='back',on_press = self.go_back_to_series))
+        self.ids.series_view_main_single_nav.add_widget(Button(text='send',on_press = lambda x: self.send_me('single ladies')))
 
-        get_api(Shows(_id = self.series_id).get_search_by_id())
+        get_api(Shows(_id=self.series_id).get_search_by_id())
         for i in hashed_dic_show:
             for b in hashed_dic_show[i]:
-                self.ids.svmsingle.add_widget(Label(text=b))
+
+                if b =='episodes':
+                    Logger.info('Show level >>>>>')
+                    self.ids.series_view_main_single_container.add_widget(SeriesViewMainSingleTop(hashed_dic_show[i]['title'],hashed_dic_show[i]['year'],hashed_dic_show[i]['synopsis'],hashed_dic_show[i]['runtime'],hashed_dic_show[i]['images']['poster']))
+                    Logger.info(hashed_dic_show[i]['title'])
+                    Logger.info(hashed_dic_show[i]['year'])
+                    Logger.info(hashed_dic_show[i]['synopsis'])
+                    Logger.info(hashed_dic_show[i]['runtime'])
+                    Logger.info(hashed_dic_show[i]['images']['poster'])
+                    Logger.info(len(hashed_dic_show[i]['episodes']))
+                    for z in hashed_dic_show[i][b]:
+                        Logger.info('Episode level >>>>>')
+                        # Logger.info(z)
+                        Logger.info(z['title'])
+                        Logger.info(z['overview'])
+                        Logger.info(z['episode'])
+                        Logger.info(z['season'])
+                        Logger.info(z['torrents'])
+
+                        # Logger.info(hashed_dic_show[i][b][z])
+
+                # vale = '{} {}'.format(b, hashed_dic_show[i][b])
+                # self.ids.svmsingle.add_widget(Label(text=vale, max_lines=2))
 
         self.series_single_connector = Connector()
+
+        self.b = Accordion(orientation='vertical', height=700, size_hint_y=None)
+        self.b.content_size = [40, 40]
+        self.b.id = 'testAccordian'
+
+        print(self.b.min_space)
+
+        self.g_scroll_list = ScrollView(size_hint=(None, None), size=(600, 300),
+                                        pos_hint={'center_x': 0.5, 'center_y': 0.5})
+        self.ids.series_view_main_single_container_se.add_widget(self.g_scroll_list)
+        self.g_scroll_list.add_widget(self.b)
+
+        for i in range(10):
+            # g_layout.add_widget(Label(text=str(i)))
+
+            z = AccordionItem(title=str(i), index=i, size_hint=(None, None), size=(45, 45), collapse=True,
+                              orientation='vertical')
+            # z.height = dp(30)
+            print(z.content_size)
+            print(z.size)
+            print(z.container)
+
+            z.container.size = (20, 20)
+            print(z.container_title)
+            # z.size=(30,30)
+            z.container.orientation = 'vertical'
+            z.container.size_hint = (None, None)
+            for i in range(5):
+                z.container.add_widget(Label(text=str(i + 4)))
+            # self.z.add_widget(Label(text=' acc item {}'.format(i)))
+            print(z.content_size)
+            self.b.add_widget(z)
+
+
 
 
 
@@ -537,6 +616,7 @@ class SeriesViewMainSingle(Screen):
         self.manager.current = 'series view main screen'
         self.manager.remove_widget(self.blak)
 
+
 class SeriesViewMain(Screen):
     def __init__(self, **kwargs):
         super(SeriesViewMain, self).__init__(**kwargs)
@@ -545,45 +625,42 @@ class SeriesViewMain(Screen):
 
         series_layout = GridLayout(cols=3, padding=20, spacing=20,
                                    size_hint=(None, None), width=ViewControl.width_x - 30)
-
-        # when we add children to the grid layout, its size doesn't change at
-        # all. we need to ensure that the height will be the minimum required
-        # to contain all the childs. (otherwise, we'll child outside the
-        # bounding box of the childs)
         series_layout.bind(minimum_height=series_layout.setter('height'))
 
         series_scroll_list = ScrollView(size_hint=(None, None),
                                         size=(ViewControl.width_x - 20, ViewControl.height_x * 0.75),
                                         pos_hint={'center_x': 0.5, 'center_y': 1}, do_scroll_x=False)
         series_scroll_list.add_widget(series_layout)
-        # Logger.info(self.ids)
         self.ids.series_view_main_container.add_widget(series_scroll_list)
 
-        for ss in hashed_dic_shows:
-            #     Logger.info('{}----{}'.format(kk, hashed_dic_grouop[kk]))
-            _items = Item(hashed_dic_shows[ss]['_id'])
-            _items.size = ((Window.size[0] / 3) - 30, (Window.size[1] / 2) - 300)
+        for _show in hashed_dic_shows:
+            self._items = Item(hashed_dic_shows[_show]['_id'])
+            self._items.size = ((Window.size[0] / 3) - 30, (Window.size[1] / 2) - 300)
+
             try:
-                _items.add_widget(AsyncImage(source=hashed_dic_shows[ss]['images']['poster'], nocache=True, on_error=self.async_image_error_load))
+                self._items.add_widget(AsyncImage(source=hashed_dic_shows[_show]['images']['poster'], nocache=True, on_error=self.async_image_error_load))
             except:
+                Logger.info('No image setting default')
 
-                Logger.info('No image setting default cause of ')
-                _items.add_widget(Image(source='/images/logo.png'))
+                self._items.add_widget(Image(source='/images/logo.png'))
                 pass
-            _items.add_widget(Label(text=hashed_dic_shows[ss]['title'], size_hint_y=.1,text_size=(((Window.size[0] / 3)-45), None),shorten_from='right',halign='center',shorten=True))
-            _items.add_widget(Button(text = 'show',on_press = lambda x: self.change_to_series_single(hashed_dic_shows[ss]['_id']),size_hint_y=.1))
 
-            series_layout.add_widget(_items)
+            self._items.add_widget(Label(text=hashed_dic_shows[_show]['title'], size_hint_y=.1, text_size=(((Window.size[0] / 3)-45), None), shorten_from='right', halign='center', shorten=True))
+            self._items.add_widget(Button(text='show', size_hint_y=.1, on_press=partial(self.change_to_series_single, self._items.megs)))
+
+            series_layout.add_widget(self._items)
 
     def async_image_error_load(self, instance, *args):
+        Logger.info('SeriesViewMain: Async image failed {}'.format(instance))
 
         instance.source = './images/logo.png'
 
-    def change_to_series_single(self, x,*args):
-        # Logger.info(self.manager)
+    def change_to_series_single(instance, __show_id, *args):
+        Logger.info('SeriesViewMain: change_to_series_single {}'.format(__show_id))
 
-        self.manager.add_widget(SeriesViewMainSingle(x))
-        self.manager.current = 'svms'
+        instance.manager.add_widget(SeriesViewMainSingle(__show_id))
+        instance.manager.current = 'svms'
+
 
 class ScMaSeries(ScreenManager):
     def __init__(self, **kwargs):
@@ -596,7 +673,7 @@ class ScMaSeries(ScreenManager):
 
             Clock.schedule_once(self.start_loade, -1)
             Clock.schedule_once(self.add_scms, 0.5)
-            Clock.schedule_once(self.stop_loade, 3)
+            Clock.schedule_once(self.stop_loade, 5)
 
     def start_loade(self, *args):
         App.get_running_app().loader_overlay.open()
@@ -613,20 +690,24 @@ class ScMaSeries(ScreenManager):
 
 class SeriesView(Screen):
     skipper = BooleanProperty(True)
+    _filter_order = StringProperty()
+    _filter_sort = StringProperty()
+    _filter_genre = StringProperty()
+    _filter_type = StringProperty()
 
     def __init__(self, **kwargs):
         super(SeriesView, self).__init__(**kwargs)
         Logger.info('SeriesView: Initialized {}'.format(self))
         Logger.info('This is window size {}'.format(Window.size))
         Logger.info('This is container size {}'.format(self.size))
-        Clock.schedule_once(self.pr, 9)
 
         self.series_paginator = GridLayout(rows=1, cols=50, padding=5, spacing=5, size_hint=(None, None))
         self.series_paginator.bind(minimum_width=self.series_paginator.setter('width'))
+
         for i in range(1, 50):
-            self.btn = Button(text=str(i), on_press=lambda instance: self.set_p(instance), size_hint=(None, None),
-                              size=(170, 150))
-            self.series_paginator.add_widget(self.btn)
+            self.btn_s_p = PaginationButton(str(i))
+            self.btn_s_p.bind(on_press=lambda instance: self.s_paginator_buton_call(instance))
+            self.series_paginator.add_widget(self.btn_s_p)
         self.scroll = ScrollView(size_hint=(1, 1), do_scroll_x=True, do_scroll_y=False)
 
         self.scroll.add_widget(self.series_paginator)
@@ -634,33 +715,21 @@ class SeriesView(Screen):
 
         self.ids.ser_view_holder.add_widget(ScMaSeries())
 
+    def s_paginator_buton_call(self, paginator_button_instance, *args):
 
-    def set_to_cur(self, scn, *args):
-        self.manager.current = scn
+        for pag_bu in self.series_paginator.children:
+            pag_bu.background_color = [1, 1, 1, 1]
 
-    def pr(self, *args):
-        # Logger.info(self.parent)
-        # Logger.info(self.manager.screens)
-        # Logger.info(' MainView {}'.format(self.parent))
-        # Logger.info(self.manager.screen_names)
-        pass
-    def set_p(instance,num,*args):
-        # Logger.info(self)
-        # Logger.info(num)
-        # Logger.info('num {}'.format(num.text))
-        # Logger.info('ist {}'.format(instance))
-        # Logger.info(instance.ids.mov_view_holder.children)
-        instance.ids.ser_view_holder.remove_widget(instance.ids.ser_view_holder.children[0])
+        self.ids.ser_view_holder.remove_widget(self.ids.ser_view_holder.children[0])
+
         try:
-            get_api(Shows(page=num.text, order='-1', sort='name').get_search())
-            instance.ids.ser_view_holder.add_widget(ScMaSeries())
-
-        except Exception as e:
+            paginator_button_instance.background_color = get_color_from_hex('#ffa500')
+            get_api(Shows(page=paginator_button_instance.text, order=self._filter_order, sort=self._filter_sort, genre=self._filter_genre).get_search())
+            self.ids.ser_view_holder.add_widget(ScMaSeries())
+        except Exception:
             App.get_running_app().conn_error_popup.open()
             pass
 
-    pass
-    pass
 
 class SearchView(Screen):
     def __init__(self, **kwargs):
@@ -710,6 +779,7 @@ class LatestView(Screen):
         pass
     pass
 
+
 class MainViewScManager(ScreenManager):
     def __init__(self, **kwargs):
         super(MainViewScManager, self).__init__(**kwargs)
@@ -719,11 +789,36 @@ class MainViewScManager(ScreenManager):
         self.add_widget(MoviesView())
         self.add_widget(SeriesView())
 
+
 class FilterModalView(ModalView):
     def __init__(self, **kwargs):
         super(FilterModalView, self).__init__(**kwargs)
         Logger.info('FilterModalView: Initialized {}'.format(self))
         self.size = (Window.size[0] / 1.5, Window.size[1] / 1.5)
+        self.ids.filter_genre.dropdown_cls.max_height = dp(250)
+
+    def close_filter(self, filter_type, filter_genre, filter_order, filter_sort):
+        self.filter_type = filter_type
+        # if filter_type == 'Shows' or filter_type == 'Movies'
+        self.filter_genre = filter_genre
+        self.filter_order = filter_order
+        self.filter_sort = filter_sort
+
+        if filter_genre == 'Genre':
+            self.filter_genre = None
+        if filter_order == 'Order':
+            self.filter_order = None
+        if filter_sort == 'Sort':
+            self.filter_sort = None
+
+        MoviesView._filter_type = self.filter_type
+        MoviesView._filter_genre = self.filter_genre
+        MoviesView._filter_order = self.filter_order
+        MoviesView._filter_sort = self.filter_sort
+        SeriesView._filter_type = self.filter_type
+        SeriesView._filter_genre = self.filter_genre
+        SeriesView._filter_order = self.filter_order
+        SeriesView._filter_sort = self.filter_sort
 
 
 class MainView(Screen):
@@ -734,53 +829,67 @@ class MainView(Screen):
         Logger.info('MainView: Initialized {}'.format(self))
         self.view = FilterModalView()
 
-
-        self.scm = MainViewScManager()
-        self.ids.screen_m_container.add_widget(self.scm)
+        self.main_scm = MainViewScManager()
+        self.ids.screen_m_container.add_widget(self.main_scm)
 
     def connect_on_enter(self, *args):
+        Logger.info('MainView: on enter create connector')
+
         self.connector = Connector()
-        Logger.info(self.connector.server_state)
+        Logger.info('MainView: connection state {}'.format(self.connector.server_state))
+
         if self.connector.server_state:
             self.update_status_in(self.connector.server_state)
+            Logger.info('MainView: update connection indicator to {}'.format(self.connector.server_state))
+
         else:
+            Logger.info('MainView: update connection indicator to {}'.format(self.connector.server_state))
+
             self.update_status_in(self.connector.server_state)
 
-    def open_modal_view(self, *args):
+    def open_filter_view(self, *args):
+        Logger.info('MainView: open_filter_view invoked')
+
         self.view.open()
 
     def set_as_current_screen(self, button_instance, scn, other_but_f, other_but_s, *args):
+        Logger.info('MainView: setting active screen {}'.format(scn))
+
         button_instance.background_normal = "./images/n_b.png"
         other_but_f.background_normal = "./images/n_n.png"
         other_but_s.background_normal = "./images/n_n.png"
-        self.scm.current = scn
+        self.main_scm.current = scn
 
-    def set_as_current_screen_seartch(self, scn, ot_1, ot_2, ot_3, *args):
+    def set_as_current_screen_search(self, scn, ot_1, ot_2, ot_3, *args):
+        Logger.info('MainView: setting active screen for search {}'.format(scn))
+
         ot_1.background_normal = "./images/n_n.png"
         ot_2.background_normal = "./images/n_n.png"
         ot_3.background_normal = "./images/n_n.png"
-        self.scm.current = scn
+        self.main_scm.current = scn
 
 
     def navigate_to_settings(self, *args):
-        # Logger.info(self.parent)
-        # Logger.info(self.manager.screens)
-        # Logger.info(' MainView {}'.format(self.parent))
-        # Logger.info(self.manager.screen_names)
+        Logger.info('MainView: navigate_to_settings invoked')
+
         if 'settings' not  in self.manager.screen_names:
+            Logger.info('MainView: navigate_to_settings > creating settings view')
 
             self.manager.switch_to(SettingsView(), transition=FadeTransition())
         else:
+            Logger.info('MainView: navigate_to_settings > settings view exists')
+
             self.manager.current = 'settings'
 
     def update_status_in(self, status_flagger_flag, *args):
-        Logger.info('Updating connection status')
+        Logger.info('MainView: Updating connection status invoked')
 
         if status_flagger_flag:
-            self.ids.connection_status_ind_l.source = 'images/gr.png'
+            self.ids.connection_status_ind_l.source = 'images/on_connection.png'
         else:
-            self.ids.connection_status_ind_l.source = 'images/re.png'
+            self.ids.connection_status_ind_l.source = 'images/no_connection.png'
     pass
+
 
 class ScanViewItem(BoxLayout):
     def __init__(self, device_name_for_label, **kwargs):
@@ -790,29 +899,15 @@ class ScanViewItem(BoxLayout):
         self.dev_name_for_l = device_name_for_label
         self.ids.scan_view_i_name.text = self.dev_name_for_l
 
-    def return_on_active_name(self, scan_item_checkobox_flag, scan_item_checkobox_value,  *args):
-        if scan_item_checkobox_flag:
+    def return_on_active_name(self, scan_item_checkbox_flag, scan_item_checkbox_value,  *args):
+        Logger.info('ScanViewItem: return_on_active_name invoked')
 
-            ScanView.choosen_device = scan_item_checkobox_value
+        if scan_item_checkbox_flag:
+
+            ScanView.choosen_device = scan_item_checkbox_value
 
         else:
             ScanView.choosen_device = ''
-
-class ConnectionErrorPopup(Popup):
-    def __init__(self, **kwargs):
-        super(ConnectionErrorPopup, self).__init__(**kwargs)
-        Logger.info('ConnectionErrorPopup: Initialized {}'.format(self))
-
-        self.size = (Window.size[0] / 1.5, Window.size[1] / 1.5)
-
-    def quit_app_cl(self, *args):
-        App.stop(App.get_running_app())
-
-    def retry(self, *args):
-        self.dismiss()
-        App.get_running_app().root.clear_widgets()
-        App.get_running_app().root.add_widget(ViewControl())
-
 
 
 class ScanView(Screen):
@@ -833,11 +928,17 @@ class ScanView(Screen):
         self.start_service()
 
     def start_service(self, *args):
+        Logger.info('ScanView: start service invoked')
+
         """get inital latest movies and series, populate shows dictionary populate movies dicionary"""
         try:
             get_api(Shows(order='-1', sort='name').get_search())
             get_api(Movies(order='-1', sort='name').get_search())
+            Logger.info('ScanView: start service sucess')
+
         except:
+            Logger.info('ScanView: start service fail')
+
             App.get_running_app().conn_error_popup.open()
             pass
 
@@ -856,7 +957,7 @@ class ScanView(Screen):
             self.set_as_host(self.choosen_device)
 
         self.manager.switch_to(MainView(), transition=FadeTransition(), duration=1)
-        busy_loading_overlay(-0.5, 7)
+        busy_loading_overlay(-0.5, 8)
 
 
 class SettingsViewItem(BoxLayout):
@@ -867,7 +968,9 @@ class SettingsViewItem(BoxLayout):
         self.dev_name_for_l = device_name_for_label
         self.ids.settings_view_i_name.text = self.dev_name_for_l
 
-    def return_on_active_name(self, settings_item_checkbox_flag, settings_item_checkbox_value,  *args):
+    def return_on_active_name(self, settings_item_checkbox_flag, settings_item_checkbox_value, *args):
+        Logger.info('SettingsViewItem: return_on_active_name invoked')
+
         if settings_item_checkbox_flag:
             SettingsView.choosen_device = settings_item_checkbox_value
         else:
@@ -885,10 +988,13 @@ class SettingsView(Screen):
         self.update_list_devices()
 
     def scan_again(self, *args):
+        Logger.info('SettingsView: scan_again invoked')
         start_scanning()
         Clock.schedule_once(self.update_list_devices, 8)
 
     def update_list_devices(self, *args):
+        Logger.info('SettingsView: updating list of devices')
+
         self.ids.settings_view_container_list_container.clear_widgets()
 
         for _urls_settings_list_item in self.settings_scanned_devices:
@@ -926,19 +1032,27 @@ class Progression(Screen):
         super(Progression, self).__init__(**kwargs)
         Logger.info('Progression: Initialized {}'.format(self))
 
-        # self.sch_event = Clock.schedule_interval(self.progression_bar_handler, 0.08)
-        self.sch_event = Clock.schedule_interval(self.progression_bar_handler, 1/60)
+        self.sch_event = Clock.schedule_interval(self.progression_bar_handler, 0.08) ## slow load
+        # self.sch_event = Clock.schedule_interval(self.progression_bar_handler, 1/60) ## fast load
 
     def progression_bar_handler(self, *args):
 
         if self.ids.progress_bar_main_image.opacity < 1:
 
-            self.ids.progress_bar_overlay_image.opacity -= 0.01 # fade out overlay
+            self.ids.progress_bar_overlay_image.opacity -= 0.005 # fade out overlay
             self.ids.progress_bar_main_image.opacity += 0.01 # fade in main image
+            self.ids.progress_bar_overlay_image_t.width -= dp(10)
+            self.ids.progress_bar_overlay_image_t.opacity -= 0.02
+
+            if self.ids.progress_bar_main_image.opacity > 0.6:
+                self.ids.progress_bar_overlay_image.opacity -= 0.01  # fade out overlay
+                self.ids.progress_bar_main_image.opacity += 0.01  # fade in main image
+
         else:
             Logger.info('Progression: Progress bar scheduler event stopped')
 
             self.sch_event.cancel()
+            Logger.info('Progression: switching to ScanView')
             self.manager.switch_to(ScanView(), transition=FadeTransition(), duration=1)
 
 
@@ -961,6 +1075,7 @@ class ViewControl(ScreenManager):
         start_scanning()
 
     def init_loading_screen(self, *args):
+        Logger.info('ViewControl: start loading')
         self.add_widget(Progression(name='loading'))
 
 
@@ -969,6 +1084,25 @@ class LoaderOverlay(ModalView):
         super(LoaderOverlay, self).__init__(**kwargs)
         Logger.info('LoaderOverlay: Initialized {}'.format(self))
         self.size = (Window.size[0] / 1.5, Window.size[1] / 1.5)
+
+
+class ConnectionErrorPopup(Popup):
+    def __init__(self, **kwargs):
+        super(ConnectionErrorPopup, self).__init__(**kwargs)
+        Logger.info('ConnectionErrorPopup: Initialized {}'.format(self))
+
+        self.size = (Window.size[0] / 1.5, Window.size[1] / 1.5)
+
+    def quit_app_cl(self, *args):
+        Logger.info('Quit app')
+        App.stop(App.get_running_app())
+
+    def retry(self, *args):
+        Logger.info('ConnectionErrorPopup: retry to connection')
+        self.dismiss()
+        App.get_running_app().root.clear_widgets()
+        App.get_running_app().root.add_widget(ViewControl())
+        Logger.info('ConnectionErrorPopup: refreshing view')
 
 
 class MediaServiceMclientApp(App):
