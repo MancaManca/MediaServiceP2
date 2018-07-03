@@ -191,7 +191,7 @@
                         size: self.size
                 BoxLayout:
                     id: settings_button
-                    size_hint_x: .15
+                    size_hint_x: .18
                     RelativeLayout:
                         MainViewButton:
                             text: ''
@@ -202,37 +202,40 @@
 
                 BoxLayout:
                     id: search
-                    size_hint_x: .15
+                    size_hint_x: .18
                     RelativeLayout:
                         MainViewButton:
                             text: ''
                             background_down: "./images/search_icon.png"
                             background_normal: "./images/search_icon.png"
-                            on_release: root.set_as_current_screen_search('search_view', mov_b, lat_b, ser_b, search_input_in.text)
+                            on_release: root.set_as_current_screen_search('search_view', mov_b, lat_b, ser_b, search_input_in.text, search_input_in)
                             pos_hint: {'center_x': 0.5, 'center_y': 0.5}
 
 
                 BoxLayout:
                     id: search_input
-                    size_hint_x: .4
+                    size_hint_x: .38
                     TextInput:
                         id: search_input_in
                         text: ''
-                        background_down: "./images/filter_icon.png"
+                        background_down: "./images/n_b.png"
+                        background_normal: "./images/n_b.png"
+                        background_active: "./images/n_b.png"
 #                            background_normal: "./images/filter_icon.png"
 #                            on_release: root.open_filter_view()
-                        background_color: 0,0,0,0
+#                        background_color: 0,0,0,0.8
                         cursor_color: hex('#ffa500')
                         foreground_color: hex('#ffa500')
+                        on_focus: root.focu_defocu(self,self.focus)
                         multiline: False
 #                        line_height: dp(30)
-#                        padding: 0,30,0,0
+                        padding: 15,0,15,0
                         font_size: dp(25)
 
 #                            pos_hint: {'center_x': 0.5, 'center_y': 0.5}
                 BoxLayout:
                     id: filter_modal
-                    size_hint_x: .1
+                    size_hint_x: .18
                     RelativeLayout:
                         MainViewButton:
                             text: ''
@@ -244,7 +247,7 @@
 
                 BoxLayout:
                     id: connection_status_ind
-                    size_hint_x: .2
+                    size_hint_x: .18
                     orientation: 'vertical'
                     Switch:
                         id: status_flagger
@@ -517,8 +520,43 @@
                     pos: self.pos
                     size: self.size
 
+<LatestViewMain>:
+    BoxLayout:
+        orientation: 'vertical'
+        id: latest_view_main_container
+        opacity: 1
+        canvas.before:
+            Color:
+                rgba: hex('#ffa500')
+            Rectangle:
+                pos: self.pos
+                size: self.size
+        BoxLayout:
+            id: latest_view_main_movies_container
+            size_hint_y: .49
+            padding: 15,15,15,15
+        BoxLayout:
+            size_hint_y: 0.02canvas.before:
+            Color:
+                rgba: hex('#ffa500')
+            Rectangle:
+                pos: self.pos
+                size: self.size
+            opacity: .7
+            canvas.before:
+                Color:
+                    rgba: hex('#000000')
+                Rectangle:
+                    pos: self.pos
+                    size: self.size
+        BoxLayout:
+            id: latest_view_main_shows_container
+            size_hint_y: .49
+            padding: 15,15,15,15
+
 <LatestView>:
     name: 'latest_view'
+    on_enter: root.refresh_on_enter()
     BoxLayout:
         orientation: 'vertical'
         id: latest_view_container
@@ -529,16 +567,15 @@
             Rectangle:
                 pos: self.pos
                 size: self.size
-        Label:
-            text: root.name
-        TextInput:
-            id: bbb
-        Button:
-            text: 'send'
-            on_release: root.cc(bbb.text)
-        Button:
-            text: 'reconnet'
-            on_release: root.reconnect()
+        BoxLayout:
+            id: lat_view_holder
+            size_hint_y: 1
+            canvas.before:
+                Color:
+                    rgba: hex('#000000')
+                Rectangle:
+                    pos: self.pos
+                    size: self.size
 
 <Item>:
     id: ite
@@ -597,7 +634,7 @@
             FilterSpinner:
                 id: filter_sort
                 text: 'Sort'
-                values: ['name','rating','trending','updated','year','last added']
+                values: ['name','rating','trending','updated','year','last added', 'title']
                 pos_hint: {'center_x': 0.5, 'center_y': 0.8}
                 on_release: root.hide_other_accordions(self)
 

@@ -365,16 +365,14 @@ class MoviesViewMainSingle(Screen):
         self.movies_single_connector.mysend(msg)
 
 
-
-    def pr(self, *args):
-        # Logger.info(self.parent)
-        # Logger.info(self.manager.screens)
-        # Logger.info(' MainView {}'.format(self.parent))
-        # Logger.info(self.manager.screen_names)
-        pass
-
     def go_back_to_movies(self,*args):
-        self.manager.current = 'movies view main screen'
+        if 'latest view main screen' in self.manager.screen_names:
+            Logger.info('back from latest')
+            self.manager.current = 'latest view main screen'
+
+        else:
+            Logger.info('back from series')
+            self.manager.current = 'movies view main screen'
         self.manager.remove_widget(self.blak)
 
 class MoviesViewMain(Screen):
@@ -456,10 +454,10 @@ class PaginationButton(Button):
 
 class MoviesView(Screen):
     skipper = BooleanProperty(True)
-    _filter_order = StringProperty()
-    _filter_sort = StringProperty()
-    _filter_genre = StringProperty()
-    _filter_type = StringProperty()
+    _filter_order = StringProperty(None)
+    _filter_sort = StringProperty(None)
+    _filter_genre = StringProperty(None)
+    _filter_type = StringProperty(None)
 
     def __init__(self, **kwargs):
         super(MoviesView, self).__init__(**kwargs)
@@ -488,6 +486,11 @@ class MoviesView(Screen):
 
         try:
             paginator_button_instance.background_color = get_color_from_hex('#ffa500')
+            if self._filter_order == None:
+                self._filter_order = '-1'
+            if self._filter_sort == None:
+                self._filter_sort = 'last added'
+
             get_api(Movies(page=paginator_button_instance.text, order=self._filter_order, sort=self._filter_sort, genre=self._filter_genre).get_search())
             self.ids.mov_view_holder.add_widget(ScMaMovies())
         except Exception :
@@ -608,7 +611,14 @@ class SeriesViewMainSingle(Screen):
         pass
 
     def go_back_to_series(self,*args):
-        self.manager.current = 'series view main screen'
+
+        if 'latest view main screen' in self.manager.screen_names:
+            Logger.info('back from latest')
+            self.manager.current = 'latest view main screen'
+
+        else:
+            Logger.info('back from series')
+            self.manager.current = 'series view main screen'
         self.manager.remove_widget(self.blak)
 
 
@@ -685,10 +695,10 @@ class ScMaSeries(ScreenManager):
 
 class SeriesView(Screen):
     skipper = BooleanProperty(True)
-    _filter_order = StringProperty()
-    _filter_sort = StringProperty()
-    _filter_genre = StringProperty()
-    _filter_type = StringProperty()
+    _filter_order = StringProperty(None)
+    _filter_sort = StringProperty(None)
+    _filter_genre = StringProperty(None)
+    _filter_type = StringProperty(None)
 
     def __init__(self, **kwargs):
         super(SeriesView, self).__init__(**kwargs)
@@ -718,6 +728,10 @@ class SeriesView(Screen):
         self.ids.ser_view_holder.remove_widget(self.ids.ser_view_holder.children[0])
 
         try:
+            if self._filter_order == None:
+                self._filter_order = '-1'
+            if self._filter_sort == None:
+                self._filter_sort = 'updated'
             paginator_button_instance.background_color = get_color_from_hex('#ffa500')
             get_api(Shows(page=paginator_button_instance.text, order=self._filter_order, sort=self._filter_sort, genre=self._filter_genre).get_search())
             self.ids.ser_view_holder.add_widget(ScMaSeries())
@@ -746,33 +760,152 @@ class SearchView(Screen):
 
     pass
 
+
+class LatestViewMain(Screen):
+    def __init__(self, **kwargs):
+        super(LatestViewMain, self).__init__(**kwargs)
+
+        Logger.info('LatestViewMain: Initialized {}'.format(self))
+
+        self.name = 'latest view main screen'
+#################________________SHOWS LATEST______________##########################
+        latest_series_layout = GridLayout(cols=3, padding=20, spacing=20,
+                                   size_hint=(None, None), width=ViewControl.width_x - 30)
+        latest_series_layout.bind(minimum_height=latest_series_layout.setter('height'))
+
+        latest_series_scroll_list = ScrollView(size_hint=(None, None),
+                                        size=(ViewControl.width_x - 20, ViewControl.height_x * 0.45),
+                                        pos_hint={'center_x': 0.5, 'center_y': .5}, do_scroll_x=False)
+        latest_series_scroll_list.add_widget(latest_series_layout)
+        self.ids.latest_view_main_shows_container.add_widget(latest_series_scroll_list)
+
+        latest_show_counter = 0
+        for _show in hashed_dic_shows:
+            if latest_show_counter < 15:
+                self._items_latest_s = Item(hashed_dic_shows[_show]['_id'])
+                self._items_latest_s.size = ((Window.size[0] / 3) - 30, (Window.size[1] / 2) - 300)
+
+                try:
+                    self._items_latest_s.add_widget(AsyncImage(source=hashed_dic_shows[_show]['images']['poster'], nocache=True, on_error=self.async_image_error_load))
+                except:
+                    Logger.info('No image setting default')
+
+                    self._items_latest_s.add_widget(Image(source='/images/logo.png'))
+                    pass
+
+                self._items_latest_s.add_widget(Label(text=hashed_dic_shows[_show]['title'], size_hint_y=.1, text_size=(((Window.size[0] / 3)-45), None), shorten_from='right', halign='center', shorten=True))
+                self._items_latest_s.add_widget(Button(text='show', size_hint_y=.1, on_press=partial(self.change_to_series_single, self._items_latest_s.megs)))
+
+                latest_series_layout.add_widget(self._items_latest_s)
+                latest_show_counter += 1
+
+#################________________MOVIES LATEST______________##########################
+
+        latest_movies_layout = GridLayout(cols=3, padding=20, spacing=20,
+                                   size_hint=(None, None), width=ViewControl.width_x - 30)
+
+        latest_movies_layout.bind(minimum_height=latest_movies_layout.setter('height'))
+
+        latest_movies_scroll_list = ScrollView(size_hint=(None, None), size=(ViewControl.width_x - 20, ViewControl.height_x * 0.45),
+                                        pos_hint={'center_x': 0.5, 'center_y': 0.5}, do_scroll_x=False)
+
+        latest_movies_scroll_list.add_widget(latest_movies_layout)
+        self.ids.latest_view_main_movies_container.add_widget(latest_movies_scroll_list)
+
+        latest_movie_counter = 0
+        for _movie in hashed_dic_movies:
+            if latest_movie_counter < 15:
+                self._items_latest_m = Item(hashed_dic_movies[_movie]['_id'])
+                self._items_latest_m.size = ((Window.size[0] / 3) - 30, (Window.size[1] / 2) - 300)
+                try:
+                    self._items_latest_m.add_widget(AsyncImage(source=hashed_dic_movies[_movie]['images']['poster'], nocache=True,
+                                                      on_error=self.async_image_error_load))
+                except:
+                    Logger.info('No image setting default')
+
+                    self._items_latest_m.add_widget(Image(source='images/logo.png'))
+                    pass
+
+                self._items_latest_m.add_widget(Label(text=hashed_dic_movies[_movie]['title'], size_hint_y=.1,
+                                             text_size=(((Window.size[0] / 3) - 45), None), shorten_from='right',
+                                             halign='center', shorten=True))
+                self._items_latest_m.add_widget(
+                    Button(text='show', size_hint_y=.1, on_press=partial(self.change_to_movies_single, self._items_latest_m.megs)))
+
+                latest_movies_layout.add_widget(self._items_latest_m)
+                latest_movie_counter += 1
+
+
+    def async_image_error_load(self, instance, *args):
+        Logger.info('LatestViewMain: Async image failed {}'.format(instance))
+
+        instance.source = './images/logo.png'
+
+    def change_to_series_single(instance, __show_id, *args):
+        Logger.info('LatestViewMain: change_to_series_single {}'.format(__show_id))
+
+        instance.manager.add_widget(SeriesViewMainSingle(__show_id))
+        instance.manager.current = 'svms'
+
+    def change_to_movies_single(instance, __movie_id, *args):
+        Logger.info('MoviesViewMain: change_to_movies_single {}'.format(__movie_id))
+
+        instance.manager.add_widget(MoviesViewMainSingle(__movie_id))
+        instance.manager.current = 'mvms'
+
+class ScMaLatest(ScreenManager):
+
+    def __init__(self, **kwargs):
+        super(ScMaLatest, self).__init__(**kwargs)
+        Logger.info('ScMaLatest: Initialized {}'.format(self))
+
+        if LatestView.skipper:
+            Clock.schedule_once(self.add_scms, 0)
+        else:
+
+            Clock.schedule_once(self.start_loade, -1)
+            Clock.schedule_once(self.add_scms, 0.5)
+            Clock.schedule_once(self.stop_loade, 5)
+
+    def start_loade(self, *args):
+        App.get_running_app().loader_overlay.open()
+        Logger.info('start')
+
+    def stop_loade(self, *args):
+        App.get_running_app().loader_overlay.dismiss()
+        Logger.info('stop')
+
+    def add_scms(self, *args):
+        self.add_widget(LatestViewMain())
+        LatestView.skipper = False
+
 class LatestView(Screen):
+    skipper = BooleanProperty(True)
+    _filter_order = StringProperty(None)
+    _filter_sort = StringProperty(None)
+    _filter_genre = StringProperty(None)
+    _filter_type = StringProperty(None)
+
     def __init__(self, **kwargs):
         super(LatestView, self).__init__(**kwargs)
         Logger.info('LatestView: Initialized {}'.format(self))
         # Logger.info(self.ids)
+        self.ids.lat_view_holder.add_widget(ScMaLatest())
 
-        Clock.schedule_once(self.pr, 9)
 
+    def refresh_on_enter(self, *args):
+        if not LatestView.skipper:
+            self.ids.lat_view_holder.remove_widget(self.ids.lat_view_holder.children[0])
 
-        self.connn = Connector()
-
-    def set_as_current_screen(self, scn, *args):
-        self.manager.current = scn
-
-    def cc(self, msg, *args):
-        self.connn.mysend(msg)
-
-    def reconnect(self, *args):
-        self.connn.connects(self.connn.host,self.connn.port)
-
-    def pr(self, *args):
-        # Logger.info(self.parent)
-        # Logger.info(self.manager.screens)
-        # Logger.info(' MainView {}'.format(self.parent))
-        # Logger.info(self.manager.screen_names)
-        pass
-    pass
+            try:
+                get_api(Shows(order='-1', sort='updated',
+                              genre=self._filter_genre).get_search())
+                get_api(Movies(order='-1', sort='last added',
+                              genre=self._filter_genre).get_search())
+                self.ids.lat_view_holder.add_widget(ScMaLatest())
+            except Exception:
+                App.get_running_app().conn_error_popup.open()
+                pass
 
 
 class MainViewScManager(ScreenManager):
@@ -814,6 +947,11 @@ class FilterModalView(ModalView):
         SeriesView._filter_genre = self.filter_genre
         SeriesView._filter_order = self.filter_order
         SeriesView._filter_sort = self.filter_sort
+        LatestView._filter_type = self.filter_type
+        LatestView._filter_genre = self.filter_genre
+        LatestView._filter_order = self.filter_order
+        LatestView._filter_sort = self.filter_sort
+
 
     def hide_other_accordions(instances,selfi):
         for spinner_child in instances.ids.filter_view_container.children[0].children:
@@ -861,15 +999,20 @@ class MainView(Screen):
         other_but_s.background_normal = "./images/n_n.png"
         self.main_scm.current = scn
 
-    def set_as_current_screen_search(self, scn, ot_1, ot_2, ot_3, *args):
+    def set_as_current_screen_search(self, scn, ot_1, ot_2, ot_3, o1,o2):
         Logger.info('MainView: setting active screen for search {}'.format(scn))
 
         ot_1.background_normal = "./images/n_n.png"
         ot_2.background_normal = "./images/n_n.png"
         ot_3.background_normal = "./images/n_n.png"
-        print(args)
+
         self.main_scm.current = scn
 
+    def focu_defocu(instance, tex , fla,*args):
+        if fla:
+            tex.opacity = 1
+        else:
+            tex.opacity = .2
 
     def navigate_to_settings(self, *args):
         Logger.info('MainView: navigate_to_settings invoked')
@@ -890,6 +1033,7 @@ class MainView(Screen):
             self.ids.connection_status_ind_l.source = 'images/on_connection.png'
         else:
             self.ids.connection_status_ind_l.source = 'images/no_connection.png'
+
     pass
 
 
@@ -934,8 +1078,8 @@ class ScanView(Screen):
 
         """get inital latest movies and series, populate shows dictionary populate movies dicionary"""
         try:
-            get_api(Shows(order='-1', sort='name').get_search())
-            get_api(Movies(order='-1', sort='name').get_search())
+            get_api(Shows(order='-1', sort='updated').get_search())
+            get_api(Movies(order='-1', sort='last added').get_search())
             Logger.info('ScanView: start service sucess')
 
         except:
@@ -1078,6 +1222,9 @@ class ViewControl(ScreenManager):
 
     def init_loading_screen(self, *args):
         Logger.info('ViewControl: start loading')
+        Clock.schedule_once(self.scheduled_start_progression, 3)
+
+    def scheduled_start_progression(self, *args):
         self.add_widget(Progression(name='loading'))
 
 
