@@ -537,6 +537,8 @@ class SeriesViewMainSingle(Screen):
         self.ids.series_view_main_single_nav.add_widget(Button(text='back',on_press = self.go_back_to_series))
         self.ids.series_view_main_single_nav.add_widget(Button(text='send',on_press = lambda x: self.send_me('single ladies')))
 
+        self._ep_num = None
+
         get_api(Shows(_id=self.series_id).get_search_by_id())
         for i in hashed_dic_show:
             for b in hashed_dic_show[i]:
@@ -550,6 +552,7 @@ class SeriesViewMainSingle(Screen):
                     Logger.info(hashed_dic_show[i]['runtime'])
                     Logger.info(hashed_dic_show[i]['images']['poster'])
                     Logger.info(len(hashed_dic_show[i]['episodes']))
+                    self._ep_num = len(hashed_dic_show[i]['episodes'])
                     for z in hashed_dic_show[i][b]:
                         Logger.info('Episode level >>>>>')
                         # Logger.info(z)
@@ -565,29 +568,29 @@ class SeriesViewMainSingle(Screen):
                 # self.ids.svmsingle.add_widget(Label(text=vale, max_lines=2))
 
         self.series_single_connector = Connector()
-
-        self.b = Accordion(orientation='vertical', height=1600, size_hint_y=None)
-        self.b.content_size = [40, 40]
+        print(int(self._ep_num))
+        self.b = Accordion(orientation='vertical', height=50*int(self._ep_num), size_hint_y=None)
+        # self.b.content_size = [40, 40]
         self.b.id = 'testAccordian'
 
 
-        self.g_scroll_list = ScrollView(size_hint=(None, None), size=(800, 600),
+        self.g_scroll_list = ScrollView(size_hint=(None, None), size=(ViewControl.height_x*.45, ViewControl.width_x-40),
                                         pos_hint={'center_x': 0.5, 'center_y': 0.5})
         self.ids.series_view_main_single_container_se.add_widget(self.g_scroll_list)
         self.g_scroll_list.add_widget(self.b)
 
-        for i in range(10):
+        for i in range(int(self._ep_num)):
             # g_layout.add_widget(Label(text=str(i)))
 
-            z = AccordionItem(title=str(i), index=i, size_hint=(None, None), size=(45, 45), collapse=True,
+            z = AccordionItem(title=str(i), index=i, collapse=True,
                               orientation='vertical')
             # z.height = dp(30)
 
 
-            z.container.size = (20, 20)
+            # z.container.size = (20, 20)
             # z.size=(30,30)
             z.container.orientation = 'vertical'
-            z.container.size_hint = (None, None)
+            # z.container.size_hint = (None, None)
             for i in range(5):
                 z.container.add_widget(Label(text=str(i + 4)))
             # self.z.add_widget(Label(text=' acc item {}'.format(i)))
