@@ -510,50 +510,73 @@ class Item(BoxLayout):
                       size_hint=(None, None), size=(600, 600))
 
 class SeriesViewMainSingleTop(BoxLayout):
-    def __init__(self, sh_title, sh_year, sh_synopsis, sh_runtime, sh_image, **kwargs):
+    def __init__(self, sh_year, sh_synopsis, sh_runtime, sh_image, **kwargs):
         super(SeriesViewMainSingleTop, self).__init__(**kwargs)
         Logger.info('SeriesViewMainSingleTop: Initialized {}'.format(self))
-        self._sh_title = sh_title
         self._sh_year = sh_year
         self._sh_synopsis = sh_synopsis
         self._sh_runtime = sh_runtime
         self._sh_image = sh_image
 
         self.ids.series_view_main_single_top_im_holder.add_widget(AsyncImage(source=self._sh_image))
-        self.ids.series_view_main_single_top_other.add_widget(Label(text=self._sh_title,unicode_errors='ignore',size_hint_y=.1))
         self.ids.series_view_main_single_top_other.add_widget(Label(text=str(self._sh_year),unicode_errors='ignore',size_hint_y=.1))
-        self.ids.series_view_main_single_top_other.add_widget(TextInput(text=self._sh_synopsis,unicode_errors='ignore',readonly=True,multi_line=True,size_hint_y=.7))
-        self.ids.series_view_main_single_top_other.add_widget(Label(text=str(self._sh_runtime),size_hint_y=.1))
+        self.ids.series_view_main_single_top_other.add_widget(Label(text=str(self._sh_runtime), size_hint_y=.1))
+        self.ids.series_view_main_single_top_other.add_widget(TextInput(text=self._sh_synopsis,unicode_errors='ignore',readonly=True,multi_line=True,size_hint_y=.8))
+
 
 
 class SeriesViewMainSingle(Screen):
     def __init__(self, series_id, **kwargs):
         super(SeriesViewMainSingle, self).__init__(**kwargs)
+        self.series_single_connector = Connector()
+
         self.series_id = series_id
         self.name = 'svms'
         self.blak = self
-        Logger.info('SeriesViewMainSingle: Initialized {}'.format(self))
-        self.ids.series_view_main_single_nav.add_widget(Label(text=self.name,unicode_errors='ignore'))
-        self.ids.series_view_main_single_nav.add_widget(Button(text='back',on_press = self.go_back_to_series))
-        self.ids.series_view_main_single_nav.add_widget(Button(text='send',on_press = lambda x: self.send_me('single ladies')))
 
-        self._ep_num = None
+        Logger.info('SeriesViewMainSingle: Initialized {}'.format(self))
+
+
+        # self.ids.series_view_main_single_nav.add_widget(Button(text='send',on_press = lambda x: self.send_me('single ladies')))
+
 
         get_api(Shows(_id=self.series_id).get_search_by_id())
+
         for i in hashed_dic_show:
             for b in hashed_dic_show[i]:
 
                 if b =='episodes':
+
+                    self.b = Accordion(orientation='vertical', height=100 * int(len(hashed_dic_show[i]['episodes'])), size_hint_y=None)
+                    # self.b.content_size = [40, 40]
+                    self.b.id = 'testAccordian'
+
+                    self.g_scroll_list = ScrollView(size_hint=(None, None),
+                                                    size=(ViewControl.width_x - 40, ViewControl.height_x * 0.4),
+                                                    pos_hint={'center_x': 0.5, 'center_y': 0.5})
+
+                    self.ids.series_view_main_single_container_se.add_widget(self.g_scroll_list)
+                    self.g_scroll_list.add_widget(self.b)
+
                     Logger.info('Show level >>>>>')
-                    self.ids.series_view_main_single_container.add_widget(SeriesViewMainSingleTop(hashed_dic_show[i]['title'],hashed_dic_show[i]['year'],hashed_dic_show[i]['synopsis'],hashed_dic_show[i]['runtime'],hashed_dic_show[i]['images']['poster']))
+                    self.ids.series_view_main_single_container.add_widget(SeriesViewMainSingleTop(hashed_dic_show[i]['year'],hashed_dic_show[i]['synopsis'],hashed_dic_show[i]['runtime'],hashed_dic_show[i]['images']['poster']))
+
                     Logger.info(hashed_dic_show[i]['title'])
+                    self.ids.series_view_main_single_nav_title.add_widget(Label(text=hashed_dic_show[i]['title'].encode('utf-8',errors='ignore'),unicode_errors='ignore'))
+
                     Logger.info(hashed_dic_show[i]['year'])
                     Logger.info(hashed_dic_show[i]['synopsis'])
                     Logger.info(hashed_dic_show[i]['runtime'])
                     Logger.info(hashed_dic_show[i]['images']['poster'])
                     Logger.info(len(hashed_dic_show[i]['episodes']))
                     self._ep_num = len(hashed_dic_show[i]['episodes'])
+
+
+
                     for z in hashed_dic_show[i][b]:
+                        acc_item = AccordionItem(collapse=True, orientation='vertical')
+
+                        acc_item.container.orientation = 'vertical'
                         Logger.info('Episode level >>>>>')
                         # Logger.info(z)
                         Logger.info(z['title'])
@@ -562,39 +585,37 @@ class SeriesViewMainSingle(Screen):
                         Logger.info(z['season'])
                         Logger.info(z['torrents'])
 
+                        if z['title']:
+                            ti = z['title'].encode('utf-8')
+                        else:
+                            ti = ''
+
+                        sea = str(z['season'])
+                        sea = sea.encode('utf-8')
+                        epi  = str(z['episode'])
+                        epi = epi.encode('utf-8')
+                        if z['overview']:
+                            over = z['overview'].encode('utf-8')
+                        else:
+                            over = ''
+
+                        tor = str(z['torrents'])
+                        tor = tor.encode('utf-8')
+                        acc_item.title = '{} {} {}'.format(ti,sea,epi)
+
+                        acc_item.container.add_widget(TextInput(text=str(over), unicode_errors='ignore',multi_line=True))
+                        acc_item.container.add_widget(TextInput(text=str(tor), unicode_errors='ignore',multi_line=True))
+
+                        # self.z.add_widget(Label(text=' acc item {}'.format(i)))
+                        self.b.add_widget(acc_item)
+
                         # Logger.info(hashed_dic_show[i][b][z])
 
                 # vale = '{} {}'.format(b, hashed_dic_show[i][b])
                 # self.ids.svmsingle.add_widget(Label(text=vale, max_lines=2))
 
-        self.series_single_connector = Connector()
-        print(int(self._ep_num))
-        self.b = Accordion(orientation='vertical', height=50*int(self._ep_num), size_hint_y=None)
-        # self.b.content_size = [40, 40]
-        self.b.id = 'testAccordian'
 
 
-        self.g_scroll_list = ScrollView(size_hint=(None, None), size=(ViewControl.height_x*.45, ViewControl.width_x-40),
-                                        pos_hint={'center_x': 0.5, 'center_y': 0.5})
-        self.ids.series_view_main_single_container_se.add_widget(self.g_scroll_list)
-        self.g_scroll_list.add_widget(self.b)
-
-        for i in range(int(self._ep_num)):
-            # g_layout.add_widget(Label(text=str(i)))
-
-            z = AccordionItem(title=str(i), index=i, collapse=True,
-                              orientation='vertical')
-            # z.height = dp(30)
-
-
-            # z.container.size = (20, 20)
-            # z.size=(30,30)
-            z.container.orientation = 'vertical'
-            # z.container.size_hint = (None, None)
-            for i in range(5):
-                z.container.add_widget(Label(text=str(i + 4)))
-            # self.z.add_widget(Label(text=' acc item {}'.format(i)))
-            self.b.add_widget(z)
 
 
 
@@ -666,8 +687,22 @@ class SeriesViewMain(Screen):
     def change_to_series_single(instance, __show_id, *args):
         Logger.info('SeriesViewMain: change_to_series_single {}'.format(__show_id))
 
-        instance.manager.add_widget(SeriesViewMainSingle(__show_id))
-        instance.manager.current = 'svms'
+
+        Clock.schedule_once(instance.start_loade, -1)
+        Clock.schedule_once(partial(instance.add_scms,__show_id), 0.5)
+        Clock.schedule_once(instance.stop_loade, 8)
+
+    def start_loade(self, *args):
+        App.get_running_app().loader_overlay.open()
+        Logger.info('start')
+
+    def stop_loade(self, *args):
+        App.get_running_app().loader_overlay.dismiss()
+        Logger.info('stop')
+
+    def add_scms(self, __s_id, *args):
+        self.manager.add_widget(SeriesViewMainSingle(__s_id))
+        self.manager.current = 'svms'
 
 
 class ScMaSeries(ScreenManager):
