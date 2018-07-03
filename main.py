@@ -815,6 +815,12 @@ class FilterModalView(ModalView):
         SeriesView._filter_order = self.filter_order
         SeriesView._filter_sort = self.filter_sort
 
+    def hide_other_accordions(instances,selfi):
+        for spinner_child in instances.ids.filter_view_container.children[0].children:
+            spinner_child.opacity = 0.2
+        selfi.opacity = 1
+
+
 
 class MainView(Screen):
     connection_status_indicator = BooleanProperty(None)
@@ -861,6 +867,7 @@ class MainView(Screen):
         ot_1.background_normal = "./images/n_n.png"
         ot_2.background_normal = "./images/n_n.png"
         ot_3.background_normal = "./images/n_n.png"
+        print(args)
         self.main_scm.current = scn
 
 

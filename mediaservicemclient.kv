@@ -163,9 +163,8 @@
 <MainViewButton@Button>:
     size_hint_x: None
     size_hint_y: None
-    width: dp(45)
-    height: dp(45)
-    pos_hint: {'center_x': 0.5, 'center_y': 0.5}
+    width: dp(40)
+    height: dp(40)
 
 
 <MainView>:
@@ -191,32 +190,61 @@
                         pos: self.pos
                         size: self.size
                 BoxLayout:
-                    id: search
+                    id: settings_button
+                    size_hint_x: .15
+                    RelativeLayout:
+                        MainViewButton:
+                            text: ''
+                            background_down: "./images/settings_icon.png"
+                            background_normal: "./images/settings_icon.png"
+                            on_release: root.navigate_to_settings()
+                            pos_hint: {'center_x': 0.5, 'center_y': 0.5}
 
-                    MainViewButton:
-                        text: ''
-                        background_down: "./images/search_icon.png"
-                        background_normal: "./images/search_icon.png"
-                        on_release: root.set_as_current_screen_search('search_view', mov_b, lat_b, ser_b)
                 BoxLayout:
-                    id:filter_modal
+                    id: search
+                    size_hint_x: .15
+                    RelativeLayout:
+                        MainViewButton:
+                            text: ''
+                            background_down: "./images/search_icon.png"
+                            background_normal: "./images/search_icon.png"
+                            on_release: root.set_as_current_screen_search('search_view', mov_b, lat_b, ser_b, search_input_in.text)
+                            pos_hint: {'center_x': 0.5, 'center_y': 0.5}
 
-                    MainViewButton:
+
+                BoxLayout:
+                    id: search_input
+                    size_hint_x: .4
+                    TextInput:
+                        id: search_input_in
                         text: ''
                         background_down: "./images/filter_icon.png"
-                        background_normal: "./images/filter_icon.png"
-                        on_release: root.open_filter_view()
-                BoxLayout:
-                    id: settings_button
+#                            background_normal: "./images/filter_icon.png"
+#                            on_release: root.open_filter_view()
+                        background_color: 0,0,0,0
+                        cursor_color: hex('#ffa500')
+                        foreground_color: hex('#ffa500')
+                        multiline: False
+#                        line_height: dp(30)
+#                        padding: 0,30,0,0
+                        font_size: dp(25)
 
-                    MainViewButton:
-                        text: ''
-                        background_down: "./images/settings_icon.png"
-                        background_normal: "./images/settings_icon.png"
-                        on_release: root.navigate_to_settings()
+#                            pos_hint: {'center_x': 0.5, 'center_y': 0.5}
+                BoxLayout:
+                    id: filter_modal
+                    size_hint_x: .1
+                    RelativeLayout:
+                        MainViewButton:
+                            text: ''
+                            background_down: "./images/filter_icon.png"
+                            background_normal: "./images/filter_icon.png"
+                            on_release: root.open_filter_view()
+                            pos_hint: {'center_x': 0.5, 'center_y': 0.5}
+
+
                 BoxLayout:
                     id: connection_status_ind
-
+                    size_hint_x: .2
                     orientation: 'vertical'
                     Switch:
                         id: status_flagger
@@ -547,11 +575,12 @@
     size_hint_x: None
     size_hint_y: None
     width: dp(200)
-    height: dp(60)
+    height: dp(50)
     background_down: "./images/b_b.png"
     background_normal: "./images/filter_list_i.png"
     option_cls: Factory.TemplSpinnerOption
     sync_height: True
+
 
 <TemplSpinnerOption@SpinnerOption>
     background_down: "./images/b_b.png"
@@ -565,27 +594,34 @@
         id: filter_view_container
         orientation: 'vertical'
         RelativeLayout:
+            FilterSpinner:
+                id: filter_sort
+                text: 'Sort'
+                values: ['name','rating','trending','updated','year','last added']
+                pos_hint: {'center_x': 0.5, 'center_y': 0.8}
+                on_release: root.hide_other_accordions(self)
 
             FilterSpinner:
                 id: filter_type
                 text: 'Type'
                 values: ['Shows', 'Movies']
-                pos_hint: {'center_x': 0.5, 'center_y': 0.8}
+                pos_hint: {'center_x': 0.5, 'center_y': 0.4}
+                on_release: root.hide_other_accordions(self)
+
             FilterSpinner:
                 id: filter_order
                 text: 'Order'
                 values: ['-1','1']
                 pos_hint: {'center_x': 0.5, 'center_y': 0.6}
-            FilterSpinner:
-                id: filter_sort
-                text: 'Sort'
-                values: ['name','rating','trending','updated','year','last added']
-                pos_hint: {'center_x': 0.5, 'center_y': 0.4}
+                on_release: root.hide_other_accordions(self)
+
             FilterSpinner:
                 id: filter_genre
                 text: 'Genre'
                 values: ['action','adventure','animation','comedy','crime','documentary','drama','eastern','family','fan-film','fantasy','film-noir','history','horror','indie','mystery','none','romance','science-fiction','thriller','tv-movie','western']
                 pos_hint: {'center_x': 0.5, 'center_y': 0.2}
+                on_release: root.hide_other_accordions(self)
+
 
 <ConnectionErrorPopup>:
     auto_dismiss: False
