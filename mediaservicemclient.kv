@@ -163,8 +163,8 @@
 <MainViewButton@Button>:
     size_hint_x: None
     size_hint_y: None
-    width: dp(50)
-    height: dp(50)
+    width: dp(45)
+    height: dp(45)
     pos_hint: {'center_x': 0.5, 'center_y': 0.5}
 
 
@@ -181,7 +181,7 @@
             id: main_view_container
             opacity: 1
             BoxLayout:
-                size_hint_y: .09
+                size_hint_y: .05
                 id: navigation_a
                 orientation: 'horizontal'
                 canvas.before:
@@ -231,7 +231,7 @@
             BoxLayout:
                 id: navigation_b
                 orientation: 'horizontal'
-                size_hint_y: .09
+                size_hint_y: .06
 
                 Button:
                     text: 'movies'
@@ -254,7 +254,7 @@
 
             BoxLayout:
                 id: screen_m_container
-                size_hint_y: .82
+                size_hint_y: .89
                 canvas.before:
                     Color:
                         rgba: hex('#ffa500')
@@ -360,7 +360,7 @@
         BoxLayout:
             orientation: 'horizontal'
             id: series_view_main_single_nav
-            size_hint_y:.07
+            size_hint_y:.05
             canvas.before:
                 Color:
                     rgba: hex('#ffa500')
@@ -379,7 +379,7 @@
                     size: self.size
         BoxLayout:
             orientation: 'vertical'
-            size_hint_y: .48
+            size_hint_y: .5
             id: series_view_main_single_container_se
             canvas.before:
                 Color:
@@ -549,7 +549,7 @@
     width: dp(200)
     height: dp(60)
     background_down: "./images/b_b.png"
-    background_normal: "./images/b_a.png"
+    background_normal: "./images/filter_list_i.png"
     option_cls: Factory.TemplSpinnerOption
     sync_height: True
 

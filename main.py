@@ -388,7 +388,7 @@ class MoviesViewMain(Screen):
 
         movies_layout.bind(minimum_height=movies_layout.setter('height'))
 
-        movies_scroll_list = ScrollView(size_hint=(None, None), size=(ViewControl.width_x - 20, ViewControl.height_x * 0.75),
+        movies_scroll_list = ScrollView(size_hint=(None, None), size=(ViewControl.width_x - 20, ViewControl.height_x * 0.8),
                           pos_hint={'center_x': 0.5, 'center_y': 1}, do_scroll_x=False)
 
         movies_scroll_list.add_widget(movies_layout)
@@ -517,10 +517,10 @@ class SeriesViewMainSingleTop(BoxLayout):
         self._sh_image = sh_image
 
         self.ids.series_view_main_single_top_im_holder.add_widget(AsyncImage(source=self._sh_image))
-        self.ids.series_view_main_single_top_other.add_widget(Label(text=str(self._sh_title)))
-        self.ids.series_view_main_single_top_other.add_widget(Label(text=str(self._sh_year)))
-        self.ids.series_view_main_single_top_other.add_widget(TextInput(text=str(self._sh_synopsis),readonly=True,multi_line=True))
-        self.ids.series_view_main_single_top_other.add_widget(Label(text=str(self._sh_runtime)))
+        self.ids.series_view_main_single_top_other.add_widget(Label(text=self._sh_title,unicode_errors='ignore',size_hint_y=.1))
+        self.ids.series_view_main_single_top_other.add_widget(Label(text=str(self._sh_year),unicode_errors='ignore',size_hint_y=.1))
+        self.ids.series_view_main_single_top_other.add_widget(TextInput(text=self._sh_synopsis,unicode_errors='ignore',readonly=True,multi_line=True,size_hint_y=.7))
+        self.ids.series_view_main_single_top_other.add_widget(Label(text=str(self._sh_runtime),size_hint_y=.1))
 
 
 class SeriesViewMainSingle(Screen):
@@ -530,7 +530,7 @@ class SeriesViewMainSingle(Screen):
         self.name = 'svms'
         self.blak = self
         Logger.info('SeriesViewMainSingle: Initialized {}'.format(self))
-        self.ids.series_view_main_single_nav.add_widget(Label(text=self.name))
+        self.ids.series_view_main_single_nav.add_widget(Label(text=self.name,unicode_errors='ignore'))
         self.ids.series_view_main_single_nav.add_widget(Button(text='back',on_press = self.go_back_to_series))
         self.ids.series_view_main_single_nav.add_widget(Button(text='send',on_press = lambda x: self.send_me('single ladies')))
 
@@ -563,13 +563,12 @@ class SeriesViewMainSingle(Screen):
 
         self.series_single_connector = Connector()
 
-        self.b = Accordion(orientation='vertical', height=700, size_hint_y=None)
+        self.b = Accordion(orientation='vertical', height=1600, size_hint_y=None)
         self.b.content_size = [40, 40]
         self.b.id = 'testAccordian'
 
-        print(self.b.min_space)
 
-        self.g_scroll_list = ScrollView(size_hint=(None, None), size=(600, 300),
+        self.g_scroll_list = ScrollView(size_hint=(None, None), size=(800, 600),
                                         pos_hint={'center_x': 0.5, 'center_y': 0.5})
         self.ids.series_view_main_single_container_se.add_widget(self.g_scroll_list)
         self.g_scroll_list.add_widget(self.b)
@@ -580,19 +579,15 @@ class SeriesViewMainSingle(Screen):
             z = AccordionItem(title=str(i), index=i, size_hint=(None, None), size=(45, 45), collapse=True,
                               orientation='vertical')
             # z.height = dp(30)
-            print(z.content_size)
-            print(z.size)
-            print(z.container)
+
 
             z.container.size = (20, 20)
-            print(z.container_title)
             # z.size=(30,30)
             z.container.orientation = 'vertical'
             z.container.size_hint = (None, None)
             for i in range(5):
                 z.container.add_widget(Label(text=str(i + 4)))
             # self.z.add_widget(Label(text=' acc item {}'.format(i)))
-            print(z.content_size)
             self.b.add_widget(z)
 
 
@@ -628,7 +623,7 @@ class SeriesViewMain(Screen):
         series_layout.bind(minimum_height=series_layout.setter('height'))
 
         series_scroll_list = ScrollView(size_hint=(None, None),
-                                        size=(ViewControl.width_x - 20, ViewControl.height_x * 0.75),
+                                        size=(ViewControl.width_x - 20, ViewControl.height_x * 0.8),
                                         pos_hint={'center_x': 0.5, 'center_y': 1}, do_scroll_x=False)
         series_scroll_list.add_widget(series_layout)
         self.ids.series_view_main_container.add_widget(series_scroll_list)
