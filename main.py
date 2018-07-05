@@ -547,7 +547,7 @@ class SeriesViewMainSingle(Screen):
 
                 if b =='episodes':
 
-                    self.b = Accordion(orientation='vertical', height=100 * int(len(hashed_dic_show[i]['episodes'])), size_hint_y=None)
+                    self.b = Accordion(orientation='vertical', height=180 * int(len(hashed_dic_show[i]['episodes'])), size_hint_y=None)
                     # self.b.content_size = [40, 40]
                     self.b.id = 'testAccordian'
 
