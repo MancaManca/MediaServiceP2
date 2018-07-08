@@ -425,8 +425,8 @@ class MoviesViewMainSingle(Screen):
             _movie_y = str(hashed_dic_movie[_single_movie_item_in_dic]['year'])
             _movie_y = _movie_y.encode('utf-8')
 
-            Logger.info(' Movie synopsis {}'.format(hashed_dic_movie[_single_movie_item_in_dic]['synopsis']))
-            _movie_s = str(hashed_dic_movie[_single_movie_item_in_dic]['synopsis'])
+            # Logger.info(' Movie synopsis {}'.format(hashed_dic_movie[_single_movie_item_in_dic]['synopsis']))
+            _movie_s = hashed_dic_movie[_single_movie_item_in_dic]['synopsis']
             _movie_s = _movie_s.encode('utf-8')
 
             Logger.info(' Movie runtime {}'.format(hashed_dic_movie[_single_movie_item_in_dic]['runtime']))
