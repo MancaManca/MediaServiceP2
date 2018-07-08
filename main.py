@@ -698,9 +698,10 @@ class SeriesViewMainSingle(Screen):
                         multip = 50
                     if ep_nn > 160 and ep_nn < 180:
                         multip = 44
-                    self._single_show_accordion = Accordion(orientation='vertical', height=multip * ep_nn, size_hint_y=None)
+                    self._single_show_accordion = Accordion(orientation='vertical', height=dp(240  + ep_nn * 44), size_hint_y=None)
 
                     self._single_show_accordion.id = 'testAccordian'
+
 
                     self.g_scroll_list = ScrollView(size_hint=(None, None),
                                                     size=(ViewControl.width_x - 40, ViewControl.height_x * 0.4),
@@ -747,6 +748,7 @@ class SeriesViewMainSingle(Screen):
     background_selected='./images/filter_list_i.png')
 
                         acc_item.container.orientation = 'vertical'
+
                         Logger.info('Episode level >>>>>')
                         # Logger.info(z)
                         try:
