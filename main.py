@@ -1184,7 +1184,7 @@ class MainView(Screen):
 
         self.main_scm.current = scn
 
-    def set_as_current_screen_search(self, scn, ot_1, ot_2, ot_3):
+    def set_as_current_screen_search(self, scn, ot_1, ot_2, ot_3, *args):
         Logger.info('MainView: setting active screen for search {}'.format(scn))
 
         ot_1.background_normal = "./images/n_n.png"

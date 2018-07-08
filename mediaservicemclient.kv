@@ -37,11 +37,11 @@
     Label:
         id: settings_view_i_name
         size_hint_x: .7
-        font_size: dp(30)
+        font_size: dp(17)
         color: hex('#ffa500')
         text: ''
         font_hinting: 'mono'
-        italic: True
+#        italic: True
     CheckBox:
         id: settings_view_i_check
         size_hint_x: .3
@@ -86,8 +86,10 @@
                 FloatLayout:
 
                     SettingsViewButton:
-                        width: dp(50)
-                        height: dp(50)
+                        width: dp(30)
+                        height: dp(30)
+                        pos_hint:{'center_x': 0.3, 'center_y': 0.5}
+
                         background_down: "./images/back_icon.png"
                         background_normal: "./images/back_icon.png"
                         on_release: root.return_to_main_view()
@@ -101,7 +103,7 @@
                         size_hint_y: None
                         width: dp(150)
                         height: dp(150)
-                        pos_hint:{'center_x': 0.5, 'center_y': 0.5}
+                        pos_hint:{'center_x': 0.5, 'center_y': 0.3}
 
             BoxLayout:
                 size_hint_x: 0.33
@@ -172,7 +174,7 @@
                     size_hint_y: None
                     width: dp(150)
                     height: dp(150)
-                    pos_hint:{'center_x': 0.5, 'center_y': 0.5}
+                    pos_hint:{'center_x': 0.5, 'center_y': 0.3}
 
         BoxLayout:
             id: scanned_devices_list
@@ -834,7 +836,7 @@
     Label:
         id: scan_view_i_name
         size_hint_x: .7
-        font_size: dp(26)
+        font_size: dp(16)
         padding: 15,15
         color: hex('#ffa500')
         text: ''
