@@ -413,14 +413,12 @@
             RelativeLayout:
                 PlayButton:
                     id: tor_play
-                    text: 'play'
-                    on_release: root.print_tor(self.text)
+                    on_release: root.play_torrent()
         BoxLayout:
             RelativeLayout:
                 DownloadButton:
                     id: tor_down
-                    text: 'download'
-                    on_release: root.print_tor(self.text)
+                    on_release: root.download_torrent()
 
 <ShowEpSyn>:
     readonly: True
@@ -607,14 +605,12 @@
             RelativeLayout:
                 PlayButton:
                     id: tor_play
-                    text: 'play'
-                    on_release: root.print_tor(self.text)
+                    on_release: root.play_torrent()
         BoxLayout:
             RelativeLayout:
                 DownloadButton:
                     id: tor_down
-                    text: 'download'
-                    on_release: root.print_tor(self.text)
+                    on_release: root.download_torrent()
 
 <MoviesViewMainSingleTop>:
     orientation: 'horizontal'

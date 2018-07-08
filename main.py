@@ -354,13 +354,16 @@ class MoviesEpSingleTor(BoxLayout):
         self.ids.tor_quality_label.text = self._torrent_quality
         self._magnet_link = str(_torrent_single_magnet)
         self._magnet_link = self._magnet_link.encode('utf-8')
-        self.ids.tor_play.text = 'play/{}'.format(self._magnet_link)
-        self.ids.tor_down.text = 'down/{}'.format(self._magnet_link)
+        self.play = 'play/{}'.format(self._magnet_link)
+        self.download = 'down/{}'.format(self._magnet_link)
 
-    def print_tor(self, m, *args):
-        # SeriesViewMainSingle.send_me()
-        self.wtf.mysend(m)
-        Logger.warning('Trying: should be message "{}" '.format(m))
+    def play_torrent(self, *args):
+        self.wtf.mysend(self.play)
+        Logger.warning('Trying: should be message "{}" '.format(self.play))
+
+    def download_torrent(self, *args):
+        self.wtf.mysend(self.download)
+        Logger.warning('Trying: should be message "{}" '.format(self.download))
 
 
 class MoviesEpTor(BoxLayout):
@@ -622,13 +625,15 @@ class ShowEpSingleTor(BoxLayout):
         self.ids.tor_quality_label.text = self._torrent_quality
         self._magnet_link = str(_torrent_single_magnet)
         self._magnet_link = self._magnet_link.encode('utf-8')
-        self.ids.tor_play.text = 'play/{}'.format(self._magnet_link)
-        self.ids.tor_down.text = 'down/{}'.format(self._magnet_link)
+        self.play = 'play/{}'.format(self._magnet_link)
+        self.download = 'down/{}'.format(self._magnet_link)
 
-    def print_tor(self, m, *args):
-        # SeriesViewMainSingle.send_me()
-        self.wtf.mysend(m)
-        Logger.warning('Trying: should be message "{}" '.format(m))
+    def play_torrent(self, *args):
+        self.wtf.mysend(self.play)
+        Logger.warning('Trying: should be message "{}" '.format(self.play))
+    def download_torrent(self, *args):
+        self.wtf.mysend(self.download)
+        Logger.warning('Trying: should be message "{}" '.format(self.download))
 
 
 class ShowEpTor(BoxLayout):
@@ -671,8 +676,29 @@ class SeriesViewMainSingle(Screen):
             for show_node in hashed_dic_show[_single_show_item_in_dic]:
 
                 if show_node == 'episodes':
-
-                    self._single_show_accordion = Accordion(orientation='vertical', height=180 * int(len(hashed_dic_show[_single_show_item_in_dic]['episodes'])), size_hint_y=None)
+                    ep_nn = int(len(hashed_dic_show[_single_show_item_in_dic]['episodes']))
+                    multip = 200
+                    if ep_nn < 10:
+                        multip = 400
+                    if ep_nn > 10 and ep_nn < 20:
+                        multip = 300
+                    if ep_nn > 20 and ep_nn < 40:
+                        multip = 200
+                    if ep_nn > 40 and ep_nn < 60:
+                        multip = 160
+                    if ep_nn > 60 and ep_nn < 80:
+                        multip = 130
+                    if ep_nn > 80 and ep_nn < 100:
+                        multip = 100
+                    if ep_nn > 100 and ep_nn < 120:
+                        multip = 70
+                    if ep_nn > 120 and ep_nn < 140:
+                        multip = 60
+                    if ep_nn > 140 and ep_nn < 160:
+                        multip = 50
+                    if ep_nn > 160 and ep_nn < 180:
+                        multip = 44
+                    self._single_show_accordion = Accordion(orientation='vertical', height=multip * ep_nn, size_hint_y=None)
 
                     self._single_show_accordion.id = 'testAccordian'
 
