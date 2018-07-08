@@ -217,7 +217,7 @@
 <MainView>:
     name: 'main'
     orientation: 'vertical'
-    connection_status_indicator: status_flagger.active
+    connection_status_indicator: status_flagger
     on_enter: root.connect_on_enter()
     BoxLayout:
         id: main_view_c
@@ -375,6 +375,22 @@
                         size: self.size
 
 
+<SearchViewMain>:
+    BoxLayout:
+        orientation: 'vertical'
+        id: search_view_main_container
+        opacity: 1
+        canvas.before:
+            Color:
+                rgba: hex('#ffa500')
+            Rectangle:
+                pos: self.pos
+                size: self.size
+        BoxLayout:
+            id: search_view_main_container_holder
+            padding: 15,15,15,15
+
+
 <SearchView>:
     name: 'search_view'
 
@@ -384,15 +400,43 @@
         opacity: 1
         canvas.before:
             Color:
-                rgba: hex('#8b4513')
+                rgba: hex('#ffa500')
             Rectangle:
                 pos: self.pos
                 size: self.size
-        Label:
-            text: root.name
+        BoxLayout:
+            id: search_view_type
+            size_hint_y: .09
+            padding: 5,0
+            canvas.before:
+                Color:
+                    rgba: hex('#000000')
+                Rectangle:
+                    pos: self.pos
+                    size: self.size
+            Label:
+                text:
+                canvas.before:
+                    Color:
+                        rgba: hex('#202020')
+                    Rectangle:
+                        pos: self.pos
+                        size: self.size
+        BoxLayout:
+            id: search_view_holder
+            size_hint_y: .91
+            canvas.before:
+                Color:
+                    rgba: hex('#000000')
+                Rectangle:
+                    pos: self.pos
+                    size: self.size
+
 
 <ShowEpTor>:
     orientation: 'vertical'
+    size_hint_y: None
+    height: dp(180)
 
 <ShowEpSingleTor>:
     orientation: 'vertical'
@@ -421,13 +465,23 @@
                     on_release: root.download_torrent()
 
 <ShowEpSyn>:
-    readonly: True
-    multiline: True
-    color: 0,0,0,0
-    cursor_color: 0,0,0,0
-    padding: 20,20,20,20
-    foreground_color: hex('#ffa500')
-    background_color: (0,0,0,0)
+    size_hint_y: None
+    height: dp(150)
+
+    TextInput:
+        id: show_episode_syn
+        readonly: True
+        multiline: True
+        color: 0,0,0,0
+        cursor_color: 0,0,0,0
+        padding: 20,20,20,20
+        foreground_color: hex('#ffa500')
+        background_color: (0,0,0,0)
+#        allow_copy: False
+#        use_handles: False
+#        use_bubbles: False
+
+
 
 <SeriesViewMainSingleTop>:
     orientation: 'horizontal'
@@ -957,3 +1011,4 @@
     width: dp(60)
     height: dp(50)
 #    background_color:hex('#ffa500')
+#
