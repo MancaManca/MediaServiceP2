@@ -1,6 +1,26 @@
 #:kivy 1.10.0
 #:import hex kivy.utils.get_color_from_hex
 #:import Factory kivy.factory.Factory
+<DownloadButton@Button>:
+    size_hint_x: None
+    size_hint_y: None
+    width: dp(50)
+    height: dp(50)
+    pos_hint:{'center_x': 0.5, 'center_y': 0.5}
+    background_down: "./images/downl.png"
+    background_normal: "./images/downl.png"
+    color: 0,0,0,0
+
+<PlayButton@Button>:
+    size_hint_x: None
+    size_hint_y: None
+    width: dp(50)
+    height: dp(50)
+    pos_hint:{'center_x': 0.5, 'center_y': 0.5}
+    background_down: "./images/play.png"
+    background_normal: "./images/play.png"
+    color: 0,0,0,0
+
 
 <ProgressBarLabel@Label>
     size_hint_y: None
@@ -13,21 +33,33 @@
     id: settings_view_i
     orientation: 'horizontal'
     size_hint_y: .4
-    canvas.before:
-        Color:
-            rgba: hex('#ffa500')
-        Rectangle:
-            pos: self.pos
-            size: self.size
+
     Label:
         id: settings_view_i_name
-        size_hint_x: .8
+        size_hint_x: .7
+        font_size: dp(30)
+        color: hex('#ffa500')
         text: ''
+        font_hinting: 'mono'
+        italic: True
     CheckBox:
         id: settings_view_i_check
-        size_hint_x: .2
+        size_hint_x: .3
         group: 'settings_address_setter'
+        background_radio_down: "./images/chprd.png"
+        background_radio_normal: "./images/chpr.png"
         on_press: root.return_on_active_name(self.active, settings_view_i_name.text)
+
+
+<SettingsViewButton@Button>
+
+    size_hint_x: None
+    size_hint_y: None
+    width: dp(200)
+    height: dp(70)
+    pos_hint:{'center_x': 0.5, 'center_y': 0.5}
+    background_down: "./images/b_b.png"
+    background_normal: "./images/b_a.png"
 
 <SettingsView>:
     name: 'settings'
@@ -40,67 +72,80 @@
         opacity: 1
         canvas.before:
             Color:
-                rgba: 0.2, 0.5, 0.8, 1
+                rgba: hex('#202020')
             Rectangle:
                 pos: self.pos
                 size: self.size
         BoxLayout:
-            orientation: 'vertical'
+            orientation: 'horizontal'
             id: settings_view_container_back_button_container
             opacity: 1
             size_hint_y: 0.2
-            canvas.before:
-                Color:
-                    rgba: 0.2, 0.5, 0.8, 1
-                Rectangle:
-                    pos: self.pos
-                    size: self.size
-            Button:
-                text: 'Back'
-                on_release: root.return_to_main_view()
+            BoxLayout:
+                size_hint_x: 0.33
+                FloatLayout:
+
+                    SettingsViewButton:
+                        width: dp(50)
+                        height: dp(50)
+                        background_down: "./images/back_icon.png"
+                        background_normal: "./images/back_icon.png"
+                        on_release: root.return_to_main_view()
+
+            BoxLayout:
+                size_hint_x: 0.33
+                RelativeLayout:
+                    Image:
+                        source: './images/scan.png'
+                        size_hint_x: None
+                        size_hint_y: None
+                        width: dp(150)
+                        height: dp(150)
+                        pos_hint:{'center_x': 0.5, 'center_y': 0.5}
+
+            BoxLayout:
+                size_hint_x: 0.33
+
+
         BoxLayout:
             orientation: 'vertical'
             id: settings_view_container_list_container
             opacity: 1
             size_hint_y: 0.6
-            canvas.before:
-                Color:
-                    rgba: 0.2, 0.5, 0.8, 1
-                Rectangle:
-                    pos: self.pos
-                    size: self.size
+            GridLayout:
+                id: set_scanned_devices_list_grid
+                cols:1
+                rows: 6
+                size_hint_y: 1
+                padding: 45,45,45,45
+                spacing: 45,45
+
         BoxLayout:
-            orientation: 'vertical'
+            orientation: 'horizontal'
             id: settings_view_container_scan_again
             opacity: 1
             size_hint_y: 0.2
-            canvas.before:
-                Color:
-                    rgba: 0.2, 0.5, 0.8, 1
-                Rectangle:
-                    pos: self.pos
-                    size: self.size
-            Button:
-                text: 'Scan Again'
-                on_release: root.scan_again()
+            BoxLayout:
+                FloatLayout:
+                    SettingsViewButton:
+                        text: 'Scan Again'
+                        on_release: root.scan_again()
 
-        BoxLayout:
-            id: settings_view_save_button_container
-            size_hint_y: .2
-            orientation: 'horizontal'
-            FloatLayout:
+            BoxLayout:
+                id: settings_view_save_button_container
 
-                Button:
-                    id: settings_save_chosen_device_and_go_to_main
-                    text: 'Save'
-                    size_hint_x: None
-                    size_hint_y: None
-                    width: dp(200)
-                    height: dp(70)
-                    pos_hint:{'center_x': 0.5, 'center_y': 0.5}
-                    background_down: "./images/b_b.png"
-                    background_normal: "./images/b_a.png"
-                    on_release: root.save_settings()
+                FloatLayout:
+                    SettingsViewButton:
+                        id: settings_save_chosen_device_and_go_to_main
+                        text: 'Save'
+                        size_hint_x: None
+                        size_hint_y: None
+                        width: dp(200)
+                        height: dp(70)
+                        pos_hint:{'center_x': 0.5, 'center_y': 0.5}
+                        background_down: "./images/b_b.png"
+                        background_normal: "./images/b_a.png"
+                        on_release: root.save_settings()
 
 <ScanView>:
     name: 'scan'
@@ -114,23 +159,21 @@
         opacity: 1
         canvas.before:
             Color:
-                rgba: hex('#000000')
+                rgba: hex('#202020')
             Rectangle:
                 pos: self.pos
                 size: self.size
         BoxLayout:
             size_hint_y: .2
-            Label:
-                text: 'Scanned devices'
-                opacity: .8
-                font_hinting: 'mono'
-                font_size: dp(40)
-                canvas.before:
-                    Color:
-                        rgba: hex('#ffa500')
-                    Rectangle:
-                        pos: self.pos
-                        size: self.size
+            RelativeLayout:
+                Image:
+                    source: './images/scan.png'
+                    size_hint_x: None
+                    size_hint_y: None
+                    width: dp(150)
+                    height: dp(150)
+                    pos_hint:{'center_x': 0.5, 'center_y': 0.5}
+
         BoxLayout:
             id: scanned_devices_list
             size_hint_y: .6
@@ -141,6 +184,8 @@
                 size_hint_y: 1
                 padding: 45,45,45,45
                 spacing: 45,45
+
+
 
         BoxLayout:
             id: scan_view_button_container
@@ -221,18 +266,13 @@
                         background_down: "./images/n_b.png"
                         background_normal: "./images/n_b.png"
                         background_active: "./images/n_b.png"
-#                            background_normal: "./images/filter_icon.png"
-#                            on_release: root.open_filter_view()
-#                        background_color: 0,0,0,0.8
                         cursor_color: hex('#ffa500')
                         foreground_color: hex('#ffa500')
-                        on_focus: root.focu_defocu(self,self.focus)
+                        on_focus: root.searchInput_on_focus_effect(self,self.focus)
                         multiline: False
-#                        line_height: dp(30)
                         padding: 15,0,15,0
                         font_size: dp(25)
 
-#                            pos_hint: {'center_x': 0.5, 'center_y': 0.5}
                 BoxLayout:
                     id: filter_modal
                     size_hint_x: .18
@@ -325,10 +365,7 @@
                 width: dp(400)
                 height: dp(50)
                 pos_hint:{'center_x': 0.5, 'center_y': 0.39}
-
-
                 canvas.before:
-
                     Color:
                         rgba: hex('#000000')
                     Rectangle:
@@ -352,30 +389,92 @@
         Label:
             text: root.name
 
+<ShowEpTor>:
+    orientation: 'vertical'
+
+<ShowEpSingleTor>:
+    orientation: 'vertical'
+    Label:
+        id: tor_quality_label
+        size_hint_y: .2
+        text:
+        canvas.before:
+            Color:
+                rgba: hex('#202020')
+            Rectangle:
+                pos: self.pos
+                size: self.size
+    BoxLayout:
+        orientation: 'horizontal'
+        size_hint_y: .8
+        BoxLayout:
+            RelativeLayout:
+                PlayButton:
+                    id: tor_play
+                    text: 'play'
+                    on_release: root.print_tor(self.text)
+        BoxLayout:
+            RelativeLayout:
+                DownloadButton:
+                    id: tor_down
+                    text: 'download'
+                    on_release: root.print_tor(self.text)
+
+<ShowEpSyn>:
+    readonly: True
+    multiline: True
+    color: 0,0,0,0
+    cursor_color: 0,0,0,0
+    padding: 20,20,20,20
+    foreground_color: hex('#ffa500')
+    background_color: (0,0,0,0)
+
 <SeriesViewMainSingleTop>:
     orientation: 'horizontal'
     BoxLayout:
         orientation: 'horizontal'
         id: series_view_main_single_top_im_holder
         size_hint_x:.3
-        canvas.before:
-            Color:
-                rgba: hex('#ffa500')
-            Rectangle:
-                pos: self.pos
-                size: self.size
+        AsyncImage:
+            id: series_view_main_single_top_im_holder_IM
+            source: ''
+
+
     BoxLayout:
         orientation: 'vertical'
         id: series_view_main_single_top_other
         size_hint_x:.7
-        canvas.before:
-            Color:
-                rgba: hex('#000000')
-            Rectangle:
-                pos: self.pos
-                size: self.size
-
-
+        BoxLayout:
+            size_hint_y: .1
+            orientation: 'horizontal'
+            Label:
+                id: series_view_main_single_top_other_YE
+                color: hex('#ffa500')
+                text:
+            Label:
+                id: series_view_main_single_top_other_RU
+                color: hex('#ffa500')
+                text:
+        Label:
+            size_hint_y: .1
+            id: series_view_main_single_top_other_ST
+            color: hex('#ffa500')
+            text:
+        BoxLayout:
+            size_hint_y: .8
+            ScrollView:
+                id: scrlv
+                TextInput:
+                    size_hint_y: None
+                    id: series_view_main_single_top_other_DE
+                    readonly: True
+                    multiline: True
+                    color: 0,0,0,0
+                    cursor_color: 0,0,0,0
+                    padding: 20,20,20,20
+                    foreground_color: hex('#ffa500')
+                    background_color: (0,0,0,0)
+                    height: max(self.minimum_height, scrlv.height)
 
 
 <SeriesViewMainSingle>:
@@ -394,18 +493,29 @@
             size_hint_y:.05
             canvas.before:
                 Color:
-                    rgba: hex('#000000')
+                    rgba: hex('#202020')
                 Rectangle:
                     pos: self.pos
                     size: self.size
             BoxLayout:
-                size_hint_x: .3
-                Button:
-                    text:'back'
-                    on_press : root.go_back_to_series()
+                size_hint_x: .2
+
+                FloatLayout:
+
+                    SettingsViewButton:
+                        width: dp(25)
+                        height: dp(25)
+                        background_down: "./images/back_icon.png"
+                        background_normal: "./images/back_icon.png"
+                        on_press : root.go_back_to_series()
             BoxLayout:
                 id: series_view_main_single_nav_title
-                size_hint_x: .7
+                size_hint_x: .6
+                Label:
+                    id: series_view_main_single_nav_title_t
+                    text: ''
+            BoxLayout:
+                size_hint_x: .2
         BoxLayout:
             orientation: 'vertical'
             size_hint_y: .45
@@ -422,7 +532,7 @@
             id: series_view_main_single_container_se
             canvas.before:
                 Color:
-                    rgba: hex('#ffa500')
+                    rgba: hex('#000000')
                 Rectangle:
                     pos: self.pos
                     size: self.size
@@ -468,10 +578,85 @@
             size_hint_y: .91
             canvas.before:
                 Color:
-                    rgba: hex('#ffa500')
+                    rgba: hex('#000000')
                 Rectangle:
                     pos: self.pos
                     size: self.size
+
+<MoviesEpTor>:
+    orientation: 'vertical'
+
+<MoviesEpSingleTor>:
+    orientation: 'vertical'
+    Label:
+        id: tor_quality_label
+        size_hint_y: .2
+        text:
+        canvas.before:
+            Color:
+                rgba: hex('#202020')
+            Rectangle:
+                pos: self.pos
+                size: self.size
+    BoxLayout:
+        orientation: 'horizontal'
+        size_hint_y: .8
+        BoxLayout:
+            RelativeLayout:
+                PlayButton:
+                    id: tor_play
+                    text: 'play'
+                    on_release: root.print_tor(self.text)
+        BoxLayout:
+            RelativeLayout:
+                DownloadButton:
+                    id: tor_down
+                    text: 'download'
+                    on_release: root.print_tor(self.text)
+
+<MoviesViewMainSingleTop>:
+    orientation: 'horizontal'
+    BoxLayout:
+        orientation: 'horizontal'
+        id: movies_view_main_single_top_im_holder
+        size_hint_x:.3
+        AsyncImage:
+            id: movies_view_main_single_top_im_holder_IM
+            source: ''
+
+
+    BoxLayout:
+        orientation: 'vertical'
+        id: movies_view_main_single_top_other
+        size_hint_x:.7
+        BoxLayout:
+            size_hint_y: .2
+            orientation: 'horizontal'
+            Label:
+                id: movies_view_main_single_top_other_YE
+                color: hex('#ffa500')
+                text:
+            Label:
+                id: movies_view_main_single_top_other_RU
+                color: hex('#ffa500')
+                text:
+
+        BoxLayout:
+            size_hint_y: .8
+            ScrollView:
+                id: scrlv
+                TextInput:
+                    size_hint_y: None
+                    id: movies_view_main_single_top_other_DE
+                    readonly: True
+                    multiline: True
+                    color: 0,0,0,0
+                    cursor_color: 0,0,0,0
+                    padding: 20,20,20,20
+                    foreground_color: hex('#ffa500')
+                    background_color: (0,0,0,0)
+                    height: max(self.minimum_height, scrlv.height)
+
 
 <MoviesViewMainSingle>:
     BoxLayout:
@@ -479,10 +664,59 @@
         orientation: 'vertical'
         canvas.before:
             Color:
-                rgba: hex('#ffa500')
+                rgba: hex('#000000')
             Rectangle:
                 pos: self.pos
                 size: self.size
+        BoxLayout:
+            orientation: 'horizontal'
+            id: movies_view_main_single_nav
+            size_hint_y:.05
+            canvas.before:
+                Color:
+                    rgba: hex('#202020')
+                Rectangle:
+                    pos: self.pos
+                    size: self.size
+            BoxLayout:
+                size_hint_x: .2
+
+                FloatLayout:
+
+                    SettingsViewButton:
+                        width: dp(25)
+                        height: dp(25)
+                        background_down: "./images/back_icon.png"
+                        background_normal: "./images/back_icon.png"
+                        on_press : root.go_back_to_movies()
+            BoxLayout:
+                id: movies_view_main_single_nav_title
+                size_hint_x: .6
+                Label:
+                    id: movies_view_main_single_nav_title_t
+                    text: ''
+            BoxLayout:
+                size_hint_x: .2
+        BoxLayout:
+            orientation: 'vertical'
+            size_hint_y: .60
+            id: movies_view_main_single_container
+            canvas.before:
+                Color:
+                    rgba: hex('#000000')
+                Rectangle:
+                    pos: self.pos
+                    size: self.size
+        BoxLayout:
+            orientation: 'vertical'
+            size_hint_y: .35
+            id: movies_view_main_single_container_se
+            canvas.before:
+                Color:
+                    rgba: hex('#000000')
+                Rectangle:
+                    pos: self.pos
+                    size: self.size
 
 <MoviesViewMain>:
     BoxLayout:
@@ -512,6 +746,7 @@
         BoxLayout:
             id: movies_pag_holder
             size_hint_y: .09
+            padding: 5,0
             canvas.before:
                 Color:
                     rgba: hex('#000000')
@@ -554,7 +789,7 @@
                     size: self.size
         BoxLayout:
             id: latest_view_main_shows_container
-            size_hint_y: .49
+            size_hint_y: .48
             padding: 15,15,15,15
 
 <LatestView>:
@@ -595,20 +830,24 @@
     id: scan_view_i
     orientation: 'horizontal'
     size_hint_y: .4
-    canvas.before:
-        Color:
-            rgba: hex('#ffa500')
-        Rectangle:
-            pos: self.pos
-            size: self.size
+
     Label:
         id: scan_view_i_name
-        size_hint_x: .8
+        size_hint_x: .7
+        font_size: dp(26)
+        padding: 15,15
+        color: hex('#ffa500')
         text: ''
+        font_hinting: 'mono'
+#        italic: True
+
     CheckBox:
         id: scan_view_i_check
-        size_hint_x: .2
+        size_hint_x: .3
         group: 'address_setter'
+#        color: hex('#ffa500')
+        background_radio_down: "./images/chprd.png"
+        background_radio_normal: "./images/chpr.png"
         on_press: root.return_on_active_name(self.active, scan_view_i_name.text)
 
 <FilterSpinner@Spinner>

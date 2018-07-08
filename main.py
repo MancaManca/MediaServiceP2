@@ -17,6 +17,8 @@ from kivy.uix.popup import Popup
 from kivy.uix.screenmanager import ScreenManager, Screen, FadeTransition
 from kivy.uix.scrollview import ScrollView
 from kivy.uix.textinput import TextInput
+from kivy.uix.video import Video
+from kivy.uix.videoplayer import VideoPlayer
 from kivy.utils import get_color_from_hex
 
 from Crypto.Hash import SHA256
@@ -341,28 +343,109 @@ def busy_loading_overlay(entry, finish):
 #######################################____________APP___________________#########################################
 
 
+class MoviesEpSingleTor(BoxLayout):
+    def __init__(self, _torrent_single, _torrent_single_magnet, movies_connector,  **kwargs):
+        super(MoviesEpSingleTor, self).__init__(**kwargs)
+        Logger.info('MoviesViewMainSingle: MovieEpSingleTor Initialized {}'.format(self))
+        self.wtf = movies_connector
+
+        self._torrent_quality = str(_torrent_single)
+        self._torrent_quality = self._torrent_quality.encode('utf-8')
+        self.ids.tor_quality_label.text = self._torrent_quality
+        self._magnet_link = str(_torrent_single_magnet)
+        self._magnet_link = self._magnet_link.encode('utf-8')
+        self.ids.tor_play.text = 'play/{}'.format(self._magnet_link)
+        self.ids.tor_down.text = 'down/{}'.format(self._magnet_link)
+
+    def print_tor(self, m, *args):
+        # SeriesViewMainSingle.send_me()
+        self.wtf.mysend(m)
+        Logger.warning('Trying: should be message "{}" '.format(m))
+
+
+class MoviesEpTor(BoxLayout):
+    def __init__(self, _torrents_list, movies_connector, **kwargs):
+        super(MoviesEpTor, self).__init__(**kwargs)
+        Logger.info('MoviesViewMainSingle: MoviesEpTor Initialized {}'.format(self))
+
+        Logger.info('MoviesViewMainSingle: MoviesEpTor torrents list {}'.format(_torrents_list))
+
+        for _torrent in _torrents_list:
+            Logger.info('MoviesViewMainSingle: MoviesEpTor torrent {}'.format(_torrent))
+
+            _mag_link = _torrents_list[_torrent]['url']
+            self.add_widget(MoviesEpSingleTor(_torrent, _mag_link, movies_connector))
+
+
+class MoviesViewMainSingleTop(BoxLayout):
+    def __init__(self, mo_year, mo_synopsis, mo_runtime, mo_image, **kwargs):
+        super(MoviesViewMainSingleTop, self).__init__(**kwargs)
+        Logger.info('MoviesViewMainSingleTop: Initialized {}'.format(self))
+        self._mo_year = mo_year
+        self._mo_synopsis = mo_synopsis
+        self._mo_runtime = mo_runtime
+        self._mo_image = mo_image
+
+        self.ids.movies_view_main_single_top_im_holder_IM.source = self._mo_image
+        self.ids.movies_view_main_single_top_other_YE.text = 'Year {}'.format(str(self._mo_year))
+        self.ids.movies_view_main_single_top_other_RU.text = 'Runtime {}'.format(str(self._mo_runtime))
+        # self.ids.movies_view_main_single_top_other_ST.text = 'Trailer : {}'.format(str(self._mo_trailer))
+        self.ids.movies_view_main_single_top_other_DE.text = self._mo_synopsis
+
+
+
 class MoviesViewMainSingle(Screen):
     def __init__(self, movie_id, **kwargs):
         super(MoviesViewMainSingle, self).__init__(**kwargs)
-        self.movie_id = movie_id
-        self.name = 'mvms'
-        self.blak = self
-        Logger.info('MoviesViewMainSingle: Initialized {}'.format(self))
-        self.ids.mvmsingle.add_widget(Label(text=self.name))
-        self.ids.mvmsingle.add_widget(Button(text='back', on_press = self.go_back_to_movies))
-        self.ids.mvmsingle.add_widget(Button(text='send', on_press = lambda x: self.send_me('single ladies')))
-
-        get_api(Movies(_id = self.movie_id).get_search_by_id())
-        for i in hashed_dic_movie:
-            for b in hashed_dic_movie[i]:
-                vale = '{} {}'.format(b, hashed_dic_movie[i][b])
-                self.ids.mvmsingle.add_widget(Label(text=vale))
-
         self.movies_single_connector = Connector()
 
+        self.movie_id = movie_id
+        self.name = 'mvms'
+        self.movies_main_single_screen_instance = self
 
-    def send_me(self, msg, *args):
-        self.movies_single_connector.mysend(msg)
+        Logger.info('MoviesViewMainSingle: Initialized {}'.format(self.name))
+
+        # self.ids.mvmsingle.add_widget(Label(text=self.name))
+        # self.ids.mvmsingle.add_widget(Button(text='back', on_press = self.go_back_to_movies))
+        # self.ids.mvmsingle.add_widget(Button(text='send', on_press = lambda x: self.send_me('single ladies')))
+
+        get_api(Movies(_id=self.movie_id).get_search_by_id())
+
+        for _single_movie_item_in_dic in hashed_dic_movie:
+
+
+            Logger.info('Movie level >>>>>')
+
+            Logger.info(' Movie title {}'.format(hashed_dic_movie[_single_movie_item_in_dic]['title']))
+            _movie_t = str(hashed_dic_movie[_single_movie_item_in_dic]['title'])
+            _movie_t = _movie_t.encode('utf-8')
+            self.ids.movies_view_main_single_nav_title_t.text = _movie_t
+
+            Logger.info(' Movie year {}'.format(hashed_dic_movie[_single_movie_item_in_dic]['year']))
+            _movie_y = str(hashed_dic_movie[_single_movie_item_in_dic]['year'])
+            _movie_y = _movie_y.encode('utf-8')
+
+            Logger.info(' Movie synopsis {}'.format(hashed_dic_movie[_single_movie_item_in_dic]['synopsis']))
+            _movie_s = str(hashed_dic_movie[_single_movie_item_in_dic]['synopsis'])
+            _movie_s = _movie_s.encode('utf-8')
+
+            Logger.info(' Movie runtime {}'.format(hashed_dic_movie[_single_movie_item_in_dic]['runtime']))
+            _movie_r = str(hashed_dic_movie[_single_movie_item_in_dic]['runtime'])
+            _movie_r = _movie_r.encode('utf-8')
+
+            Logger.info(' Movie image {}'.format(hashed_dic_movie[_single_movie_item_in_dic]['images']['poster']))
+            _movie_im = str(hashed_dic_movie[_single_movie_item_in_dic]['images']['poster'])
+            _movie_im = _movie_im.encode('utf-8')
+
+
+            Logger.info(
+                ' Movie number of torrents {}'.format(len(hashed_dic_movie[_single_movie_item_in_dic]['torrents']['en'])))
+            self.movie_torr_num = len(hashed_dic_movie[_single_movie_item_in_dic]['torrents']['en'])
+
+            self.ids.movies_view_main_single_container.add_widget(
+                MoviesViewMainSingleTop(_movie_y, _movie_s, _movie_r, _movie_im))
+
+            self.ids.movies_view_main_single_container_se.add_widget(MoviesEpTor(hashed_dic_movie[_single_movie_item_in_dic]['torrents']['en'], self.movies_single_connector))
 
 
     def go_back_to_movies(self,*args):
@@ -373,13 +456,14 @@ class MoviesViewMainSingle(Screen):
         else:
             Logger.info('back from series')
             self.manager.current = 'movies view main screen'
-        self.manager.remove_widget(self.blak)
+        self.manager.remove_widget(self.movies_main_single_screen_instance)
+
 
 class MoviesViewMain(Screen):
     def __init__(self, **kwargs):
         super(MoviesViewMain, self).__init__(**kwargs)
-        Logger.info('MoviesViewMain: Initialized {}'.format(self))
         self.name = 'movies view main screen'
+        Logger.info('MoviesViewMain: Initialized {}'.format(self.name))
 
         movies_layout = GridLayout(cols=3, padding=20, spacing=20,
                             size_hint=(None, None), width=ViewControl.width_x - 30)
@@ -463,10 +547,10 @@ class MoviesView(Screen):
         super(MoviesView, self).__init__(**kwargs)
         Logger.info('MoviesView: Initialized {}'.format(self))
 
-        self.movies_paginator = GridLayout(rows=1, cols=50, padding=5, spacing=5, size_hint=(None,None))
+        self.movies_paginator = GridLayout(rows=1, cols=50, padding=5, spacing=5, size_hint=(None, None))
         self.movies_paginator.bind(minimum_width=self.movies_paginator.setter('width'))
 
-        for i in range(1,50):
+        for i in range(1, 50):
             self.btn_m_p = PaginationButton(str(i))
             self.btn_m_p.bind(on_press=lambda instance: self.m_paginator_buton_call(instance))
             self.movies_paginator.add_widget(self.btn_m_p)
@@ -486,9 +570,9 @@ class MoviesView(Screen):
 
         try:
             paginator_button_instance.background_color = get_color_from_hex('#ffa500')
-            if self._filter_order == None:
+            if self._filter_order is None:
                 self._filter_order = '-1'
-            if self._filter_sort == None:
+            if self._filter_sort is None:
                 self._filter_sort = 'last added'
 
             get_api(Movies(page=paginator_button_instance.text, order=self._filter_order, sort=self._filter_sort, genre=self._filter_genre).get_search())
@@ -509,20 +593,65 @@ class Item(BoxLayout):
                       content=Label(text=self.megs),
                       size_hint=(None, None), size=(600, 600))
 
+
 class SeriesViewMainSingleTop(BoxLayout):
-    def __init__(self, sh_year, sh_synopsis, sh_runtime, sh_image, **kwargs):
+    def __init__(self, sh_year, sh_synopsis, sh_runtime, sh_image, sh_status, **kwargs):
         super(SeriesViewMainSingleTop, self).__init__(**kwargs)
         Logger.info('SeriesViewMainSingleTop: Initialized {}'.format(self))
         self._sh_year = sh_year
         self._sh_synopsis = sh_synopsis
         self._sh_runtime = sh_runtime
         self._sh_image = sh_image
+        self._sh_status = sh_status
 
-        self.ids.series_view_main_single_top_im_holder.add_widget(AsyncImage(source=self._sh_image))
-        self.ids.series_view_main_single_top_other.add_widget(Label(text=str(self._sh_year),unicode_errors='ignore',size_hint_y=.1))
-        self.ids.series_view_main_single_top_other.add_widget(Label(text=str(self._sh_runtime), size_hint_y=.1))
-        self.ids.series_view_main_single_top_other.add_widget(TextInput(text=self._sh_synopsis,unicode_errors='ignore',readonly=True,multi_line=True,size_hint_y=.8))
+        self.ids.series_view_main_single_top_im_holder_IM.source = self._sh_image
+        self.ids.series_view_main_single_top_other_YE.text = 'Year {}'.format(str(self._sh_year))
+        self.ids.series_view_main_single_top_other_RU.text = 'Runtime {}'.format(str(self._sh_runtime))
+        self.ids.series_view_main_single_top_other_ST.text = 'Status : {}'.format(str(self._sh_status))
+        self.ids.series_view_main_single_top_other_DE.text = self._sh_synopsis
 
+
+class ShowEpSingleTor(BoxLayout):
+    def __init__(self, _torrent_single, _torrent_single_magnet, series_connector,  **kwargs):
+        super(ShowEpSingleTor, self).__init__(**kwargs)
+        Logger.info('SeriesViewMainSingle: ShowEpSingleTor Initialized {}'.format(self))
+        self.wtf = series_connector
+
+        self._torrent_quality = str(_torrent_single)
+        self._torrent_quality = self._torrent_quality.encode('utf-8')
+        self.ids.tor_quality_label.text = self._torrent_quality
+        self._magnet_link = str(_torrent_single_magnet)
+        self._magnet_link = self._magnet_link.encode('utf-8')
+        self.ids.tor_play.text = 'play/{}'.format(self._magnet_link)
+        self.ids.tor_down.text = 'down/{}'.format(self._magnet_link)
+
+    def print_tor(self, m, *args):
+        # SeriesViewMainSingle.send_me()
+        self.wtf.mysend(m)
+        Logger.warning('Trying: should be message "{}" '.format(m))
+
+
+class ShowEpTor(BoxLayout):
+    def __init__(self, _torrents_list, series_connector, **kwargs):
+        super(ShowEpTor, self).__init__(**kwargs)
+        Logger.info('SeriesViewMainSingle: ShowEpTor Initialized {}'.format(self))
+
+        Logger.info('SeriesViewMainSingle: ShowEpTor torrents list {}'.format(_torrents_list))
+
+        for _torrent in _torrents_list:
+            Logger.info('SeriesViewMainSingle: ShowEpTor torrent {}'.format(_torrent))
+
+            _mag_link = _torrents_list[_torrent]['url']
+            self.add_widget(ShowEpSingleTor(_torrent, _mag_link, series_connector))
+
+
+class ShowEpSyn(TextInput):
+    def __init__(self, _show_episode_synopsis_text_in, **kwargs):
+        super(ShowEpSyn, self).__init__(**kwargs)
+        Logger.info('SeriesViewMainSingle: ShowEpSyn Initialized {}'.format(self))
+
+        self._show_episode_synopsis_text_in = _show_episode_synopsis_text_in
+        self.text = self._show_episode_synopsis_text_in
 
 
 class SeriesViewMainSingle(Screen):
@@ -532,107 +661,110 @@ class SeriesViewMainSingle(Screen):
 
         self.series_id = series_id
         self.name = 'svms'
-        self.blak = self
+        self.series_main_singe_screen_instance = self
 
-        Logger.info('SeriesViewMainSingle: Initialized {}'.format(self))
-
-
-        # self.ids.series_view_main_single_nav.add_widget(Button(text='send',on_press = lambda x: self.send_me('single ladies')))
-
+        Logger.info('SeriesViewMainSingle: Initialized {}'.format(self.name))
 
         get_api(Shows(_id=self.series_id).get_search_by_id())
 
-        for i in hashed_dic_show:
-            for b in hashed_dic_show[i]:
+        for _single_show_item_in_dic in hashed_dic_show:
+            for show_node in hashed_dic_show[_single_show_item_in_dic]:
 
-                if b =='episodes':
+                if show_node == 'episodes':
 
-                    self.b = Accordion(orientation='vertical', height=180 * int(len(hashed_dic_show[i]['episodes'])), size_hint_y=None)
-                    # self.b.content_size = [40, 40]
-                    self.b.id = 'testAccordian'
+                    self._single_show_accordion = Accordion(orientation='vertical', height=180 * int(len(hashed_dic_show[_single_show_item_in_dic]['episodes'])), size_hint_y=None)
+
+                    self._single_show_accordion.id = 'testAccordian'
 
                     self.g_scroll_list = ScrollView(size_hint=(None, None),
                                                     size=(ViewControl.width_x - 40, ViewControl.height_x * 0.4),
                                                     pos_hint={'center_x': 0.5, 'center_y': 0.5})
 
                     self.ids.series_view_main_single_container_se.add_widget(self.g_scroll_list)
-                    self.g_scroll_list.add_widget(self.b)
+                    self.g_scroll_list.add_widget(self._single_show_accordion)
 
                     Logger.info('Show level >>>>>')
-                    self.ids.series_view_main_single_container.add_widget(SeriesViewMainSingleTop(hashed_dic_show[i]['year'],hashed_dic_show[i]['synopsis'],hashed_dic_show[i]['runtime'],hashed_dic_show[i]['images']['poster']))
 
-                    Logger.info(hashed_dic_show[i]['title'])
-                    self.ids.series_view_main_single_nav_title.add_widget(Label(text=hashed_dic_show[i]['title'].encode('utf-8',errors='ignore'),unicode_errors='ignore'))
+                    Logger.info(' Show title {}'.format(hashed_dic_show[_single_show_item_in_dic]['title']))
+                    _show_t = str(hashed_dic_show[_single_show_item_in_dic]['title'])
+                    _show_t = _show_t.encode('utf-8')
+                    self.ids.series_view_main_single_nav_title_t.text = _show_t
 
-                    Logger.info(hashed_dic_show[i]['year'])
-                    Logger.info(hashed_dic_show[i]['synopsis'])
-                    Logger.info(hashed_dic_show[i]['runtime'])
-                    Logger.info(hashed_dic_show[i]['images']['poster'])
-                    Logger.info(len(hashed_dic_show[i]['episodes']))
-                    self._ep_num = len(hashed_dic_show[i]['episodes'])
+                    Logger.info(' Show year {}'.format(hashed_dic_show[_single_show_item_in_dic]['year']))
+                    _show_y = str(hashed_dic_show[_single_show_item_in_dic]['year'])
+                    _show_y = _show_y.encode('utf-8')
 
+                    # Logger.info(' Show synopsis {}'.format(hashed_dic_show[_single_show_item_in_dic]['synopsis']))
+                    _show_s = hashed_dic_show[_single_show_item_in_dic]['synopsis']
+                    _show_s = _show_s.encode('utf-8')
 
+                    Logger.info(' Show runtime {}'.format(hashed_dic_show[_single_show_item_in_dic]['runtime']))
+                    _show_r = str(hashed_dic_show[_single_show_item_in_dic]['runtime'])
+                    _show_r = _show_r.encode('utf-8')
 
-                    for z in hashed_dic_show[i][b]:
-                        acc_item = AccordionItem(collapse=True, orientation='vertical')
+                    Logger.info(' Show image {}'.format(hashed_dic_show[_single_show_item_in_dic]['images']['poster']))
+                    _show_im = str(hashed_dic_show[_single_show_item_in_dic]['images']['poster'])
+                    _show_im = _show_im.encode('utf-8')
+
+                    Logger.info(' Show status {}'.format(hashed_dic_show[_single_show_item_in_dic]['status']))
+                    _show_st = str(hashed_dic_show[_single_show_item_in_dic]['status'])
+                    _show_st = _show_st.encode('utf-8')
+
+                    Logger.info(' Show number of episodes {}'.format(len(hashed_dic_show[_single_show_item_in_dic]['episodes'])))
+                    self._ep_num = len(hashed_dic_show[_single_show_item_in_dic]['episodes'])
+
+                    self.ids.series_view_main_single_container.add_widget(
+                        SeriesViewMainSingleTop(_show_y, _show_s, _show_r, _show_im, _show_st))
+
+                    for _episode_node in hashed_dic_show[_single_show_item_in_dic][show_node]:
+                        acc_item = AccordionItem(collapse=True, orientation='vertical',background_normal='./images/filter_list_i.png',
+    background_selected='./images/filter_list_i.png')
 
                         acc_item.container.orientation = 'vertical'
                         Logger.info('Episode level >>>>>')
                         # Logger.info(z)
-                        Logger.info(z['title'])
-                        Logger.info(z['overview'])
-                        Logger.info(z['episode'])
-                        Logger.info(z['season'])
-                        Logger.info(z['torrents'])
+                        try:
+                            Logger.info('Episode title {}'.format(_episode_node['title']))
+                        except UnicodeEncodeError:
+                            pass
 
-                        if z['title']:
-                            ti = z['title'].encode('utf-8')
+                        if _episode_node['title']:
+                            ti = _episode_node['title'].encode('utf-8')
                         else:
                             ti = ''
 
-                        sea = str(z['season'])
-                        sea = sea.encode('utf-8')
-                        epi  = str(z['episode'])
-                        epi = epi.encode('utf-8')
-                        if z['overview']:
-                            over = z['overview'].encode('utf-8')
+                        Logger.info('Episode overview')
+                        if _episode_node['overview']:
+                            # Logger.info('{}'.format(len(_episode_node['overview'])))
+                            _show_episode_over = _episode_node['overview']
+                            _show_episode_over = _show_episode_over.encode('utf-8')
+                            Logger.info('Episode overview {}'.format(_show_episode_over))
                         else:
-                            over = ''
+                            _show_episode_over = ''
 
-                        tor = str(z['torrents'])
-                        tor = tor.encode('utf-8')
-                        acc_item.title = '{} {} {}'.format(ti,sea,epi)
+                        Logger.info('Episode episode number {}'.format(_episode_node['episode']))
+                        _show_episode = str(_episode_node['episode'])
+                        _show_episode = _show_episode.encode('utf-8')
 
-                        acc_item.container.add_widget(TextInput(text=str(over), unicode_errors='ignore',multi_line=True))
-                        acc_item.container.add_widget(TextInput(text=str(tor), unicode_errors='ignore',multi_line=True))
+                        Logger.info('Episode season number {}'.format(_episode_node['season']))
+                        _show_season = str(_episode_node['season'])
+                        _show_season = _show_season.encode('utf-8')
 
-                        # self.z.add_widget(Label(text=' acc item {}'.format(i)))
-                        self.b.add_widget(acc_item)
+                        Logger.info('Episode torrents {}'.format(_episode_node['torrents']))
+                        _show_episode_tor = str(_episode_node['torrents'])
+                        _show_episode_tor = _show_episode_tor.encode('utf-8')
 
-                        # Logger.info(hashed_dic_show[i][b][z])
+                        acc_item.title = '{} {} {}'.format(ti, _show_season, _show_episode)
 
-                # vale = '{} {}'.format(b, hashed_dic_show[i][b])
-                # self.ids.svmsingle.add_widget(Label(text=vale, max_lines=2))
+                        _show_accordion_item_container_synopsis = ShowEpSyn(str(_show_episode_over))
 
+                        acc_item.container.add_widget(_show_accordion_item_container_synopsis)
 
-
-
-
-
-
+                        acc_item.container.add_widget(ShowEpTor(_episode_node['torrents'], self.series_single_connector))
 
 
-    def send_me(self, msg, *args):
-        self.series_single_connector.mysend(msg)
+                        self._single_show_accordion.add_widget(acc_item)
 
-
-
-    def pr(self, *args):
-        # Logger.info(self.parent)
-        # Logger.info(self.manager.screens)
-        # Logger.info(' MainView {}'.format(self.parent))
-        # Logger.info(self.manager.screen_names)
-        pass
 
     def go_back_to_series(self,*args):
 
@@ -643,7 +775,7 @@ class SeriesViewMainSingle(Screen):
         else:
             Logger.info('back from series')
             self.manager.current = 'series view main screen'
-        self.manager.remove_widget(self.blak)
+        self.manager.remove_widget(self.series_main_singe_screen_instance)
 
 
 class SeriesViewMain(Screen):
@@ -766,9 +898,9 @@ class SeriesView(Screen):
         self.ids.ser_view_holder.remove_widget(self.ids.ser_view_holder.children[0])
 
         try:
-            if self._filter_order == None:
+            if self._filter_order is None:
                 self._filter_order = '-1'
-            if self._filter_sort == None:
+            if self._filter_sort is None:
                 self._filter_sort = 'updated'
             paginator_button_instance.background_color = get_color_from_hex('#ffa500')
             get_api(Shows(page=paginator_button_instance.text, order=self._filter_order, sort=self._filter_sort, genre=self._filter_genre).get_search())
@@ -802,17 +934,17 @@ class SearchView(Screen):
 class LatestViewMain(Screen):
     def __init__(self, **kwargs):
         super(LatestViewMain, self).__init__(**kwargs)
-
-        Logger.info('LatestViewMain: Initialized {}'.format(self))
-
         self.name = 'latest view main screen'
+        Logger.info('LatestViewMain: Initialized {}'.format(self.name))
+
+
 #################________________SHOWS LATEST______________##########################
         latest_series_layout = GridLayout(cols=3, padding=20, spacing=20,
                                    size_hint=(None, None), width=ViewControl.width_x - 30)
         latest_series_layout.bind(minimum_height=latest_series_layout.setter('height'))
 
         latest_series_scroll_list = ScrollView(size_hint=(None, None),
-                                        size=(ViewControl.width_x - 20, ViewControl.height_x * 0.45),
+                                        size=(ViewControl.width_x - 20, ViewControl.height_x * 0.44),
                                         pos_hint={'center_x': 0.5, 'center_y': .5}, do_scroll_x=False)
         latest_series_scroll_list.add_widget(latest_series_layout)
         self.ids.latest_view_main_shows_container.add_widget(latest_series_scroll_list)
@@ -832,7 +964,7 @@ class LatestViewMain(Screen):
                     pass
 
                 self._items_latest_s.add_widget(Label(text=hashed_dic_shows[_show]['title'], size_hint_y=.1, text_size=(((Window.size[0] / 3)-45), None), shorten_from='right', halign='center', shorten=True))
-                self._items_latest_s.add_widget(Button(text='show', size_hint_y=.1, on_press=partial(self.change_to_series_single, self._items_latest_s.megs)))
+                self._items_latest_s.add_widget(Button(text='Show', size_hint_y=.1, on_press=partial(self.change_to_series_single, self._items_latest_s.megs)))
 
                 latest_series_layout.add_widget(self._items_latest_s)
                 latest_show_counter += 1
@@ -868,11 +1000,10 @@ class LatestViewMain(Screen):
                                              text_size=(((Window.size[0] / 3) - 45), None), shorten_from='right',
                                              halign='center', shorten=True))
                 self._items_latest_m.add_widget(
-                    Button(text='show', size_hint_y=.1, on_press=partial(self.change_to_movies_single, self._items_latest_m.megs)))
+                    Button(text='Show', size_hint_y=.1, on_press=partial(self.change_to_movies_single, self._items_latest_m.megs)))
 
                 latest_movies_layout.add_widget(self._items_latest_m)
                 latest_movie_counter += 1
-
 
     def async_image_error_load(self, instance, *args):
         Logger.info('LatestViewMain: Async image failed {}'.format(instance))
@@ -882,14 +1013,33 @@ class LatestViewMain(Screen):
     def change_to_series_single(instance, __show_id, *args):
         Logger.info('LatestViewMain: change_to_series_single {}'.format(__show_id))
 
-        instance.manager.add_widget(SeriesViewMainSingle(__show_id))
-        instance.manager.current = 'svms'
+        Clock.schedule_once(instance.start_loade, -1)
+        Clock.schedule_once(partial(instance.add_scms, __show_id), 0.5)
+        Clock.schedule_once(instance.stop_loade, 8)
 
     def change_to_movies_single(instance, __movie_id, *args):
         Logger.info('MoviesViewMain: change_to_movies_single {}'.format(__movie_id))
 
-        instance.manager.add_widget(MoviesViewMainSingle(__movie_id))
-        instance.manager.current = 'mvms'
+        Clock.schedule_once(instance.start_loade, -1)
+        Clock.schedule_once(partial(instance.add_scmm, __movie_id), 0.5)
+        Clock.schedule_once(instance.stop_loade, 3)
+
+    def start_loade(self, *args):
+        App.get_running_app().loader_overlay.open()
+        Logger.info('start')
+
+    def stop_loade(self, *args):
+        App.get_running_app().loader_overlay.dismiss()
+        Logger.info('stop')
+
+    def add_scms(self, __s_id, *args):
+        self.manager.add_widget(SeriesViewMainSingle(__s_id))
+        self.manager.current = 'svms'
+
+    def add_scmm(self, __s_id, *args):
+        self.manager.add_widget(MoviesViewMainSingle(__s_id))
+        self.manager.current = 'mvms'
+
 
 class ScMaLatest(ScreenManager):
 
@@ -917,6 +1067,7 @@ class ScMaLatest(ScreenManager):
         self.add_widget(LatestViewMain())
         LatestView.skipper = False
 
+
 class LatestView(Screen):
     skipper = BooleanProperty(True)
     _filter_order = StringProperty(None)
@@ -930,16 +1081,13 @@ class LatestView(Screen):
         # Logger.info(self.ids)
         self.ids.lat_view_holder.add_widget(ScMaLatest())
 
-
     def refresh_on_enter(self, *args):
         if not LatestView.skipper:
             self.ids.lat_view_holder.remove_widget(self.ids.lat_view_holder.children[0])
 
             try:
-                get_api(Shows(order='-1', sort='updated',
-                              genre=self._filter_genre).get_search())
-                get_api(Movies(order='-1', sort='last added',
-                              genre=self._filter_genre).get_search())
+                get_api(Shows(order='-1', sort='updated', genre=self._filter_genre).get_search())
+                get_api(Movies(order='-1', sort='last added', genre=self._filter_genre).get_search())
                 self.ids.lat_view_holder.add_widget(ScMaLatest())
             except Exception:
                 App.get_running_app().conn_error_popup.open()
@@ -950,8 +1098,8 @@ class MainViewScManager(ScreenManager):
     def __init__(self, **kwargs):
         super(MainViewScManager, self).__init__(**kwargs)
         Logger.info('MainViewScManager: Initialized {}'.format(self))
-        self.add_widget(SearchView())
         self.add_widget(LatestView())
+        self.add_widget(SearchView())
         self.add_widget(MoviesView())
         self.add_widget(SeriesView())
 
@@ -961,7 +1109,7 @@ class FilterModalView(ModalView):
         super(FilterModalView, self).__init__(**kwargs)
         Logger.info('FilterModalView: Initialized {}'.format(self))
         self.size = (Window.size[0] / 1.5, Window.size[1] / 1.5)
-        self.ids.filter_genre.dropdown_cls.max_height = dp(250)
+        self.ids.filter_genre.dropdown_cls.max_height = dp(350)
 
     def close_filter(self, filter_type, filter_genre, filter_order, filter_sort):
         self.filter_type = filter_type
@@ -990,12 +1138,10 @@ class FilterModalView(ModalView):
         LatestView._filter_order = self.filter_order
         LatestView._filter_sort = self.filter_sort
 
-
-    def hide_other_accordions(instances,selfi):
+    def hide_other_accordions(instances, _filter_dropdown_focused):
         for spinner_child in instances.ids.filter_view_container.children[0].children:
             spinner_child.opacity = 0.2
-        selfi.opacity = 1
-
+        _filter_dropdown_focused.opacity = 1
 
 
 class MainView(Screen):
@@ -1035,9 +1181,10 @@ class MainView(Screen):
         button_instance.background_normal = "./images/n_b.png"
         other_but_f.background_normal = "./images/n_n.png"
         other_but_s.background_normal = "./images/n_n.png"
+
         self.main_scm.current = scn
 
-    def set_as_current_screen_search(self, scn, ot_1, ot_2, ot_3, o1,o2):
+    def set_as_current_screen_search(self, scn, ot_1, ot_2, ot_3):
         Logger.info('MainView: setting active screen for search {}'.format(scn))
 
         ot_1.background_normal = "./images/n_n.png"
@@ -1046,16 +1193,18 @@ class MainView(Screen):
 
         self.main_scm.current = scn
 
-    def focu_defocu(instance, tex , fla,*args):
-        if fla:
-            tex.opacity = 1
+    def searchInput_on_focus_effect(instance, _search_input_box, _search_input_focus, *args):
+        if _search_input_focus:
+            _search_input_box.opacity = 1
         else:
-            tex.opacity = .2
+            _search_input_box.opacity = .2
 
     def navigate_to_settings(self, *args):
         Logger.info('MainView: navigate_to_settings invoked')
 
-        if 'settings' not  in self.manager.screen_names:
+        """first time navigation is creating settings screen, if exists just set as current"""
+
+        if 'settings' not in self.manager.screen_names:
             Logger.info('MainView: navigate_to_settings > creating settings view')
 
             self.manager.switch_to(SettingsView(), transition=FadeTransition())
@@ -1101,7 +1250,7 @@ class ScanView(Screen):
         super(ScanView, self).__init__(**kwargs)
         Logger.info('ScanView: Initialized {}'.format(self))
 
-        self._urls_list = scanned_online_urls
+        self._urls_list = scanned_online_urls ## root dictionary with online devices returned from start scanning
 
         for _urls_list_item in self._urls_list:
             self.formated_dev_name_address = '{}/{}'.format(_urls_list_item, self._urls_list[_urls_list_item])
@@ -1118,7 +1267,7 @@ class ScanView(Screen):
         try:
             get_api(Shows(order='-1', sort='updated').get_search())
             get_api(Movies(order='-1', sort='last added').get_search())
-            Logger.info('ScanView: start service sucess')
+            Logger.info('ScanView: start service success')
 
         except:
             Logger.info('ScanView: start service fail')
@@ -1134,7 +1283,7 @@ class ScanView(Screen):
 
         breaker = host_in.find('/')
         prepare_url = host_in[:breaker]
-        Connector.url = prepare_url
+        Connector.url = prepare_url ## set device address for conenctor
 
     def save_and_go_to_main(self, *args):
         if self.choosen_device:
@@ -1173,23 +1322,25 @@ class SettingsView(Screen):
 
     def scan_again(self, *args):
         Logger.info('SettingsView: scan_again invoked')
+
         start_scanning()
         Clock.schedule_once(self.update_list_devices, 8)
 
     def update_list_devices(self, *args):
         Logger.info('SettingsView: updating list of devices')
 
-        self.ids.settings_view_container_list_container.clear_widgets()
+        self.ids.set_scanned_devices_list_grid.clear_widgets()
 
         for _urls_settings_list_item in self.settings_scanned_devices:
 
             self.formated_dev_name_address = '{}/{}'.format(_urls_settings_list_item, self.settings_scanned_devices[_urls_settings_list_item])
 
-            self.ids.settings_view_container_list_container.add_widget(SettingsViewItem(self.formated_dev_name_address))
+            self.ids.set_scanned_devices_list_grid.add_widget(SettingsViewItem(self.formated_dev_name_address))
 
     def save_settings(self, *args):
         if self.choosen_device:
             Logger.info('save settings set_as_host {}'.format(self.choosen_device))
+
             self.settings_set_as_host(self.choosen_device)
 
     def settings_set_as_host(self, host_in):
@@ -1237,6 +1388,7 @@ class Progression(Screen):
 
             self.sch_event.cancel()
             Logger.info('Progression: switching to ScanView')
+
             self.manager.switch_to(ScanView(), transition=FadeTransition(), duration=1)
 
 
@@ -1260,6 +1412,7 @@ class ViewControl(ScreenManager):
 
     def init_loading_screen(self, *args):
         Logger.info('ViewControl: start loading')
+
         Clock.schedule_once(self.scheduled_start_progression, 3)
 
     def scheduled_start_progression(self, *args):
@@ -1270,6 +1423,7 @@ class LoaderOverlay(ModalView):
     def __init__(self, **kwargs):
         super(LoaderOverlay, self).__init__(**kwargs)
         Logger.info('LoaderOverlay: Initialized {}'.format(self))
+
         self.size = (Window.size[0] / 1.5, Window.size[1] / 1.5)
 
 
@@ -1282,10 +1436,12 @@ class ConnectionErrorPopup(Popup):
 
     def quit_app_cl(self, *args):
         Logger.info('Quit app')
+
         App.stop(App.get_running_app())
 
     def retry(self, *args):
         Logger.info('ConnectionErrorPopup: retry to connection')
+
         self.dismiss()
         App.get_running_app().root.clear_widgets()
         App.get_running_app().root.add_widget(ViewControl())
