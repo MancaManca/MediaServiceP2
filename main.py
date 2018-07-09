@@ -1,24 +1,18 @@
 from kivy import Logger
 from kivy.app import App
-from kivy.clock import mainthread, Clock
+from kivy.clock import Clock
 from kivy.core.window import Window
 from kivy.metrics import dp
 from kivy.properties import ObjectProperty, BooleanProperty, StringProperty, partial
-from kivy.storage.jsonstore import JsonStore
 from kivy.uix.accordion import Accordion, AccordionItem
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.button import Button
-from kivy.uix.checkbox import CheckBox
 from kivy.uix.gridlayout import GridLayout
 from kivy.uix.image import AsyncImage, Image
-from kivy.uix.label import Label
 from kivy.uix.modalview import ModalView
 from kivy.uix.popup import Popup
 from kivy.uix.screenmanager import ScreenManager, Screen, FadeTransition
 from kivy.uix.scrollview import ScrollView
-from kivy.uix.textinput import TextInput
-from kivy.uix.video import Video
-from kivy.uix.videoplayer import VideoPlayer
 from kivy.utils import get_color_from_hex
 
 from Crypto.Hash import SHA256
@@ -27,7 +21,7 @@ import requests
 import socket
 import threading
 
-#######################################____________SCAN___________________######################################
+"""SCAN"""
 
 
 def scan_network_for_single_connection(_subnet):
@@ -64,11 +58,10 @@ def start_scanning(*args):
         t2 = threading.Thread(target=scan_network_for_single_connection, args=(_subnet_in,))
         t2.start()
 
-#######################################____________SCAN___________________######################################
 
+"""SCAN"""
 
-#######################################____________API_REQUESTS___________________######################################
-
+"""API REQUESTS"""
 
 hashed_dic_shows = {}
 hashed_dic_show = {}
@@ -123,24 +116,24 @@ class api:
 
         try:
             return requests.get(self._url_prepared)
-        except:
+        except Exception as e:
             App.get_running_app().conn_error_popup.open()
-            Logger.warning('no connection')
+            Logger.warning('NoConnection: duo to {}'.format(e))
 
     def get_search_by_id(self):
         self._url_prepared = self.short_url + self.query['_id']
         try:
             return requests.get(self._url_prepared)
-        except:
+        except Exception as e:
             App.get_running_app().conn_error_popup.open()
-            Logger.warning('no connection')
+            Logger.warning('NoConnection: duo to {}'.format(e))
 
     def get_pages(self):
         try:
             return requests.get(self.url)
-        except:
+        except Exception as e:
             App.get_running_app().conn_error_popup.open()
-            Logger.warning('no connection')
+            Logger.warning('NoConnection: duo to {}'.format(e))
 
 
 class Movies(api):
@@ -168,7 +161,6 @@ class Movies(api):
         if keywords:
             self.query['keywords'] = str(keywords).replace(' ', '%20')
             Logger.info('keywords {}'.format(str(keywords).replace(' ', '%20')))
-
 
 
 class Shows(api):
@@ -204,13 +196,6 @@ def api_request_handler(_response):
     if _response.status_code != 200:
         raise ApiError('Error occurred: {}'.format(_response.status_code))
 
-# pippp = Shows().get_pages()
-# pippp = Shows(_id = 'tt4209752').get_search_by_id()
-# pippp = Shows(genre='animation', order='1', sort='name').get_search()
-# pippp = Shows(page='1', order='1', sort='updated').get_search()
-# pippp = Movies().get_pages()
-# pippp = Movies(keywords='mission impossible', order='1', sort='name').get_search()
-# pippp = Movies(_id = 'tt0120755').get_search_by_id()
 
 def hash_item_m(x):
     to_hash = '{}'.format(x)
@@ -259,13 +244,15 @@ def get_api(_api_call):
     try:
         api_request_handler(_api_call)
         api_request_controler(_api_call)
-    except:
-        Logger.info('caught at get api')
+    except Exception as e:
+        Logger.info('GetApi: failed duo to : {}'.format(e))
         raise Exception
 
-#######################################____________API_REQUESTS___________________######################################
 
-#######################################____________CONNECTOR___________________#########################################
+"""API REQUESTS"""
+
+
+"""CONNECTOR"""
 
 
 class Connector:
@@ -291,10 +278,9 @@ class Connector:
             Logger.info('Connected to host {}'.format(host))
 
         except:
-            Logger.info('no connection to server')
+            Logger.info('no connection to device')
 
             self.server_state = False
-            # MainView.connection_status_indicator.active = False
             pass
 
     def mysend(self, msg, *args):
@@ -305,15 +291,17 @@ class Connector:
             except:
                 pass
         else:
-            Logger.info('No connection to server')
+            Logger.info('No connection to device')
 
     def receive(self, *args):
         responded_msg = self.sock.recv(2048)
         # Logger.info(responded_msg.decode())
         if not len(responded_msg.decode()):
-            Logger.info('false')
+            Logger.info('device responded with no message')
 
             self.server_state = False
+            Logger.info('device state false')
+
             try:
                 self.sock.close()
             except OSError:
@@ -324,9 +312,10 @@ class Connector:
 
         else:
             self.server_state = True
-            Logger.info('true')
+            Logger.info('device connection sucess')
 
-#######################################____________CONNECTOR___________________#########################################
+
+"""CONNECTOR"""
 
 
 def start_loade(*args):
@@ -343,13 +332,16 @@ def busy_loading_overlay(entry, finish):
     Clock.schedule_once(start_loade,entry)
     Clock.schedule_once(stop_loade, finish)
 
-#######################################____________APP___________________#########################################
+
+"""APP"""
 
 
 class MoviesEpSingleTor(BoxLayout):
+
     def __init__(self, _torrent_single, _torrent_single_magnet, movies_connector,  **kwargs):
         super(MoviesEpSingleTor, self).__init__(**kwargs)
         Logger.info('MoviesViewMainSingle: MovieEpSingleTor Initialized {}'.format(self))
+
         self.wtf = movies_connector
 
         self._torrent_quality = str(_torrent_single)
@@ -370,6 +362,7 @@ class MoviesEpSingleTor(BoxLayout):
 
 
 class MoviesEpTor(BoxLayout):
+
     def __init__(self, _torrents_list, movies_connector, **kwargs):
         super(MoviesEpTor, self).__init__(**kwargs)
         Logger.info('MoviesViewMainSingle: MoviesEpTor Initialized {}'.format(self))
@@ -384,9 +377,11 @@ class MoviesEpTor(BoxLayout):
 
 
 class MoviesViewMainSingleTop(BoxLayout):
+
     def __init__(self, mo_year, mo_synopsis, mo_runtime, mo_image, **kwargs):
         super(MoviesViewMainSingleTop, self).__init__(**kwargs)
         Logger.info('MoviesViewMainSingleTop: Initialized {}'.format(self))
+
         self._mo_year = mo_year
         self._mo_synopsis = mo_synopsis
         self._mo_runtime = mo_runtime
@@ -398,8 +393,8 @@ class MoviesViewMainSingleTop(BoxLayout):
         self.ids.movies_view_main_single_top_other_DE.text = self._mo_synopsis
 
 
-
 class MoviesViewMainSingle(Screen):
+
     def __init__(self, movie_id, **kwargs):
         super(MoviesViewMainSingle, self).__init__(**kwargs)
         self.movies_single_connector = Connector()
@@ -413,7 +408,6 @@ class MoviesViewMainSingle(Screen):
         get_api(Movies(_id=self.movie_id).get_search_by_id())
 
         for _single_movie_item_in_dic in hashed_dic_movie:
-
 
             Logger.info('Movie level >>>>>')
 
@@ -452,21 +446,25 @@ class MoviesViewMainSingle(Screen):
 
             self.ids.movies_view_main_single_container_se.add_widget(MoviesEpTor(hashed_dic_movie[_single_movie_item_in_dic]['torrents']['en'], self.movies_single_connector))
 
-
     def go_back_to_movies(self,*args):
         if 'latest view main screen' in self.manager.screen_names:
             Logger.info('back from latest')
+
             self.manager.current = 'latest view main screen'
         elif 'search view main screen' in self.manager.screen_names:
             Logger.info('back from search')
+
             self.manager.current = 'search view main screen'
         else:
             Logger.info('back from movies')
+
             self.manager.current = 'movies view main screen'
+
         self.manager.remove_widget(self.movies_main_single_screen_instance)
 
 
 class MoviesViewMain(Screen):
+
     def __init__(self, **kwargs):
         super(MoviesViewMain, self).__init__(**kwargs)
         self.name = 'movies view main screen'
@@ -512,17 +510,19 @@ class MoviesViewMain(Screen):
 
     def start_loade(self, *args):
         App.get_running_app().loader_overlay.open()
-        Logger.info('start')
+        Logger.info('start loader for {}'.format(self))
 
     def stop_loade(self, *args):
         App.get_running_app().loader_overlay.dismiss()
-        Logger.info('stop')
+        Logger.info('stop loader for {}'.format(self))
 
     def add_scmm(self, __s_id, *args):
         self.manager.add_widget(MoviesViewMainSingle(__s_id))
         self.manager.current = 'mvms'
 
+
 class ScMaMovies(ScreenManager):
+
     def __init__(self, **kwargs):
         super(ScMaMovies, self).__init__(**kwargs)
         Logger.info('ScMaMovies: Initialized {}'.format(self))
@@ -537,11 +537,11 @@ class ScMaMovies(ScreenManager):
 
     def start_loade(self, *args):
         App.get_running_app().loader_overlay.open()
-        Logger.info('start')
+        Logger.info('start loader for {}'.format(self))
 
     def stop_loade(self,*args):
         App.get_running_app().loader_overlay.dismiss()
-        Logger.info('stop')
+        Logger.info('stop loader for {}'.format(self))
 
     def add_scmm(self, *args):
         self.add_widget(MoviesViewMain())
@@ -586,7 +586,6 @@ class MoviesView(Screen):
 
         self.ids.mov_view_holder.remove_widget(self.ids.mov_view_holder.children[0])
 
-
         try:
             paginator_button_instance.background_color = get_color_from_hex('#ffa500')
 
@@ -609,7 +608,9 @@ class MoviesView(Screen):
             get_api(Movies(page=paginator_button_instance.text, order=x_order, sort=x_sort, genre=self._filter_genre).get_search())
 
             self.ids.mov_view_holder.add_widget(ScMaMovies())
-        except Exception :
+        except Exception as e:
+            Logger.warning('MoviesView: fail due to  {}'.format(e))
+
             App.get_running_app().conn_error_popup.open()
             pass
 
@@ -618,18 +619,16 @@ class Item(BoxLayout):
     def __init__(self, sname, **kwargs):
         super(Item, self).__init__(**kwargs)
         Logger.info('Item: Initialized {}'.format(self))
+
         self.megs = sname
         Logger.info('Item: sname {}'.format(self.megs))
-
-        self.popup = Popup(title='Test popup',
-                      content=Label(text=self.megs),
-                      size_hint=(None, None), size=(600, 600))
 
 
 class SeriesViewMainSingleTop(BoxLayout):
     def __init__(self, sh_year, sh_synopsis, sh_runtime, sh_image, sh_status, **kwargs):
         super(SeriesViewMainSingleTop, self).__init__(**kwargs)
         Logger.info('SeriesViewMainSingleTop: Initialized {}'.format(self))
+
         self._sh_year = sh_year
         self._sh_synopsis = sh_synopsis
         self._sh_runtime = sh_runtime
@@ -660,6 +659,7 @@ class ShowEpSingleTor(BoxLayout):
     def play_torrent(self, *args):
         self.wtf.mysend(self.play)
         Logger.warning('Trying: should be message "{}" '.format(self.play))
+
     def download_torrent(self, *args):
         self.wtf.mysend(self.download)
         Logger.warning('Trying: should be message "{}" '.format(self.download))
@@ -776,7 +776,6 @@ class SeriesViewMainSingle(Screen):
 
                         Logger.info('Episode overview')
                         if _episode_node['overview']:
-                            # Logger.info('{}'.format(len(_episode_node['overview'])))
                             _show_episode_over = _episode_node['overview']
                             _show_episode_over = _show_episode_over.encode('utf-8')
                             Logger.info('Episode overview {}'.format(_show_episode_over))
@@ -791,10 +790,6 @@ class SeriesViewMainSingle(Screen):
                         _show_season = str(_episode_node['season'])
                         _show_season = _show_season.encode('utf-8')
 
-                        Logger.info('Episode torrents {}'.format(_episode_node['torrents']))
-                        _show_episode_tor = str(_episode_node['torrents'])
-                        _show_episode_tor = _show_episode_tor.encode('utf-8')
-
                         acc_item.title = '{} {} {}'.format(ti, _show_season, _show_episode)
 
                         _show_accordion_item_container_synopsis = ShowEpSyn(str(_show_episode_over))
@@ -803,9 +798,7 @@ class SeriesViewMainSingle(Screen):
 
                         acc_item.container.add_widget(ShowEpTor(_episode_node['torrents'], self.series_single_connector))
 
-
                         self._single_show_accordion.add_widget(acc_item)
-
 
     def go_back_to_series(self,*args):
 
@@ -818,14 +811,15 @@ class SeriesViewMainSingle(Screen):
         else:
             Logger.info('back from series')
             self.manager.current = 'series view main screen'
+
         self.manager.remove_widget(self.series_main_singe_screen_instance)
 
 
 class SeriesViewMain(Screen):
     def __init__(self, **kwargs):
         super(SeriesViewMain, self).__init__(**kwargs)
-        Logger.info('SeriesViewMain: Initialized {}'.format(self))
         self.name = 'series view main screen'
+        Logger.info('SeriesViewMain: Initialized {}'.format(self.name))
 
         series_layout = GridLayout(cols=3, padding=17, spacing=15,
                                    size_hint=(None, None), width=ViewControl.width_x - 30)
@@ -843,7 +837,7 @@ class SeriesViewMain(Screen):
 
             try:
                 self._items.add_widget(AsyncImage(source=hashed_dic_shows[_show]['images']['poster'], nocache=True, on_error=self.async_image_error_load))
-            except:
+            except Exception:
                 Logger.info('No image setting default')
 
                 self._items.add_widget(Image(source='/images/logo.png'))
@@ -861,18 +855,17 @@ class SeriesViewMain(Screen):
     def change_to_series_single(instance, __show_id, *args):
         Logger.info('SeriesViewMain: change_to_series_single {}'.format(__show_id))
 
-
         Clock.schedule_once(instance.start_loade, -1)
-        Clock.schedule_once(partial(instance.add_scms,__show_id), 0.5)
+        Clock.schedule_once(partial(instance.add_scms, __show_id), 0.5)
         Clock.schedule_once(instance.stop_loade, 8)
 
     def start_loade(self, *args):
         App.get_running_app().loader_overlay.open()
-        Logger.info('start')
+        Logger.info('start loader for {}'.format(self))
 
     def stop_loade(self, *args):
         App.get_running_app().loader_overlay.dismiss()
-        Logger.info('stop')
+        Logger.info('stop loader for {}'.format(self))
 
     def add_scms(self, __s_id, *args):
         self.manager.add_widget(SeriesViewMainSingle(__s_id))
@@ -894,11 +887,11 @@ class ScMaSeries(ScreenManager):
 
     def start_loade(self, *args):
         App.get_running_app().loader_overlay.open()
-        Logger.info('start')
+        Logger.info('start loader for {}'.format(self))
 
     def stop_loade(self, *args):
         App.get_running_app().loader_overlay.dismiss()
-        Logger.info('stop')
+        Logger.info('stop loader for {}'.format(self))
 
     def add_scms(self, *args):
         self.add_widget(SeriesViewMain())
@@ -925,6 +918,7 @@ class SeriesView(Screen):
             self.btn_s_p = PaginationButton(str(i))
             self.btn_s_p.bind(on_press=lambda instance: self.s_paginator_buton_call(instance))
             self.series_paginator.add_widget(self.btn_s_p)
+
         self.scroll = ScrollView(size_hint=(1, 1), do_scroll_x=True, do_scroll_y=False)
 
         self.scroll.add_widget(self.series_paginator)
@@ -958,20 +952,24 @@ class SeriesView(Screen):
             get_api(Shows(page=paginator_button_instance.text, order=y_order, sort=y_sort, genre=self._filter_genre).get_search())
 
             self.ids.ser_view_holder.add_widget(ScMaSeries())
-        except Exception:
+        except Exception as e:
+            Logger.warning('SeriesView: fail due to  {}'.format(e))
+
             App.get_running_app().conn_error_popup.open()
             pass
 
 
 class SearchViewMain(Screen):
+
     def __init__(self, search_type, **kwargs):
         super(SearchViewMain, self).__init__(**kwargs)
         self.name = 'search view main screen'
         Logger.info('SearchViewMain: Initialized {}'.format(self.name))
+
         self.typ = search_type
         self.ids.search_typee.text = self.typ
 
-#################________________SHOWS SEARCH______________##########################
+        """SHOWS SEARCH"""
         if self.typ == 'Shows':
 
             search_series_layout = GridLayout(cols=3, padding=20, spacing=15,
@@ -994,7 +992,7 @@ class SearchViewMain(Screen):
 
                 try:
                     self._items_search_s.add_widget(AsyncImage(source=hashed_dic_search[_search_item_show]['images']['poster'], nocache=True, on_error=self.async_image_error_load))
-                except:
+                except Exception:
                     Logger.info('No image setting default')
 
                     self._items_search_s.add_widget(Image(source='/images/logo.png'))
@@ -1004,7 +1002,7 @@ class SearchViewMain(Screen):
 
                 search_series_layout.add_widget(self._items_search_s)
 
-#################________________MOVIES SEARCH_____________##########################
+            """MOVIES SEARCH"""
         else:
             search_movies_layout = GridLayout(cols=3, padding=20, spacing=15,
                                        size_hint=(None, None), width=ViewControl.width_x - 30)
@@ -1023,7 +1021,7 @@ class SearchViewMain(Screen):
                 try:
                     self._items_search_m.add_widget(AsyncImage(source=hashed_dic_search[_search_item_movie]['images']['poster'], nocache=True,
                                                       on_error=self.async_image_error_load))
-                except:
+                except Exception:
                     Logger.info('No image setting default')
 
                     self._items_search_m.add_widget(Image(source='images/logo.png'))
@@ -1057,11 +1055,11 @@ class SearchViewMain(Screen):
 
     def start_loade(self, *args):
         App.get_running_app().loader_overlay.open()
-        Logger.info('start')
+        Logger.info('start loader for {}'.format(self))
 
     def stop_loade(self, *args):
         App.get_running_app().loader_overlay.dismiss()
-        Logger.info('stop')
+        Logger.info('stop loader for {}'.format(self))
 
     def add_scms(self, __s_id, *args):
         self.manager.add_widget(SeriesViewMainSingle(__s_id))
@@ -1076,7 +1074,11 @@ class ScMaSearch(ScreenManager):
     def __init__(self, search_type, **kwargs):
         super(ScMaSearch, self).__init__(**kwargs)
         Logger.info('ScMaSearch: Initialized {}'.format(self))
+
         self.search_type = search_type
+        Logger.info('Search for type {}'.format(self.search_type))
+
+
         if SearchView.skipper:
             Clock.schedule_once(self.add_scmsr, 0)
         else:
@@ -1087,11 +1089,11 @@ class ScMaSearch(ScreenManager):
 
     def start_loade(self, *args):
         App.get_running_app().loader_overlay.open()
-        Logger.info('start')
+        Logger.info('start loader for {}'.format(self))
 
     def stop_loade(self, *args):
         App.get_running_app().loader_overlay.dismiss()
-        Logger.info('stop')
+        Logger.info('stop loader for {}'.format(self))
 
     def add_scmsr(self, *args):
         self.add_widget(SearchViewMain(self.search_type))
@@ -1112,26 +1114,30 @@ class SearchView(Screen):
         # Logger.info(self.ids)
 
         self.ids.search_view_holder.clear_widgets()
+
     def clear_w(self, *args):
+        Logger.info('SearchView: cleaner')
+
         self.ids.search_view_holder.clear_widgets()
 
     def on_search_screen_enter(self, *args):
-        # try:
-        if self._filter_type == 'Movies':
-            get_api(Movies(page='1', order=self._filter_order, sort=self._filter_sort, genre=self._filter_genre, keywords=self._search_keywords).get_search())
-            self.ids.search_view_holder.add_widget(ScMaSearch(self._filter_type))
-        elif self._filter_type == 'Shows':
+        try:
+            if self._filter_type == 'Movies':
+                get_api(Movies(page='1', order=self._filter_order, sort=self._filter_sort, genre=self._filter_genre, keywords=self._search_keywords).get_search())
+                self.ids.search_view_holder.add_widget(ScMaSearch(self._filter_type))
 
-            get_api(Shows(page='1', order=self._filter_order, sort=self._filter_sort, genre=self._filter_genre,
-                           keywords=self._search_keywords).get_search())
-            self.ids.search_view_holder.add_widget(ScMaSearch(self._filter_type))
-        else:
-            Logger.info('SearchView: Initialization stopped {}'.format(self._filter_type))
+            elif self._filter_type == 'Shows':
+                get_api(Shows(page='1', order=self._filter_order, sort=self._filter_sort, genre=self._filter_genre,
+                               keywords=self._search_keywords).get_search())
+                self.ids.search_view_holder.add_widget(ScMaSearch(self._filter_type))
 
-        # except Exception as e:
-        #     Logger.warning('fail {}'.format(e.message))
-        #     # App.get_running_app().conn_error_popup.open()
-        #     pass
+            else:
+                Logger.info('SearchView: Initialization stopped {}'.format(self._filter_type))
+
+        except Exception as e:
+            Logger.warning('SearchView: fail due to {}'.format(e))
+            App.get_running_app().conn_error_popup.open()
+            pass
 
 class LatestViewMain(Screen):
     def __init__(self, **kwargs):
@@ -1139,8 +1145,7 @@ class LatestViewMain(Screen):
         self.name = 'latest view main screen'
         Logger.info('LatestViewMain: Initialized {}'.format(self.name))
 
-
-#################________________SHOWS LATEST______________##########################
+        """SHOES LATEST"""
         latest_series_layout = GridLayout(cols=3, padding=25, spacing=15,
                                    size_hint=(None, None), width=ViewControl.width_x - 30)
         latest_series_layout.bind(minimum_height=latest_series_layout.setter('height'))
@@ -1159,7 +1164,7 @@ class LatestViewMain(Screen):
 
                 try:
                     self._items_latest_s.add_widget(AsyncImage(source=hashed_dic_shows[_show]['images']['poster'], nocache=True, on_error=self.async_image_error_load))
-                except:
+                except Exception:
                     Logger.info('No image setting default')
 
                     self._items_latest_s.add_widget(Image(source='/images/logo.png'))
@@ -1170,8 +1175,7 @@ class LatestViewMain(Screen):
                 latest_series_layout.add_widget(self._items_latest_s)
                 latest_show_counter += 1
 
-#################________________MOVIES LATEST______________##########################
-
+        """MOVIES LATEST"""
         latest_movies_layout = GridLayout(cols=3, padding=25, spacing=15,
                                    size_hint=(None, None), width=ViewControl.width_x - 30)
 
@@ -1191,7 +1195,7 @@ class LatestViewMain(Screen):
                 try:
                     self._items_latest_m.add_widget(AsyncImage(source=hashed_dic_movies[_movie]['images']['poster'], nocache=True,
                                                       on_error=self.async_image_error_load))
-                except:
+                except Exception:
                     Logger.info('No image setting default')
 
                     self._items_latest_m.add_widget(Image(source='images/logo.png'))
@@ -1226,11 +1230,11 @@ class LatestViewMain(Screen):
 
     def start_loade(self, *args):
         App.get_running_app().loader_overlay.open()
-        Logger.info('start')
+        Logger.info('start loader for {}'.format(self))
 
     def stop_loade(self, *args):
         App.get_running_app().loader_overlay.dismiss()
-        Logger.info('stop')
+        Logger.info('stop loader for {}'.format(self))
 
     def add_scms(self, __s_id, *args):
         self.manager.add_widget(SeriesViewMainSingle(__s_id))
@@ -1257,11 +1261,11 @@ class ScMaLatest(ScreenManager):
 
     def start_loade(self, *args):
         App.get_running_app().loader_overlay.open()
-        Logger.info('start')
+        Logger.info('start loader for {}'.format(self))
 
     def stop_loade(self, *args):
         App.get_running_app().loader_overlay.dismiss()
-        Logger.info('stop')
+        Logger.info('stop loader for {}'.format(self))
 
     def add_scms(self, *args):
         self.add_widget(LatestViewMain())
@@ -1278,6 +1282,7 @@ class LatestView(Screen):
     def __init__(self, **kwargs):
         super(LatestView, self).__init__(**kwargs)
         Logger.info('LatestView: Initialized {}'.format(self))
+
         self.ids.lat_view_holder.add_widget(ScMaLatest())
 
     def refresh_on_enter(self, *args):
@@ -1291,12 +1296,13 @@ class LatestView(Screen):
                 get_api(Shows(order='-1', sort='updated', genre=self._filter_genre).get_search())
                 get_api(Movies(order='-1', sort='last added', genre=self._filter_genre).get_search())
                 self.ids.lat_view_holder.add_widget(ScMaLatest())
-            except Exception:
+            except Exception as e:
+                Logger.info('LatestView: refresh not skipped failed due to {}'.format(e))
+
                 App.get_running_app().conn_error_popup.open()
                 pass
         else:
             Logger.info('LatestView: refresh skipped {}'.format(self))
-
 
 
 class MainViewScManager(ScreenManager):
@@ -1324,16 +1330,20 @@ class FilterModalView(ModalView):
 
         if filter_genre == 'Genre':
             self.filter_genre = None
+            Logger.info('FilterModalView: set filter_genre to {}'.format(self.filter_genre))
+
         if filter_order == 'Order':
             self.filter_order = None
+            Logger.info('FilterModalView: set filter_order to {}'.format(self.filter_order))
+
         if filter_sort == 'Sort':
             self.filter_sort = None
+            Logger.info('FilterModalView: set filter_sort to {}'.format(self.filter_sort))
 
-
-        Logger.info('FilterModalView: filter_type {}'.format(self.filter_type))
-        Logger.info('FilterModalView: filter_genre {}'.format(self.filter_genre))
-        Logger.info('FilterModalView: filter_order {}'.format(self.filter_order))
-        Logger.info('FilterModalView: filter_sort {}'.format(self.filter_sort))
+        Logger.info('FilterModalView: on dismiss filter_type {}'.format(self.filter_type))
+        Logger.info('FilterModalView: on dismiss filter_genre {}'.format(self.filter_genre))
+        Logger.info('FilterModalView: on dismiss filter_order {}'.format(self.filter_order))
+        Logger.info('FilterModalView: on dismiss filter_sort {}'.format(self.filter_sort))
 
         MoviesView._filter_type = self.filter_type
         MoviesView._filter_genre = self.filter_genre
@@ -1373,16 +1383,15 @@ class MainView(Screen):
         Logger.info('MainView: on enter create connector')
 
         self.connector = Connector()
+
         Logger.info('MainView: connection state {}'.format(self.connector.server_state))
 
         if self.connector.server_state:
             self.update_status_in(self.connector.server_state)
-            Logger.info('MainView: update connection indicator to {}'.format(self.connector.server_state))
-
         else:
-            Logger.info('MainView: update connection indicator to {}'.format(self.connector.server_state))
-
             self.update_status_in(self.connector.server_state)
+
+        Logger.info('MainView: update connection indicator to {}'.format(self.connector.server_state))
 
     def open_filter_view(self, *args):
         Logger.info('MainView: open_filter_view invoked')
@@ -1406,16 +1415,24 @@ class MainView(Screen):
         ot_3.background_normal = "./images/n_n.png"
         if search_in:
             if 'search_view' in str(self.main_scm.current_screen):
+                Logger.info('MainView: current screen is  {}'.format(str(self.main_scm.current_screen)))
+
                 self.main_scm.remove_widget(self.main_scm.current_screen)
+                Logger.info('MainView: removed old search')
+
                 self.main_scm.add_widget(SearchView())
                 self.main_scm.current = scn
 
             else:
+                Logger.info('MainView: navigating to search screen')
+
                 self.main_scm.current = scn
 
             SearchView._search_keywords = search_in
             search_in_container.text = ''
         else:
+            Logger.info('MainView: search input is missing')
+
             search_in_container.hint_text = 'Missing keywords'
             search_in_container.opacity = .6
 
@@ -1426,7 +1443,6 @@ class MainView(Screen):
 
         else:
             _search_input_box.opacity = .2
-
 
     def navigate_to_settings(self, *args):
         Logger.info('MainView: navigate_to_settings invoked')
@@ -1449,7 +1465,6 @@ class MainView(Screen):
             self.ids.connection_status_ind_l.source = 'images/on_connection.png'
         else:
             self.ids.connection_status_ind_l.source = 'images/no_connection.png'
-
     pass
 
 
@@ -1465,9 +1480,7 @@ class ScanViewItem(BoxLayout):
         Logger.info('ScanViewItem: return_on_active_name invoked')
 
         if scan_item_checkbox_flag:
-
             ScanView.choosen_device = scan_item_checkbox_value
-
         else:
             ScanView.choosen_device = ''
 
@@ -1485,8 +1498,6 @@ class ScanView(Screen):
             self.formated_dev_name_address = '{}/{}'.format(_urls_list_item, self._urls_list[_urls_list_item])
             self.ids.scanned_devices_list_grid.add_widget(ScanViewItem(self.formated_dev_name_address))
 
-#################################_________________API_IMPL__________________________####################################
-
         self.start_service()
 
     def start_service(self, *args):
@@ -1498,14 +1509,11 @@ class ScanView(Screen):
             get_api(Movies(order='-1', sort='last added').get_search())
             Logger.info('ScanView: start service success')
 
-        except:
-            Logger.info('ScanView: start service fail')
+        except Exception as e:
+            Logger.info('ScanView: start service fail due to {}'.format(e))
 
             App.get_running_app().conn_error_popup.open()
             pass
-
-
-#################################_________________API_IMPL__________________________####################################
 
     def set_as_host(self, host_in):
         Logger.info('init scan set_as_host')
@@ -1515,7 +1523,11 @@ class ScanView(Screen):
         Connector.url = prepare_url ## set device address for conenctor
 
     def save_and_go_to_main(self, *args):
+        Logger.info('ScanView: Save and go to main screen')
+
         if self.choosen_device:
+            Logger.info('ScanView: setting up device for connection')
+
             self.set_as_host(self.choosen_device)
 
         self.manager.switch_to(MainView(), transition=FadeTransition(), duration=1)
