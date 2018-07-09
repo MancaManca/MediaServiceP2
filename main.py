@@ -35,7 +35,6 @@ def scan_network_for_single_connection(_subnet):
 
     network_address = '192.168.0.{}'.format(_subnet)
     Logger.info('Scanner for {}'.format(network_address))
-    # network = '10.85.180.{}'.format(_subnet)
     s = So()
 
     try:
@@ -396,7 +395,6 @@ class MoviesViewMainSingleTop(BoxLayout):
         self.ids.movies_view_main_single_top_im_holder_IM.source = self._mo_image
         self.ids.movies_view_main_single_top_other_YE.text = 'Year {}'.format(str(self._mo_year))
         self.ids.movies_view_main_single_top_other_RU.text = 'Runtime {}'.format(str(self._mo_runtime))
-        # self.ids.movies_view_main_single_top_other_ST.text = 'Trailer : {}'.format(str(self._mo_trailer))
         self.ids.movies_view_main_single_top_other_DE.text = self._mo_synopsis
 
 
@@ -411,10 +409,6 @@ class MoviesViewMainSingle(Screen):
         self.movies_main_single_screen_instance = self
 
         Logger.info('MoviesViewMainSingle: Initialized {}'.format(self.name))
-
-        # self.ids.mvmsingle.add_widget(Label(text=self.name))
-        # self.ids.mvmsingle.add_widget(Button(text='back', on_press = self.go_back_to_movies))
-        # self.ids.mvmsingle.add_widget(Button(text='send', on_press = lambda x: self.send_me('single ladies')))
 
         get_api(Movies(_id=self.movie_id).get_search_by_id())
 
@@ -440,10 +434,14 @@ class MoviesViewMainSingle(Screen):
             _movie_r = str(hashed_dic_movie[_single_movie_item_in_dic]['runtime'])
             _movie_r = _movie_r.encode('utf-8')
 
-            Logger.info(' Movie image {}'.format(hashed_dic_movie[_single_movie_item_in_dic]['images']['poster']))
-            _movie_im = str(hashed_dic_movie[_single_movie_item_in_dic]['images']['poster'])
-            _movie_im = _movie_im.encode('utf-8')
-
+            try:
+                Logger.info(' Movie image {}'.format(hashed_dic_movie[_single_movie_item_in_dic]['images']['poster']))
+                _movie_im = str(hashed_dic_movie[_single_movie_item_in_dic]['images']['poster'])
+                _movie_im = _movie_im.encode('utf-8')
+            except KeyError:
+                Logger.info(' Movie image fallback{}')
+                _movie_im = './images/logo.png'
+                pass
 
             Logger.info(
                 ' Movie number of torrents {}'.format(len(hashed_dic_movie[_single_movie_item_in_dic]['torrents']['en'])))
@@ -463,7 +461,7 @@ class MoviesViewMainSingle(Screen):
             Logger.info('back from search')
             self.manager.current = 'search view main screen'
         else:
-            Logger.info('back from series')
+            Logger.info('back from movies')
             self.manager.current = 'movies view main screen'
         self.manager.remove_widget(self.movies_main_single_screen_instance)
 
@@ -474,7 +472,7 @@ class MoviesViewMain(Screen):
         self.name = 'movies view main screen'
         Logger.info('MoviesViewMain: Initialized {}'.format(self.name))
 
-        movies_layout = GridLayout(cols=3, padding=20, spacing=20,
+        movies_layout = GridLayout(cols=3, padding=17, spacing=15,
                             size_hint=(None, None), width=ViewControl.width_x - 30)
 
         movies_layout.bind(minimum_height=movies_layout.setter('height'))
@@ -496,8 +494,7 @@ class MoviesViewMain(Screen):
                 self._items.add_widget(Image(source='images/logo.png'))
                 pass
 
-            self._items.add_widget(Label(text=hashed_dic_movies[_movie]['title'], size_hint_y=.1, text_size=(((Window.size[0] / 3)-45), None), shorten_from='right', halign='center', shorten=True))
-            self._items.add_widget(Button(text='View', size_hint_y=.1, on_press=partial(self.change_to_movies_single, self._items.megs)))
+            self._items.add_widget(Button(text=hashed_dic_movies[_movie]['title'], size_hint_y=.1, text_size=(((Window.size[0] / 3)-45), None), shorten_from='right', halign='center', shorten=True, on_press=partial(self.change_to_movies_single, self._items.megs)))
 
             movies_layout.add_widget(self._items)
 
@@ -589,14 +586,28 @@ class MoviesView(Screen):
 
         self.ids.mov_view_holder.remove_widget(self.ids.mov_view_holder.children[0])
 
+
         try:
             paginator_button_instance.background_color = get_color_from_hex('#ffa500')
-            if self._filter_order is None:
-                self._filter_order = '-1'
-            if self._filter_sort is None:
-                self._filter_sort = 'last added'
 
-            get_api(Movies(page=paginator_button_instance.text, order=self._filter_order, sort=self._filter_sort, genre=self._filter_genre).get_search())
+            x_sort = self._filter_sort
+            x_order = self._filter_order
+            if x_order is None:
+                Logger.info('MoviesView: _filter_order setting to default cause is  {}'.format(x_order))
+
+                x_order = '-1'
+
+            if x_sort is None:
+                Logger.info('MoviesView: _filter_sort setting to default cause is  {}'.format(x_sort))
+
+                x_sort = 'last added'
+
+            Logger.info('MoviesView: _filter_order  is  {}'.format(self._filter_order))
+            Logger.info('MoviesView: _filter_sort  is  {}'.format(self._filter_sort))
+            Logger.info('MoviesView: _filter_genre  is  {}'.format(self._filter_genre))
+
+            get_api(Movies(page=paginator_button_instance.text, order=x_order, sort=x_sort, genre=self._filter_genre).get_search())
+
             self.ids.mov_view_holder.add_widget(ScMaMovies())
         except Exception :
             App.get_running_app().conn_error_popup.open()
@@ -727,9 +738,14 @@ class SeriesViewMainSingle(Screen):
                     _show_r = str(hashed_dic_show[_single_show_item_in_dic]['runtime'])
                     _show_r = _show_r.encode('utf-8')
 
-                    Logger.info(' Show image {}'.format(hashed_dic_show[_single_show_item_in_dic]['images']['poster']))
-                    _show_im = str(hashed_dic_show[_single_show_item_in_dic]['images']['poster'])
-                    _show_im = _show_im.encode('utf-8')
+                    try:
+                        Logger.info(' Show image {}'.format(hashed_dic_show[_single_show_item_in_dic]['images']['poster']))
+                        _show_im = str(hashed_dic_show[_single_show_item_in_dic]['images']['poster'])
+                        _show_im = _show_im.encode('utf-8')
+                    except KeyError:
+                        Logger.info(' Show image fallback{}')
+                        _show_im = './images/logo.png'
+                        pass
 
                     Logger.info(' Show status {}'.format(hashed_dic_show[_single_show_item_in_dic]['status']))
                     _show_st = str(hashed_dic_show[_single_show_item_in_dic]['status'])
@@ -811,7 +827,7 @@ class SeriesViewMain(Screen):
         Logger.info('SeriesViewMain: Initialized {}'.format(self))
         self.name = 'series view main screen'
 
-        series_layout = GridLayout(cols=3, padding=20, spacing=20,
+        series_layout = GridLayout(cols=3, padding=17, spacing=15,
                                    size_hint=(None, None), width=ViewControl.width_x - 30)
         series_layout.bind(minimum_height=series_layout.setter('height'))
 
@@ -833,8 +849,7 @@ class SeriesViewMain(Screen):
                 self._items.add_widget(Image(source='/images/logo.png'))
                 pass
 
-            self._items.add_widget(Label(text=hashed_dic_shows[_show]['title'], size_hint_y=.1, text_size=(((Window.size[0] / 3)-45), None), shorten_from='right', halign='center', shorten=True))
-            self._items.add_widget(Button(text='View', size_hint_y=.1, on_press=partial(self.change_to_series_single, self._items.megs)))
+            self._items.add_widget(Button(text=hashed_dic_shows[_show]['title'], size_hint_y=.1, text_size=(((Window.size[0] / 3)-45), None), shorten_from='right', halign='center', shorten=True, on_press=partial(self.change_to_series_single, self._items.megs)))
 
             series_layout.add_widget(self._items)
 
@@ -925,12 +940,23 @@ class SeriesView(Screen):
         self.ids.ser_view_holder.remove_widget(self.ids.ser_view_holder.children[0])
 
         try:
-            if self._filter_order is None:
-                self._filter_order = '-1'
-            if self._filter_sort is None:
-                self._filter_sort = 'updated'
             paginator_button_instance.background_color = get_color_from_hex('#ffa500')
-            get_api(Shows(page=paginator_button_instance.text, order=self._filter_order, sort=self._filter_sort, genre=self._filter_genre).get_search())
+            y_sort = self._filter_sort
+            y_order = self._filter_order
+            if y_order is None:
+                Logger.info('SeriesView: _filter_order setting to default cause is  {}'.format(y_order))
+
+                y_order = '-1'
+            if y_sort is None:
+                Logger.info('SeriesView: _filter_sort setting to default cause is  {}'.format(y_sort))
+
+                y_sort = 'updated'
+
+            Logger.info('SeriesView: _filter_order  is  {}'.format(self._filter_order))
+            Logger.info('SeriesView: _filter_sort  is  {}'.format(self._filter_sort))
+            Logger.info('SeriesView: _filter_genre  is  {}'.format(self._filter_genre))
+            get_api(Shows(page=paginator_button_instance.text, order=y_order, sort=y_sort, genre=self._filter_genre).get_search())
+
             self.ids.ser_view_holder.add_widget(ScMaSeries())
         except Exception:
             App.get_running_app().conn_error_popup.open()
@@ -948,7 +974,7 @@ class SearchViewMain(Screen):
 #################________________SHOWS SEARCH______________##########################
         if self.typ == 'Shows':
 
-            search_series_layout = GridLayout(cols=3, padding=20, spacing=20,
+            search_series_layout = GridLayout(cols=3, padding=20, spacing=15,
                                        size_hint=(None, None), width=ViewControl.width_x - 30)
 
 
@@ -974,14 +1000,13 @@ class SearchViewMain(Screen):
                     self._items_search_s.add_widget(Image(source='/images/logo.png'))
                     pass
 
-                self._items_search_s.add_widget(Label(text=hashed_dic_search[_search_item_show]['title'], size_hint_y=.1, text_size=(((Window.size[0] / 3)-45), None), shorten_from='right', halign='center', shorten=True))
-                self._items_search_s.add_widget(Button(text='View', size_hint_y=.1, on_press=partial(self.change_to_series_single, self._items_search_s.megs)))
+                self._items_search_s.add_widget(Button(text=hashed_dic_search[_search_item_show]['title'], size_hint_y=.1, text_size=(((Window.size[0] / 3)-45), None), shorten_from='right', halign='center', shorten=True, on_press=partial(self.change_to_series_single, self._items_search_s.megs)))
 
                 search_series_layout.add_widget(self._items_search_s)
 
-#################________________MOVIES LATEST______________##########################
+#################________________MOVIES SEARCH_____________##########################
         else:
-            search_movies_layout = GridLayout(cols=3, padding=20, spacing=20,
+            search_movies_layout = GridLayout(cols=3, padding=20, spacing=15,
                                        size_hint=(None, None), width=ViewControl.width_x - 30)
 
             search_movies_layout.bind(minimum_height=search_movies_layout.setter('height'))
@@ -1004,11 +1029,10 @@ class SearchViewMain(Screen):
                     self._items_search_m.add_widget(Image(source='images/logo.png'))
                     pass
 
-                self._items_search_m.add_widget(Label(text=hashed_dic_search[_search_item_movie]['title'], size_hint_y=.1,
-                                             text_size=(((Window.size[0] / 3) - 45), None), shorten_from='right',
-                                             halign='center', shorten=True))
                 self._items_search_m.add_widget(
-                    Button(text='View', size_hint_y=.1, on_press=partial(self.change_to_movies_single, self._items_search_m.megs)))
+                    Button(text=hashed_dic_search[_search_item_movie]['title'], size_hint_y=.1,
+                                             text_size=(((Window.size[0] / 3) - 45), None), shorten_from='right',
+                                             halign='center', shorten=True, on_press=partial(self.change_to_movies_single, self._items_search_m.megs)))
 
                 search_movies_layout.add_widget(self._items_search_m)
 
@@ -1117,7 +1141,7 @@ class LatestViewMain(Screen):
 
 
 #################________________SHOWS LATEST______________##########################
-        latest_series_layout = GridLayout(cols=3, padding=20, spacing=20,
+        latest_series_layout = GridLayout(cols=3, padding=25, spacing=15,
                                    size_hint=(None, None), width=ViewControl.width_x - 30)
         latest_series_layout.bind(minimum_height=latest_series_layout.setter('height'))
 
@@ -1141,15 +1165,14 @@ class LatestViewMain(Screen):
                     self._items_latest_s.add_widget(Image(source='/images/logo.png'))
                     pass
 
-                self._items_latest_s.add_widget(Label(text=hashed_dic_shows[_show]['title'], size_hint_y=.1, text_size=(((Window.size[0] / 3)-45), None), shorten_from='right', halign='center', shorten=True))
-                self._items_latest_s.add_widget(Button(text='View', size_hint_y=.1, on_press=partial(self.change_to_series_single, self._items_latest_s.megs)))
+                self._items_latest_s.add_widget(Button(text=hashed_dic_shows[_show]['title'], size_hint_y=.1, text_size=(((Window.size[0] / 3)-45), None), shorten_from='right', halign='center', shorten=True, on_press=partial(self.change_to_series_single, self._items_latest_s.megs)))
 
                 latest_series_layout.add_widget(self._items_latest_s)
                 latest_show_counter += 1
 
 #################________________MOVIES LATEST______________##########################
 
-        latest_movies_layout = GridLayout(cols=3, padding=20, spacing=20,
+        latest_movies_layout = GridLayout(cols=3, padding=25, spacing=15,
                                    size_hint=(None, None), width=ViewControl.width_x - 30)
 
         latest_movies_layout.bind(minimum_height=latest_movies_layout.setter('height'))
@@ -1174,11 +1197,10 @@ class LatestViewMain(Screen):
                     self._items_latest_m.add_widget(Image(source='images/logo.png'))
                     pass
 
-                self._items_latest_m.add_widget(Label(text=hashed_dic_movies[_movie]['title'], size_hint_y=.1,
-                                             text_size=(((Window.size[0] / 3) - 45), None), shorten_from='right',
-                                             halign='center', shorten=True))
                 self._items_latest_m.add_widget(
-                    Button(text='View', size_hint_y=.1, on_press=partial(self.change_to_movies_single, self._items_latest_m.megs)))
+                    Button(text=hashed_dic_movies[_movie]['title'], size_hint_y=.1,
+                                             text_size=(((Window.size[0] / 3) - 45), None), shorten_from='right',
+                                             halign='center', shorten=True, on_press=partial(self.change_to_movies_single, self._items_latest_m.megs)))
 
                 latest_movies_layout.add_widget(self._items_latest_m)
                 latest_movie_counter += 1
@@ -1256,12 +1278,14 @@ class LatestView(Screen):
     def __init__(self, **kwargs):
         super(LatestView, self).__init__(**kwargs)
         Logger.info('LatestView: Initialized {}'.format(self))
-        # Logger.info(self.ids)
         self.ids.lat_view_holder.add_widget(ScMaLatest())
 
     def refresh_on_enter(self, *args):
+        Logger.info('LatestView: refresh invoked {}'.format(self))
+
         if not LatestView.skipper:
             self.ids.lat_view_holder.remove_widget(self.ids.lat_view_holder.children[0])
+            Logger.info('LatestView: refresh not skipped {}'.format(self))
 
             try:
                 get_api(Shows(order='-1', sort='updated', genre=self._filter_genre).get_search())
@@ -1270,6 +1294,9 @@ class LatestView(Screen):
             except Exception:
                 App.get_running_app().conn_error_popup.open()
                 pass
+        else:
+            Logger.info('LatestView: refresh skipped {}'.format(self))
+
 
 
 class MainViewScManager(ScreenManager):
@@ -1289,9 +1316,8 @@ class FilterModalView(ModalView):
         self.size = (Window.size[0] / 1.5, Window.size[1] / 1.5)
         self.ids.filter_genre.dropdown_cls.max_height = dp(350)
 
-    def close_filter(self, filter_type, filter_genre, filter_order, filter_sort):
+    def close_filter(self, filter_type, filter_genre, filter_order, filter_sort,*args):
         self.filter_type = filter_type
-        # if filter_type == 'Shows' or filter_type == 'Movies'
         self.filter_genre = filter_genre
         self.filter_order = filter_order
         self.filter_sort = filter_sort
@@ -1302,6 +1328,12 @@ class FilterModalView(ModalView):
             self.filter_order = None
         if filter_sort == 'Sort':
             self.filter_sort = None
+
+
+        Logger.info('FilterModalView: filter_type {}'.format(self.filter_type))
+        Logger.info('FilterModalView: filter_genre {}'.format(self.filter_genre))
+        Logger.info('FilterModalView: filter_order {}'.format(self.filter_order))
+        Logger.info('FilterModalView: filter_sort {}'.format(self.filter_sort))
 
         MoviesView._filter_type = self.filter_type
         MoviesView._filter_genre = self.filter_genre
