@@ -459,7 +459,9 @@ class MoviesViewMainSingle(Screen):
         if 'latest view main screen' in self.manager.screen_names:
             Logger.info('back from latest')
             self.manager.current = 'latest view main screen'
-
+        elif 'search view main screen' in self.manager.screen_names:
+            Logger.info('back from search')
+            self.manager.current = 'search view main screen'
         else:
             Logger.info('back from series')
             self.manager.current = 'movies view main screen'
@@ -794,7 +796,9 @@ class SeriesViewMainSingle(Screen):
         if 'latest view main screen' in self.manager.screen_names:
             Logger.info('back from latest')
             self.manager.current = 'latest view main screen'
-
+        elif 'search view main screen' in self.manager.screen_names:
+            Logger.info('back from search')
+            self.manager.current = 'search view main screen'
         else:
             Logger.info('back from series')
             self.manager.current = 'series view main screen'
@@ -934,11 +938,12 @@ class SeriesView(Screen):
 
 
 class SearchViewMain(Screen):
-    def __init__(self, **kwargs):
+    def __init__(self, search_type, **kwargs):
         super(SearchViewMain, self).__init__(**kwargs)
         self.name = 'search view main screen'
         Logger.info('SearchViewMain: Initialized {}'.format(self.name))
-        self.typ = SearchView._filter_typ
+        self.typ = search_type
+        self.ids.search_typee.text = self.typ
 
 #################________________SHOWS SEARCH______________##########################
         if self.typ == 'Shows':
@@ -950,7 +955,7 @@ class SearchViewMain(Screen):
             search_series_layout.bind(minimum_height=search_series_layout.setter('height'))
 
             search_series_scroll_list = ScrollView(size_hint=(None, None),
-                                            size=(ViewControl.width_x - 20, ViewControl.height_x * 0.44),
+                                            size=(ViewControl.width_x - 20, ViewControl.height_x * 0.8),
                                             pos_hint={'center_x': 0.5, 'center_y': .5}, do_scroll_x=False)
 
             search_series_scroll_list.add_widget(search_series_layout)
@@ -962,7 +967,7 @@ class SearchViewMain(Screen):
                 self._items_search_s.size = ((Window.size[0] / 3) - 30, (Window.size[1] / 2) - 300)
 
                 try:
-                    self._items_latest_s.add_widget(AsyncImage(source=hashed_dic_search[_search_item_show]['images']['poster'], nocache=True, on_error=self.async_image_error_load))
+                    self._items_search_s.add_widget(AsyncImage(source=hashed_dic_search[_search_item_show]['images']['poster'], nocache=True, on_error=self.async_image_error_load))
                 except:
                     Logger.info('No image setting default')
 
@@ -981,7 +986,7 @@ class SearchViewMain(Screen):
 
             search_movies_layout.bind(minimum_height=search_movies_layout.setter('height'))
 
-            search_movies_scroll_list = ScrollView(size_hint=(None, None), size=(ViewControl.width_x - 20, ViewControl.height_x * 0.45),
+            search_movies_scroll_list = ScrollView(size_hint=(None, None), size=(ViewControl.width_x - 20, ViewControl.height_x * 0.8),
                                             pos_hint={'center_x': 0.5, 'center_y': 0.5}, do_scroll_x=False)
 
             search_movies_scroll_list.add_widget(search_movies_layout)
@@ -1044,12 +1049,12 @@ class SearchViewMain(Screen):
 
 
 class ScMaSearch(ScreenManager):
-    def __init__(self, **kwargs):
+    def __init__(self, search_type, **kwargs):
         super(ScMaSearch, self).__init__(**kwargs)
         Logger.info('ScMaSearch: Initialized {}'.format(self))
-
+        self.search_type = search_type
         if SearchView.skipper:
-            Clock.schedule_once(self.add_scms, 0)
+            Clock.schedule_once(self.add_scmsr, 0)
         else:
 
             Clock.schedule_once(self.start_loade, -1)
@@ -1065,7 +1070,7 @@ class ScMaSearch(ScreenManager):
         Logger.info('stop')
 
     def add_scmsr(self, *args):
-        self.add_widget(SearchViewMain())
+        self.add_widget(SearchViewMain(self.search_type))
         SeriesView.skipper = False
 
 
@@ -1081,25 +1086,28 @@ class SearchView(Screen):
         super(SearchView, self).__init__(**kwargs)
         Logger.info('SearchView: Initialized {}'.format(self))
         # Logger.info(self.ids)
-        self._filter_typ = self._filter_type
 
-        try:
-            if self._filter_typ == 'Movies':
-                get_api(Movies(order=self._filter_order, sort=self._filter_sort, genre=self._filter_genre, keywords=self._search_keywords).get_search_by_id())
-                self.ids.search_view_holder.add_widget(ScMaSearch())
-            elif self._filter_typ == 'Shows':
-                get_api(Shows(order=self._filter_order, sort=self._filter_sort, genre=self._filter_genre,
-                               keywords=self._search_keywords).get_search_by_id())
-                self.ids.search_view_holder.add_widget(ScMaSearch())
-            else:
-                Logger.info('SearchView: Initialization stopped {}'.format(self))
+        self.ids.search_view_holder.clear_widgets()
+    def clear_w(self, *args):
+        self.ids.search_view_holder.clear_widgets()
 
-        except Exception :
-            App.get_running_app().conn_error_popup.open()
-            pass
+    def on_search_screen_enter(self, *args):
+        # try:
+        if self._filter_type == 'Movies':
+            get_api(Movies(page='1', order=self._filter_order, sort=self._filter_sort, genre=self._filter_genre, keywords=self._search_keywords).get_search())
+            self.ids.search_view_holder.add_widget(ScMaSearch(self._filter_type))
+        elif self._filter_type == 'Shows':
 
-    pass
+            get_api(Shows(page='1', order=self._filter_order, sort=self._filter_sort, genre=self._filter_genre,
+                           keywords=self._search_keywords).get_search())
+            self.ids.search_view_holder.add_widget(ScMaSearch(self._filter_type))
+        else:
+            Logger.info('SearchView: Initialization stopped {}'.format(self._filter_type))
 
+        # except Exception as e:
+        #     Logger.warning('fail {}'.format(e.message))
+        #     # App.get_running_app().conn_error_popup.open()
+        #     pass
 
 class LatestViewMain(Screen):
     def __init__(self, **kwargs):
@@ -1358,22 +1366,35 @@ class MainView(Screen):
 
         self.main_scm.current = scn
 
-    def set_as_current_screen_search(self, scn, ot_1, ot_2, ot_3, *args):
+    def set_as_current_screen_search(self, scn, ot_1, ot_2, ot_3, search_in, search_in_container,  *args):
         Logger.info('MainView: setting active screen for search {}'.format(scn))
 
         ot_1.background_normal = "./images/n_n.png"
         ot_2.background_normal = "./images/n_n.png"
         ot_3.background_normal = "./images/n_n.png"
+        if search_in:
+            if 'search_view' in str(self.main_scm.current_screen):
+                self.main_scm.remove_widget(self.main_scm.current_screen)
+                self.main_scm.add_widget(SearchView())
+                self.main_scm.current = scn
 
-        self.main_scm.current = scn
+            else:
+                self.main_scm.current = scn
 
-    def searchInput_on_focus_effect(instance, _search_input_box, _search_input_focus, *args):
+            SearchView._search_keywords = search_in
+            search_in_container.text = ''
+        else:
+            search_in_container.hint_text = 'Missing keywords'
+            search_in_container.opacity = .6
+
+    def searchInput_on_focus_effect(self, _search_input_box, _search_input_focus, *args):
         if _search_input_focus:
+            _search_input_box.hint_text = ''
             _search_input_box.opacity = 1
-            instance.ids.search.size_hint_x = 0
+
         else:
             _search_input_box.opacity = .2
-            instance.ids.search.size_hint_x = 0.18
+
 
     def navigate_to_settings(self, *args):
         Logger.info('MainView: navigate_to_settings invoked')

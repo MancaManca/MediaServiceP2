@@ -36,7 +36,7 @@
 
     Label:
         id: settings_view_i_name
-        size_hint_x: .7
+        size_hint_x: .8
         font_size: dp(17)
         color: hex('#ffa500')
         text: ''
@@ -44,7 +44,7 @@
 #        italic: True
     CheckBox:
         id: settings_view_i_check
-        size_hint_x: .3
+        size_hint_x: .2
         group: 'settings_address_setter'
         background_radio_down: "./images/chprd.png"
         background_radio_normal: "./images/chpr.png"
@@ -212,7 +212,7 @@
     size_hint_y: None
     width: dp(40)
     height: dp(40)
-
+    pos_hint: {'center_x': 0.5, 'center_y': 0.5}
 
 <MainView>:
     name: 'main'
@@ -238,30 +238,29 @@
                         size: self.size
                 BoxLayout:
                     id: settings_button
-                    size_hint_x: .18
+                    size_hint_x: .16
                     RelativeLayout:
                         MainViewButton:
                             text: ''
                             background_down: "./images/settings_icon.png"
                             background_normal: "./images/settings_icon.png"
                             on_release: root.navigate_to_settings()
-                            pos_hint: {'center_x': 0.5, 'center_y': 0.5}
 
                 BoxLayout:
                     id: search
-                    size_hint_x: .18
+                    size_hint_x: .16
                     RelativeLayout:
                         MainViewButton:
                             text: ''
+                            id: search_icon_bu
                             background_down: "./images/search_icon.png"
                             background_normal: "./images/search_icon.png"
                             on_release: root.set_as_current_screen_search('search_view', mov_b, lat_b, ser_b, search_input_in.text, search_input_in)
-                            pos_hint: {'center_x': 0.5, 'center_y': 0.5}
 
 
                 BoxLayout:
                     id: search_input
-                    size_hint_x: .38
+                    size_hint_x: .36
                     TextInput:
                         id: search_input_in
                         text: ''
@@ -274,32 +273,42 @@
                         multiline: False
                         padding: 15,0,15,0
                         font_size: dp(25)
+                        opacity: .2
+
 
                 BoxLayout:
                     id: filter_modal
-                    size_hint_x: .18
+                    size_hint_x: .16
+
                     RelativeLayout:
                         MainViewButton:
                             text: ''
                             background_down: "./images/filter_icon.png"
                             background_normal: "./images/filter_icon.png"
                             on_release: root.open_filter_view()
-                            pos_hint: {'center_x': 0.5, 'center_y': 0.5}
 
 
                 BoxLayout:
                     id: connection_status_ind
-                    size_hint_x: .18
+                    size_hint_x: .16
+
                     orientation: 'vertical'
-                    Switch:
-                        id: status_flagger
-                        opacity: 0
-                        size_hint_y:0
-                        active: False
-                        on_active: root.update_status_in(self.active)
-                    Image:
-                        id: connection_status_ind_l
-                        source: 'images/on_connection.png'
+                    RelativeLayout:
+                        Switch:
+                            id: status_flagger
+                            opacity: 0
+                            size_hint_y:0
+                            active: False
+                            on_active: root.update_status_in(self.active)
+                        Image:
+                            id: connection_status_ind_l
+                            source: 'images/on_connection.png'
+                            size_hint_x: None
+                            size_hint_y: None
+                            width: dp(40)
+                            height: dp(40)
+                            pos_hint: {'center_x': 0.5, 'center_y': 0.5}
+
 
             BoxLayout:
                 id: navigation_b
@@ -386,14 +395,29 @@
             Rectangle:
                 pos: self.pos
                 size: self.size
+        Label:
+            id: search_typee
+            size_hint_y: .09
+            text: ''
+            canvas.before:
+                Color:
+                    rgba: hex('#202020')
+                Rectangle:
+                    pos: self.pos
+                    size: self.size
+
         BoxLayout:
             id: search_view_main_container_holder
             padding: 15,15,15,15
+            size_hint_y: .91
+
+
 
 
 <SearchView>:
     name: 'search_view'
-
+    on_enter: root.on_search_screen_enter()
+    on_leave: root.clear_w()
     BoxLayout:
         orientation: 'vertical'
         id: search_view_container
@@ -404,27 +428,9 @@
             Rectangle:
                 pos: self.pos
                 size: self.size
-        BoxLayout:
-            id: search_view_type
-            size_hint_y: .09
-            padding: 5,0
-            canvas.before:
-                Color:
-                    rgba: hex('#000000')
-                Rectangle:
-                    pos: self.pos
-                    size: self.size
-            Label:
-                text:
-                canvas.before:
-                    Color:
-                        rgba: hex('#202020')
-                    Rectangle:
-                        pos: self.pos
-                        size: self.size
+
         BoxLayout:
             id: search_view_holder
-            size_hint_y: .91
             canvas.before:
                 Color:
                     rgba: hex('#000000')
@@ -885,7 +891,7 @@
 
     Label:
         id: scan_view_i_name
-        size_hint_x: .7
+        size_hint_x: .8
         font_size: dp(16)
         padding: 15,15
         color: hex('#ffa500')
@@ -895,7 +901,7 @@
 
     CheckBox:
         id: scan_view_i_check
-        size_hint_x: .3
+        size_hint_x: .2
         group: 'address_setter'
 #        color: hex('#ffa500')
         background_radio_down: "./images/chprd.png"
@@ -928,28 +934,28 @@
             FilterSpinner:
                 id: filter_sort
                 text: 'Sort'
-                values: ['name','rating','trending','updated','year','last added', 'title']
+                values: ['name','rating','trending','updated','year','last added', 'title', 'Sort']
                 pos_hint: {'center_x': 0.5, 'center_y': 0.8}
                 on_release: root.hide_other_accordions(self)
 
             FilterSpinner:
                 id: filter_type
                 text: 'Type'
-                values: ['Shows', 'Movies']
+                values: ['Shows', 'Movies','Type']
                 pos_hint: {'center_x': 0.5, 'center_y': 0.4}
                 on_release: root.hide_other_accordions(self)
 
             FilterSpinner:
                 id: filter_order
                 text: 'Order'
-                values: ['-1','1']
+                values: ['-1','1','Order']
                 pos_hint: {'center_x': 0.5, 'center_y': 0.6}
                 on_release: root.hide_other_accordions(self)
 
             FilterSpinner:
                 id: filter_genre
                 text: 'Genre'
-                values: ['action','adventure','animation','comedy','crime','documentary','drama','eastern','family','fan-film','fantasy','film-noir','history','horror','indie','mystery','none','romance','science-fiction','thriller','tv-movie','western']
+                values: ['action','adventure','animation','comedy','crime','documentary','drama','eastern','family','fan-film','fantasy','film-noir','history','horror','indie','mystery','none','romance','science-fiction','thriller','tv-movie','western', 'Genre']
                 pos_hint: {'center_x': 0.5, 'center_y': 0.2}
                 on_release: root.hide_other_accordions(self)
 
