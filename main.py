@@ -243,14 +243,17 @@ def populate_hashed_json_dic(__json_hashed_in, to_dic):
 
 def api_request_controler(_api_call_response):
 
-    if Shows().short_url in _api_call_response.url:
-        populate_hashed_json_dic(hash_item(_api_call_response.json(), False), hashed_dic_show)
-    if Movies().short_url in _api_call_response.url:
-        populate_hashed_json_dic(hash_item(_api_call_response.json(), False), hashed_dic_movie)
-    if Movies().url in _api_call_response.url:
-        populate_hashed_json_dic(hash_item(_api_call_response.json(), True), hashed_dic_movies)
-    if Shows().url in _api_call_response.url:
-        populate_hashed_json_dic(hash_item(_api_call_response.json(), True), hashed_dic_shows)
+    if 'keywords' in _api_call_response.url:
+        populate_hashed_json_dic(hash_item(_api_call_response.json(), True), hashed_dic_search)
+    else:
+        if Shows().short_url in _api_call_response.url:
+            populate_hashed_json_dic(hash_item(_api_call_response.json(), False), hashed_dic_show)
+        if Movies().short_url in _api_call_response.url:
+            populate_hashed_json_dic(hash_item(_api_call_response.json(), False), hashed_dic_movie)
+        if Movies().url in _api_call_response.url:
+            populate_hashed_json_dic(hash_item(_api_call_response.json(), True), hashed_dic_movies)
+        if Shows().url in _api_call_response.url:
+            populate_hashed_json_dic(hash_item(_api_call_response.json(), True), hashed_dic_shows)
 
 
 def get_api(_api_call):
@@ -292,6 +295,7 @@ class Connector:
             Logger.info('no connection to server')
 
             self.server_state = False
+            # MainView.connection_status_indicator.active = False
             pass
 
     def mysend(self, msg, *args):
@@ -491,7 +495,7 @@ class MoviesViewMain(Screen):
                 pass
 
             self._items.add_widget(Label(text=hashed_dic_movies[_movie]['title'], size_hint_y=.1, text_size=(((Window.size[0] / 3)-45), None), shorten_from='right', halign='center', shorten=True))
-            self._items.add_widget(Button(text='show', size_hint_y=.1, on_press=partial(self.change_to_movies_single, self._items.megs)))
+            self._items.add_widget(Button(text='View', size_hint_y=.1, on_press=partial(self.change_to_movies_single, self._items.megs)))
 
             movies_layout.add_widget(self._items)
 
@@ -503,9 +507,21 @@ class MoviesViewMain(Screen):
     def change_to_movies_single(instance, __movie_id, *args):
         Logger.info('MoviesViewMain: change_to_movies_single {}'.format(__movie_id))
 
-        instance.manager.add_widget(MoviesViewMainSingle(__movie_id))
-        instance.manager.current = 'mvms'
+        Clock.schedule_once(instance.start_loade, -1)
+        Clock.schedule_once(partial(instance.add_scmm, __movie_id), 0.5)
+        Clock.schedule_once(instance.stop_loade, 3)
 
+    def start_loade(self, *args):
+        App.get_running_app().loader_overlay.open()
+        Logger.info('start')
+
+    def stop_loade(self, *args):
+        App.get_running_app().loader_overlay.dismiss()
+        Logger.info('stop')
+
+    def add_scmm(self, __s_id, *args):
+        self.manager.add_widget(MoviesViewMainSingle(__s_id))
+        self.manager.current = 'mvms'
 
 class ScMaMovies(ScreenManager):
     def __init__(self, **kwargs):
@@ -650,13 +666,13 @@ class ShowEpTor(BoxLayout):
             self.add_widget(ShowEpSingleTor(_torrent, _mag_link, series_connector))
 
 
-class ShowEpSyn(TextInput):
+class ShowEpSyn(BoxLayout):
     def __init__(self, _show_episode_synopsis_text_in, **kwargs):
         super(ShowEpSyn, self).__init__(**kwargs)
         Logger.info('SeriesViewMainSingle: ShowEpSyn Initialized {}'.format(self))
 
         self._show_episode_synopsis_text_in = _show_episode_synopsis_text_in
-        self.text = self._show_episode_synopsis_text_in
+        self.ids.show_episode_syn.text = self._show_episode_synopsis_text_in
 
 
 class SeriesViewMainSingle(Screen):
@@ -676,32 +692,12 @@ class SeriesViewMainSingle(Screen):
             for show_node in hashed_dic_show[_single_show_item_in_dic]:
 
                 if show_node == 'episodes':
-                    ep_nn = int(len(hashed_dic_show[_single_show_item_in_dic]['episodes']))
-                    multip = 200
-                    if ep_nn < 10:
-                        multip = 400
-                    if ep_nn > 10 and ep_nn < 20:
-                        multip = 300
-                    if ep_nn > 20 and ep_nn < 40:
-                        multip = 200
-                    if ep_nn > 40 and ep_nn < 60:
-                        multip = 160
-                    if ep_nn > 60 and ep_nn < 80:
-                        multip = 130
-                    if ep_nn > 80 and ep_nn < 100:
-                        multip = 100
-                    if ep_nn > 100 and ep_nn < 120:
-                        multip = 70
-                    if ep_nn > 120 and ep_nn < 140:
-                        multip = 60
-                    if ep_nn > 140 and ep_nn < 160:
-                        multip = 50
-                    if ep_nn > 160 and ep_nn < 180:
-                        multip = 44
-                    self._single_show_accordion = Accordion(orientation='vertical', height=dp(240  + ep_nn * 44), size_hint_y=None)
+                    self.episode_count = int(len(hashed_dic_show[_single_show_item_in_dic]['episodes']))
+                    self.accord_height = dp((self.episode_count * 44) + 340)
+
+                    self._single_show_accordion = Accordion(orientation='vertical', height=self.accord_height, size_hint_y=None, min_space=dp(44))
 
                     self._single_show_accordion.id = 'testAccordian'
-
 
                     self.g_scroll_list = ScrollView(size_hint=(None, None),
                                                     size=(ViewControl.width_x - 40, ViewControl.height_x * 0.4),
@@ -748,7 +744,6 @@ class SeriesViewMainSingle(Screen):
     background_selected='./images/filter_list_i.png')
 
                         acc_item.container.orientation = 'vertical'
-
                         Logger.info('Episode level >>>>>')
                         # Logger.info(z)
                         try:
@@ -835,7 +830,7 @@ class SeriesViewMain(Screen):
                 pass
 
             self._items.add_widget(Label(text=hashed_dic_shows[_show]['title'], size_hint_y=.1, text_size=(((Window.size[0] / 3)-45), None), shorten_from='right', halign='center', shorten=True))
-            self._items.add_widget(Button(text='show', size_hint_y=.1, on_press=partial(self.change_to_series_single, self._items.megs)))
+            self._items.add_widget(Button(text='View', size_hint_y=.1, on_press=partial(self.change_to_series_single, self._items.megs)))
 
             series_layout.add_widget(self._items)
 
@@ -938,23 +933,170 @@ class SeriesView(Screen):
             pass
 
 
+class SearchViewMain(Screen):
+    def __init__(self, **kwargs):
+        super(SearchViewMain, self).__init__(**kwargs)
+        self.name = 'search view main screen'
+        Logger.info('SearchViewMain: Initialized {}'.format(self.name))
+        self.typ = SearchView._filter_typ
+
+#################________________SHOWS SEARCH______________##########################
+        if self.typ == 'Shows':
+
+            search_series_layout = GridLayout(cols=3, padding=20, spacing=20,
+                                       size_hint=(None, None), width=ViewControl.width_x - 30)
+
+
+            search_series_layout.bind(minimum_height=search_series_layout.setter('height'))
+
+            search_series_scroll_list = ScrollView(size_hint=(None, None),
+                                            size=(ViewControl.width_x - 20, ViewControl.height_x * 0.44),
+                                            pos_hint={'center_x': 0.5, 'center_y': .5}, do_scroll_x=False)
+
+            search_series_scroll_list.add_widget(search_series_layout)
+            self.ids.search_view_main_container_holder.add_widget(search_series_scroll_list)
+
+            for _search_item_show in hashed_dic_search:
+
+                self._items_search_s = Item(hashed_dic_search[_search_item_show]['_id'])
+                self._items_search_s.size = ((Window.size[0] / 3) - 30, (Window.size[1] / 2) - 300)
+
+                try:
+                    self._items_latest_s.add_widget(AsyncImage(source=hashed_dic_search[_search_item_show]['images']['poster'], nocache=True, on_error=self.async_image_error_load))
+                except:
+                    Logger.info('No image setting default')
+
+                    self._items_search_s.add_widget(Image(source='/images/logo.png'))
+                    pass
+
+                self._items_search_s.add_widget(Label(text=hashed_dic_search[_search_item_show]['title'], size_hint_y=.1, text_size=(((Window.size[0] / 3)-45), None), shorten_from='right', halign='center', shorten=True))
+                self._items_search_s.add_widget(Button(text='View', size_hint_y=.1, on_press=partial(self.change_to_series_single, self._items_search_s.megs)))
+
+                search_series_layout.add_widget(self._items_search_s)
+
+#################________________MOVIES LATEST______________##########################
+        else:
+            search_movies_layout = GridLayout(cols=3, padding=20, spacing=20,
+                                       size_hint=(None, None), width=ViewControl.width_x - 30)
+
+            search_movies_layout.bind(minimum_height=search_movies_layout.setter('height'))
+
+            search_movies_scroll_list = ScrollView(size_hint=(None, None), size=(ViewControl.width_x - 20, ViewControl.height_x * 0.45),
+                                            pos_hint={'center_x': 0.5, 'center_y': 0.5}, do_scroll_x=False)
+
+            search_movies_scroll_list.add_widget(search_movies_layout)
+            self.ids.search_view_main_container_holder.add_widget(search_movies_scroll_list)
+
+            for _search_item_movie in hashed_dic_search:
+                self._items_search_m = Item(hashed_dic_search[_search_item_movie]['_id'])
+                self._items_search_m.size = ((Window.size[0] / 3) - 30, (Window.size[1] / 2) - 300)
+                try:
+                    self._items_search_m.add_widget(AsyncImage(source=hashed_dic_search[_search_item_movie]['images']['poster'], nocache=True,
+                                                      on_error=self.async_image_error_load))
+                except:
+                    Logger.info('No image setting default')
+
+                    self._items_search_m.add_widget(Image(source='images/logo.png'))
+                    pass
+
+                self._items_search_m.add_widget(Label(text=hashed_dic_search[_search_item_movie]['title'], size_hint_y=.1,
+                                             text_size=(((Window.size[0] / 3) - 45), None), shorten_from='right',
+                                             halign='center', shorten=True))
+                self._items_search_m.add_widget(
+                    Button(text='View', size_hint_y=.1, on_press=partial(self.change_to_movies_single, self._items_search_m.megs)))
+
+                search_movies_layout.add_widget(self._items_search_m)
+
+    def async_image_error_load(self, instance, *args):
+        Logger.info('SearchViewMain: Async image failed {}'.format(instance))
+
+        instance.source = './images/logo.png'
+
+    def change_to_series_single(instance, __show_id, *args):
+        Logger.info('SearchViewMain: change_to_series_single {}'.format(__show_id))
+
+        Clock.schedule_once(instance.start_loade, -1)
+        Clock.schedule_once(partial(instance.add_scms, __show_id), 0.5)
+        Clock.schedule_once(instance.stop_loade, 8)
+
+    def change_to_movies_single(instance, __movie_id, *args):
+        Logger.info('MoviesViewMain: change_to_movies_single {}'.format(__movie_id))
+
+        Clock.schedule_once(instance.start_loade, -1)
+        Clock.schedule_once(partial(instance.add_scmm, __movie_id), 0.5)
+        Clock.schedule_once(instance.stop_loade, 3)
+
+    def start_loade(self, *args):
+        App.get_running_app().loader_overlay.open()
+        Logger.info('start')
+
+    def stop_loade(self, *args):
+        App.get_running_app().loader_overlay.dismiss()
+        Logger.info('stop')
+
+    def add_scms(self, __s_id, *args):
+        self.manager.add_widget(SeriesViewMainSingle(__s_id))
+        self.manager.current = 'svms'
+
+    def add_scmm(self, __s_id, *args):
+        self.manager.add_widget(MoviesViewMainSingle(__s_id))
+        self.manager.current = 'mvms'
+
+
+class ScMaSearch(ScreenManager):
+    def __init__(self, **kwargs):
+        super(ScMaSearch, self).__init__(**kwargs)
+        Logger.info('ScMaSearch: Initialized {}'.format(self))
+
+        if SearchView.skipper:
+            Clock.schedule_once(self.add_scms, 0)
+        else:
+
+            Clock.schedule_once(self.start_loade, -1)
+            Clock.schedule_once(self.add_scmsr, 0.5)
+            Clock.schedule_once(self.stop_loade, 5)
+
+    def start_loade(self, *args):
+        App.get_running_app().loader_overlay.open()
+        Logger.info('start')
+
+    def stop_loade(self, *args):
+        App.get_running_app().loader_overlay.dismiss()
+        Logger.info('stop')
+
+    def add_scmsr(self, *args):
+        self.add_widget(SearchViewMain())
+        SeriesView.skipper = False
+
+
 class SearchView(Screen):
+    skipper = BooleanProperty(True)
+    _search_keywords = StringProperty(None)
+    _filter_order = StringProperty(None)
+    _filter_sort = StringProperty(None)
+    _filter_genre = StringProperty(None)
+    _filter_type = StringProperty(None)
+
     def __init__(self, **kwargs):
         super(SearchView, self).__init__(**kwargs)
         Logger.info('SearchView: Initialized {}'.format(self))
         # Logger.info(self.ids)
+        self._filter_typ = self._filter_type
 
-    def set_to_cur(self, scn, *args):
-        self.manager.current = scn
+        try:
+            if self._filter_typ == 'Movies':
+                get_api(Movies(order=self._filter_order, sort=self._filter_sort, genre=self._filter_genre, keywords=self._search_keywords).get_search_by_id())
+                self.ids.search_view_holder.add_widget(ScMaSearch())
+            elif self._filter_typ == 'Shows':
+                get_api(Shows(order=self._filter_order, sort=self._filter_sort, genre=self._filter_genre,
+                               keywords=self._search_keywords).get_search_by_id())
+                self.ids.search_view_holder.add_widget(ScMaSearch())
+            else:
+                Logger.info('SearchView: Initialization stopped {}'.format(self))
 
-        Clock.schedule_once(self.pr, 9)
-
-    def pr(self, *args):
-        # Logger.info(self.parent)
-        # Logger.info(self.manager.screens)
-        # Logger.info(' MainView {}'.format(self.parent))
-        # Logger.info(self.manager.screen_names)
-        pass
+        except Exception :
+            App.get_running_app().conn_error_popup.open()
+            pass
 
     pass
 
@@ -992,7 +1134,7 @@ class LatestViewMain(Screen):
                     pass
 
                 self._items_latest_s.add_widget(Label(text=hashed_dic_shows[_show]['title'], size_hint_y=.1, text_size=(((Window.size[0] / 3)-45), None), shorten_from='right', halign='center', shorten=True))
-                self._items_latest_s.add_widget(Button(text='Show', size_hint_y=.1, on_press=partial(self.change_to_series_single, self._items_latest_s.megs)))
+                self._items_latest_s.add_widget(Button(text='View', size_hint_y=.1, on_press=partial(self.change_to_series_single, self._items_latest_s.megs)))
 
                 latest_series_layout.add_widget(self._items_latest_s)
                 latest_show_counter += 1
@@ -1028,7 +1170,7 @@ class LatestViewMain(Screen):
                                              text_size=(((Window.size[0] / 3) - 45), None), shorten_from='right',
                                              halign='center', shorten=True))
                 self._items_latest_m.add_widget(
-                    Button(text='Show', size_hint_y=.1, on_press=partial(self.change_to_movies_single, self._items_latest_m.megs)))
+                    Button(text='View', size_hint_y=.1, on_press=partial(self.change_to_movies_single, self._items_latest_m.megs)))
 
                 latest_movies_layout.add_widget(self._items_latest_m)
                 latest_movie_counter += 1
@@ -1165,6 +1307,10 @@ class FilterModalView(ModalView):
         LatestView._filter_genre = self.filter_genre
         LatestView._filter_order = self.filter_order
         LatestView._filter_sort = self.filter_sort
+        SearchView._filter_type = self.filter_type
+        SearchView._filter_genre = self.filter_genre
+        SearchView._filter_order = self.filter_order
+        SearchView._filter_sort = self.filter_sort
 
     def hide_other_accordions(instances, _filter_dropdown_focused):
         for spinner_child in instances.ids.filter_view_container.children[0].children:
@@ -1173,7 +1319,7 @@ class FilterModalView(ModalView):
 
 
 class MainView(Screen):
-    connection_status_indicator = BooleanProperty(None)
+    connection_status_indicator = ObjectProperty(None)
 
     def __init__(self, **kwargs):
         super(MainView, self).__init__(**kwargs)
@@ -1224,8 +1370,10 @@ class MainView(Screen):
     def searchInput_on_focus_effect(instance, _search_input_box, _search_input_focus, *args):
         if _search_input_focus:
             _search_input_box.opacity = 1
+            instance.ids.search.size_hint_x = 0
         else:
             _search_input_box.opacity = .2
+            instance.ids.search.size_hint_x = 0.18
 
     def navigate_to_settings(self, *args):
         Logger.info('MainView: navigate_to_settings invoked')
