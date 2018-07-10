@@ -15,6 +15,7 @@ from kivy.uix.screenmanager import ScreenManager, Screen, FadeTransition
 from kivy.uix.scrollview import ScrollView
 from kivy.utils import get_color_from_hex
 
+
 from Crypto.Hash import SHA256
 
 import requests
@@ -1695,6 +1696,7 @@ class MediaServiceMclientApp(App):
         Logger.info('Application : Initialized {}'.format(self))
 
         self.root = BoxLayout(orientation='vertical')
+        self.root.bind(on_keyboard=self.key_input)
         self.loader_overlay = LoaderOverlay()
         self.conn_error_popup = ConnectionErrorPopup()
 
@@ -1709,8 +1711,12 @@ class MediaServiceMclientApp(App):
     def on_pause(self):
         return True
 
+    def key_input(self, window, key, scancode, codepoint, modifier):
+        if key == 27:
+            return True  # override the default behaviour
+        else:  # the key now does nothing
+            return False
 
 if __name__ == '__main__':
 
     MediaServiceMclientApp().run()
-

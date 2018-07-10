@@ -148,11 +148,13 @@
             opacity: 1
             size_hint_y: 0.2
             BoxLayout:
+                size_hint_x:.4
                 FloatLayout:
                     SettingsViewButton:
                         text: 'Scan Again'
                         on_release: root.scan_again()
             BoxLayout:
+                size_hint_x:.2
                 FloatLayout:
                     SettingsViewButton:
                         width: dp(40)
@@ -161,6 +163,7 @@
                         background_normal: "./images/back_icon.png"
                         on_release: root.return_to_main_view()
             BoxLayout:
+                size_hint_x:.4
                 id: settings_view_save_button_container
                 FloatLayout:
                     SettingsViewButton:
@@ -263,7 +266,7 @@
                         on_focus: root.searchInput_on_focus_effect(self, self.focus)
                         multiline: False
                         padding: 15,10,15,0
-                        font_size: dp(18)
+                        font_size: dp(17)
                         opacity: .2
                 BoxLayout:
                     id: filter_modal
@@ -539,14 +542,14 @@
     BoxLayout:
         orientation: 'horizontal'
         id: movies_view_main_single_top_im_holder
-        size_hint_x:.3
+        size_hint_x:.4
         AsyncImage:
             id: movies_view_main_single_top_im_holder_IM
             source: ''
     BoxLayout:
         orientation: 'vertical'
         id: movies_view_main_single_top_other
-        size_hint_x:.7
+        size_hint_x:.6
         BoxLayout:
             size_hint_y: .2
             orientation: 'horizontal'
