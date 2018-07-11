@@ -1,4 +1,3 @@
-from kivy import Logger
 from kivy.app import App
 from kivy.clock import Clock
 from kivy.core.window import Window
@@ -14,10 +13,10 @@ from kivy.uix.popup import Popup
 from kivy.uix.screenmanager import ScreenManager, Screen, FadeTransition
 from kivy.uix.scrollview import ScrollView
 from kivy.utils import get_color_from_hex
-
-
+from kivy import Logger
+from collections import OrderedDict
+import json
 from Crypto.Hash import SHA256
-
 import requests
 import socket
 import threading
@@ -64,12 +63,12 @@ def start_scanning(*args):
 
 """API REQUESTS"""
 
-hashed_dic_shows = {}
-hashed_dic_show = {}
-hashed_dic_movie = {}
-hashed_dic_movies = {}
-hashed_dic_search = {}
-scanned_online_urls = {}
+hashed_dic_shows = OrderedDict()
+hashed_dic_show = OrderedDict()
+hashed_dic_movie = OrderedDict()
+hashed_dic_movies = OrderedDict()
+hashed_dic_search = OrderedDict()
+scanned_online_urls = OrderedDict()
 chosen_scanned_url = ''
 
 
@@ -205,10 +204,11 @@ def hash_item_m(x):
 
 
 def hash_item(__json_in, method_flag): # requires JSON object
-    __json_hashed_out = {}
+    __json_hashed_out = OrderedDict()
     if method_flag:
         Logger.info('going for multi flag {}'.format(method_flag))
         for i in __json_in:
+
             hashed = hash_item_m(i['_id'])
             __json_hashed_out[hashed] = i
     else:
@@ -221,6 +221,7 @@ def hash_item(__json_in, method_flag): # requires JSON object
 
 def populate_hashed_json_dic(__json_hashed_in, to_dic):
     to_dic.clear()
+
     for i in __json_hashed_in:
         to_dic[i] = __json_hashed_in[i]
     Logger.info('populated dic')
@@ -229,16 +230,17 @@ def populate_hashed_json_dic(__json_hashed_in, to_dic):
 def api_request_controler(_api_call_response):
 
     if 'keywords' in _api_call_response.url:
-        populate_hashed_json_dic(hash_item(_api_call_response.json(), True), hashed_dic_search)
+        populate_hashed_json_dic(hash_item(json.loads(_api_call_response.text, object_pairs_hook=OrderedDict), True), hashed_dic_search)
+
     else:
         if Shows().short_url in _api_call_response.url:
-            populate_hashed_json_dic(hash_item(_api_call_response.json(), False), hashed_dic_show)
+            populate_hashed_json_dic(hash_item(json.loads(_api_call_response.text, object_pairs_hook=OrderedDict), False), hashed_dic_show)
         if Movies().short_url in _api_call_response.url:
-            populate_hashed_json_dic(hash_item(_api_call_response.json(), False), hashed_dic_movie)
+            populate_hashed_json_dic(hash_item(json.loads(_api_call_response.text, object_pairs_hook=OrderedDict), False), hashed_dic_movie)
         if Movies().url in _api_call_response.url:
-            populate_hashed_json_dic(hash_item(_api_call_response.json(), True), hashed_dic_movies)
+            populate_hashed_json_dic(hash_item(json.loads(_api_call_response.text, object_pairs_hook=OrderedDict), True), hashed_dic_movies)
         if Shows().url in _api_call_response.url:
-            populate_hashed_json_dic(hash_item(_api_call_response.json(), True), hashed_dic_shows)
+            populate_hashed_json_dic(hash_item(json.loads(_api_call_response.text, object_pairs_hook=OrderedDict), True), hashed_dic_shows)
 
 
 def get_api(_api_call):
