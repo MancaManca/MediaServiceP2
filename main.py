@@ -339,18 +339,18 @@ class Connector:
 """CONNECTOR"""
 
 
-def start_loade(*args):
+def start_loade(instance, *args):
     App.get_running_app().loader_overlay.open()
-    Logger.info('start')
+    Logger.info('start loader for {}'.format(instance))
 
 
-def stop_loade(*args):
+def stop_loade(instance, *args):
     App.get_running_app().loader_overlay.dismiss()
-    Logger.info('stop')
+    Logger.info('stop loader for {}'.format(instance))
 
 
 def busy_loading_overlay(entry, finish):
-    Clock.schedule_once(start_loade,entry)
+    Clock.schedule_once(start_loade, entry)
     Clock.schedule_once(stop_loade, finish)
 
 
@@ -425,8 +425,6 @@ class MoviesViewMainSingle(Screen):
         self.movies_main_single_screen_instance = self
 
         Logger.info('MoviesViewMainSingle: Initialized {}'.format(self.name))
-
-        get_api(Movies(_id=self.movie_id).get_search_by_id())
 
         for _single_movie_item_in_dic in hashed_dic_movie:
 
@@ -525,19 +523,12 @@ class MoviesViewMain(Screen):
     def change_to_movies_single(instance, __movie_id, *args):
         Logger.info('MoviesViewMain: change_to_movies_single {}'.format(__movie_id))
 
-        Clock.schedule_once(instance.start_loade, -1)
+        Clock.schedule_once(partial(start_loade, instance), -1)
         Clock.schedule_once(partial(instance.add_scmm, __movie_id), 0.5)
-        Clock.schedule_once(instance.stop_loade, 3)
-
-    def start_loade(self, *args):
-        App.get_running_app().loader_overlay.open()
-        Logger.info('start loader for {}'.format(self))
-
-    def stop_loade(self, *args):
-        App.get_running_app().loader_overlay.dismiss()
-        Logger.info('stop loader for {}'.format(self))
+        Clock.schedule_once(partial(stop_loade, instance), 3)
 
     def add_scmm(self, __s_id, *args):
+        get_api(Movies(_id=__s_id).get_search_by_id())
         self.manager.add_widget(MoviesViewMainSingle(__s_id))
         self.manager.current = 'mvms'
 
@@ -552,17 +543,9 @@ class ScMaMovies(ScreenManager):
             Clock.schedule_once(self.add_scmm, 0)
         else:
 
-            Clock.schedule_once(self.start_loade, -1)
+            Clock.schedule_once(partial(start_loade, self), -1)
             Clock.schedule_once(self.add_scmm, 0.5)
-            Clock.schedule_once(self.stop_loade, 5)
-
-    def start_loade(self, *args):
-        App.get_running_app().loader_overlay.open()
-        Logger.info('start loader for {}'.format(self))
-
-    def stop_loade(self,*args):
-        App.get_running_app().loader_overlay.dismiss()
-        Logger.info('stop loader for {}'.format(self))
+            Clock.schedule_once(partial(stop_loade, self), 3)
 
     def add_scmm(self, *args):
         self.add_widget(MoviesViewMain())
@@ -724,22 +707,21 @@ class SeriesViewMainSingle(Screen):
 
         Logger.info('SeriesViewMainSingle: Initialized {}'.format(self.name))
 
-        get_api(Shows(_id=self.series_id).get_search_by_id())
+        self.buffe = []
 
         for _single_show_item_in_dic in hashed_dic_show:
             for show_node in hashed_dic_show[_single_show_item_in_dic]:
 
                 if show_node == 'episodes':
                     self.episode_count = int(len(hashed_dic_show[_single_show_item_in_dic]['episodes']))
-                    self.accord_height = dp((self.episode_count * 44) + 340)
+                    self.accord_height = dp((1 * 44) + 340)
 
                     self._single_show_accordion = Accordion(orientation='vertical', height=self.accord_height, size_hint_y=None, min_space=dp(44))
 
                     self._single_show_accordion.id = 'testAccordian'
 
                     self.g_scroll_list = ScrollView(size_hint=(None, None),
-                                                    size=(ViewControl.width_x - 40, ViewControl.height_x * 0.4),
-                                                    pos_hint={'center_x': 0.5, 'center_y': 0.5})
+                                                    size=(ViewControl.width_x - 40, ViewControl.height_x * 0.4),on_scroll_move=self.sch_lazy,pos_hint={'center_x': 0.5, 'center_y': 0.5})
 
                     self.ids.series_view_main_single_container_se.add_widget(self.g_scroll_list)
                     self.g_scroll_list.add_widget(self._single_show_accordion)
@@ -781,8 +763,9 @@ class SeriesViewMainSingle(Screen):
 
                     self.ids.series_view_main_single_container.add_widget(
                         SeriesViewMainSingleTop(_show_y, _show_s, _show_r, _show_im, _show_st))
-
+                    lok = 0
                     for _episode_node in hashed_dic_show[_single_show_item_in_dic][show_node]:
+                        lok += 1
                         acc_item = AccordionItem(collapse=True, orientation='vertical',background_normal='./images/filter_list_i.png',
     background_selected='./images/filter_list_i.png')
 
@@ -823,7 +806,23 @@ class SeriesViewMainSingle(Screen):
 
                         acc_item.container.add_widget(ShowEpTor(_episode_node['torrents'], self.series_single_connector))
 
-                        self._single_show_accordion.add_widget(acc_item)
+                        # self._single_show_accordion.add_widget(acc_item)
+                        self.buffe.append(acc_item)
+                        if lok < 5:
+                            self.lazyy()
+
+    def sch_lazy(self, *args):
+        scroller = args[0].scroll_y
+        if 0.09 < scroller < 0.2:
+            Clock.schedule_once(self.lazyy, .3)
+
+    def lazyy(instance, *args):
+        if instance.buffe:
+            instance._single_show_accordion.height += dp(44)
+            item_from_buff = instance.buffe[0]
+
+            instance._single_show_accordion.add_widget(item_from_buff)
+            instance.buffe.remove(item_from_buff)
 
     def go_back_to_series(self,*args):
 
@@ -838,7 +837,6 @@ class SeriesViewMainSingle(Screen):
             self.manager.current = 'series view main screen'
 
         self.manager.remove_widget(self.series_main_singe_screen_instance)
-
 
 
 class SeriesViewMain(Screen):
@@ -881,19 +879,13 @@ class SeriesViewMain(Screen):
     def change_to_series_single(instance, __show_id, *args):
         Logger.info('SeriesViewMain: change_to_series_single {}'.format(__show_id))
 
-        Clock.schedule_once(instance.start_loade, -1)
-        Clock.schedule_once(partial(instance.add_scms, __show_id), 0.5)
-        Clock.schedule_once(instance.stop_loade, 8)
-
-    def start_loade(self, *args):
-        App.get_running_app().loader_overlay.open()
-        Logger.info('start loader for {}'.format(self))
-
-    def stop_loade(self, *args):
-        App.get_running_app().loader_overlay.dismiss()
-        Logger.info('stop loader for {}'.format(self))
+        Clock.schedule_once(partial(start_loade, instance), -1)
+        Clock.schedule_once(partial(instance.add_scms, __show_id), 2)
+        Clock.schedule_once(partial(stop_loade, instance), 4)
 
     def add_scms(self, __s_id, *args):
+        get_api(Shows(_id=__s_id).get_search_by_id())
+
         self.manager.add_widget(SeriesViewMainSingle(__s_id))
         self.manager.current = 'svms'
 
@@ -907,17 +899,9 @@ class ScMaSeries(ScreenManager):
             Clock.schedule_once(self.add_scms, 0)
         else:
 
-            Clock.schedule_once(self.start_loade, -1)
+            Clock.schedule_once(partial(start_loade, self), -1)
             Clock.schedule_once(self.add_scms, 0.5)
-            Clock.schedule_once(self.stop_loade, 5)
-
-    def start_loade(self, *args):
-        App.get_running_app().loader_overlay.open()
-        Logger.info('start loader for {}'.format(self))
-
-    def stop_loade(self, *args):
-        App.get_running_app().loader_overlay.dismiss()
-        Logger.info('stop loader for {}'.format(self))
+            Clock.schedule_once(partial(stop_loade, self), 4)
 
     def add_scms(self, *args):
         self.add_widget(SeriesViewMain())
@@ -1001,7 +985,6 @@ class SearchViewMain(Screen):
             search_series_layout = GridLayout(cols=3, padding=20, spacing=15,
                                        size_hint=(None, None), width=ViewControl.width_x - 30)
 
-
             search_series_layout.bind(minimum_height=search_series_layout.setter('height'))
 
             search_series_scroll_list = ScrollView(size_hint=(None, None),
@@ -1068,30 +1051,26 @@ class SearchViewMain(Screen):
     def change_to_series_single(instance, __show_id, *args):
         Logger.info('SearchViewMain: change_to_series_single {}'.format(__show_id))
 
-        Clock.schedule_once(instance.start_loade, -1)
+        Clock.schedule_once(partial(start_loade, instance), -1)
         Clock.schedule_once(partial(instance.add_scms, __show_id), 0.5)
-        Clock.schedule_once(instance.stop_loade, 8)
+        Clock.schedule_once(partial(stop_loade, instance), 4)
 
     def change_to_movies_single(instance, __movie_id, *args):
         Logger.info('MoviesViewMain: change_to_movies_single {}'.format(__movie_id))
 
-        Clock.schedule_once(instance.start_loade, -1)
+        Clock.schedule_once(partial(start_loade, instance), -1)
         Clock.schedule_once(partial(instance.add_scmm, __movie_id), 0.5)
-        Clock.schedule_once(instance.stop_loade, 3)
-
-    def start_loade(self, *args):
-        App.get_running_app().loader_overlay.open()
-        Logger.info('start loader for {}'.format(self))
-
-    def stop_loade(self, *args):
-        App.get_running_app().loader_overlay.dismiss()
-        Logger.info('stop loader for {}'.format(self))
+        Clock.schedule_once(partial(stop_loade, instance), 3)
 
     def add_scms(self, __s_id, *args):
+        get_api(Shows(_id=__s_id).get_search_by_id())
+
         self.manager.add_widget(SeriesViewMainSingle(__s_id))
         self.manager.current = 'svms'
 
     def add_scmm(self, __s_id, *args):
+        get_api(Movies(_id=__s_id).get_search_by_id())
+
         self.manager.add_widget(MoviesViewMainSingle(__s_id))
         self.manager.current = 'mvms'
 
@@ -1104,22 +1083,13 @@ class ScMaSearch(ScreenManager):
         self.search_type = search_type
         Logger.info('Search for type {}'.format(self.search_type))
 
-
         if SearchView.skipper:
             Clock.schedule_once(self.add_scmsr, 0)
         else:
 
-            Clock.schedule_once(self.start_loade, -1)
+            Clock.schedule_once(partial(start_loade, self), -1)
             Clock.schedule_once(self.add_scmsr, 0.5)
-            Clock.schedule_once(self.stop_loade, 5)
-
-    def start_loade(self, *args):
-        App.get_running_app().loader_overlay.open()
-        Logger.info('start loader for {}'.format(self))
-
-    def stop_loade(self, *args):
-        App.get_running_app().loader_overlay.dismiss()
-        Logger.info('stop loader for {}'.format(self))
+            Clock.schedule_once(partial(stop_loade, self), 3)
 
     def add_scmsr(self, *args):
         self.add_widget(SearchViewMain(self.search_type))
@@ -1164,6 +1134,7 @@ class SearchView(Screen):
             Logger.warning('SearchView: fail due to {}'.format(e))
             App.get_running_app().conn_error_popup.open()
             pass
+
 
 class LatestViewMain(Screen):
     def __init__(self, **kwargs):
@@ -1243,30 +1214,26 @@ class LatestViewMain(Screen):
     def change_to_series_single(instance, __show_id, *args):
         Logger.info('LatestViewMain: change_to_series_single {}'.format(__show_id))
 
-        Clock.schedule_once(instance.start_loade, -1)
+        Clock.schedule_once(partial(start_loade, instance), -1)
         Clock.schedule_once(partial(instance.add_scms, __show_id), 0.5)
-        Clock.schedule_once(instance.stop_loade, 8)
+        Clock.schedule_once(partial(stop_loade, instance), 4)
 
     def change_to_movies_single(instance, __movie_id, *args):
         Logger.info('MoviesViewMain: change_to_movies_single {}'.format(__movie_id))
 
-        Clock.schedule_once(instance.start_loade, -1)
+        Clock.schedule_once(partial(start_loade, instance), -1)
         Clock.schedule_once(partial(instance.add_scmm, __movie_id), 0.5)
-        Clock.schedule_once(instance.stop_loade, 3)
-
-    def start_loade(self, *args):
-        App.get_running_app().loader_overlay.open()
-        Logger.info('start loader for {}'.format(self))
-
-    def stop_loade(self, *args):
-        App.get_running_app().loader_overlay.dismiss()
-        Logger.info('stop loader for {}'.format(self))
+        Clock.schedule_once(partial(stop_loade, instance), 3)
 
     def add_scms(self, __s_id, *args):
+        get_api(Shows(_id=__s_id).get_search_by_id())
+
         self.manager.add_widget(SeriesViewMainSingle(__s_id))
         self.manager.current = 'svms'
 
     def add_scmm(self, __s_id, *args):
+        get_api(Movies(_id=__s_id).get_search_by_id())
+
         self.manager.add_widget(MoviesViewMainSingle(__s_id))
         self.manager.current = 'mvms'
 
@@ -1281,17 +1248,9 @@ class ScMaLatest(ScreenManager):
             Clock.schedule_once(self.add_scms, 0)
         else:
 
-            Clock.schedule_once(self.start_loade, -1)
+            Clock.schedule_once(partial(start_loade, self), -1)
             Clock.schedule_once(self.add_scms, 0.5)
-            Clock.schedule_once(self.stop_loade, 5)
-
-    def start_loade(self, *args):
-        App.get_running_app().loader_overlay.open()
-        Logger.info('start loader for {}'.format(self))
-
-    def stop_loade(self, *args):
-        App.get_running_app().loader_overlay.dismiss()
-        Logger.info('stop loader for {}'.format(self))
+            Clock.schedule_once(partial(stop_loade, self), 4)
 
     def add_scms(self, *args):
         self.add_widget(LatestViewMain())
