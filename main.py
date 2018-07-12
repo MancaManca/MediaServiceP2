@@ -205,6 +205,8 @@ def hash_item_m(x):
 
 def hash_item(__json_in, method_flag): # requires JSON object
     __json_hashed_out = OrderedDict()
+    Logger.info('HashItem: json {}'.format(__json_in))
+
     if method_flag:
         Logger.info('going for multi flag {}'.format(method_flag))
         for i in __json_in:
@@ -230,17 +232,33 @@ def populate_hashed_json_dic(__json_hashed_in, to_dic):
 def api_request_controler(_api_call_response):
 
     if 'keywords' in _api_call_response.url:
-        populate_hashed_json_dic(hash_item(json.loads(_api_call_response.text, object_pairs_hook=OrderedDict), True), hashed_dic_search)
+        populate_hashed_json_dic(hash_item(_api_call_response.json(), True), hashed_dic_search)
 
     else:
-        if Shows().short_url in _api_call_response.url:
-            populate_hashed_json_dic(hash_item(json.loads(_api_call_response.text, object_pairs_hook=OrderedDict), False), hashed_dic_show)
-        if Movies().short_url in _api_call_response.url:
-            populate_hashed_json_dic(hash_item(json.loads(_api_call_response.text, object_pairs_hook=OrderedDict), False), hashed_dic_movie)
-        if Movies().url in _api_call_response.url:
-            populate_hashed_json_dic(hash_item(json.loads(_api_call_response.text, object_pairs_hook=OrderedDict), True), hashed_dic_movies)
-        if Shows().url in _api_call_response.url:
-            populate_hashed_json_dic(hash_item(json.loads(_api_call_response.text, object_pairs_hook=OrderedDict), True), hashed_dic_shows)
+        try:
+            if Shows().short_url in _api_call_response.url:
+                populate_hashed_json_dic(hash_item(_api_call_response.json(), False), hashed_dic_show)
+        except Exception as e:
+            Logger.info('GetApi: Show failed duo to : {}'.format(e))
+            pass
+        try:
+            if Movies().short_url in _api_call_response.url:
+                populate_hashed_json_dic(hash_item(_api_call_response.json(), False), hashed_dic_movie)
+        except Exception as e:
+            Logger.info('GetApi: Movie failed duo to : {}'.format(e))
+            pass
+        try:
+            if Movies().url in _api_call_response.url:
+                populate_hashed_json_dic(hash_item(_api_call_response.json(), True), hashed_dic_movies)
+        except Exception as e:
+            Logger.info('GetApi: Movies failed duo to : {}'.format(e))
+            pass
+        try:
+            if Shows().url in _api_call_response.url:
+                populate_hashed_json_dic(hash_item(_api_call_response.json(), True), hashed_dic_shows)
+        except Exception as e:
+            Logger.info('GetApi: Shows failed duo to : {}'.format(e))
+            pass
 
 
 def get_api(_api_call):
@@ -280,8 +298,8 @@ class Connector:
             self.receive()
             Logger.info('Connected to host {}'.format(host))
 
-        except:
-            Logger.info('no connection to device')
+        except Exception as e :
+            Logger.info('No connection to device due to {}'.format(e))
 
             self.server_state = False
             pass
@@ -678,8 +696,12 @@ class ShowEpTor(BoxLayout):
         for _torrent in _torrents_list:
             Logger.info('SeriesViewMainSingle: ShowEpTor torrent {}'.format(_torrent))
 
-            _mag_link = _torrents_list[_torrent]['url']
-            self.add_widget(ShowEpSingleTor(_torrent, _mag_link, series_connector))
+            try:
+                _mag_link = _torrents_list[_torrent]['url']
+                self.add_widget(ShowEpSingleTor(_torrent, _mag_link, series_connector))
+            except TypeError:
+                Logger.info('SeriesViewMainSingle: ShowEpTor torrent missing {}'.format(_torrent))
+                pass
 
 
 class ShowEpSyn(BoxLayout):
@@ -816,6 +838,7 @@ class SeriesViewMainSingle(Screen):
             self.manager.current = 'series view main screen'
 
         self.manager.remove_widget(self.series_main_singe_screen_instance)
+
 
 
 class SeriesViewMain(Screen):

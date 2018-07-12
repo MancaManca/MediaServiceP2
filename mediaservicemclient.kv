@@ -429,6 +429,8 @@
         AsyncImage:
             id: series_view_main_single_top_im_holder_IM
             source: ''
+            allow_stretch: True
+            keep_ratio: False
     BoxLayout:
         orientation: 'vertical'
         id: series_view_main_single_top_other
@@ -546,6 +548,8 @@
         AsyncImage:
             id: movies_view_main_single_top_im_holder_IM
             source: ''
+            allow_stretch: True
+            keep_ratio: False
     BoxLayout:
         orientation: 'vertical'
         id: movies_view_main_single_top_other
@@ -596,11 +600,11 @@
                 size_hint_x: .2
         BlackBox:
             orientation: 'vertical'
-            size_hint_y: .60
+            size_hint_y: .55
             id: movies_view_main_single_container
         BlackBox:
             orientation: 'vertical'
-            size_hint_y: .35
+            size_hint_y: .40
             id: movies_view_main_single_container_se
 
 
