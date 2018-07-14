@@ -813,7 +813,7 @@ class SeriesViewMainSingle(Screen):
 
     def sch_lazy(self, *args):
         scroller = args[0].scroll_y
-        if 0.09 < scroller < 0.2:
+        if scroller < -0.2:
             Clock.schedule_once(self.lazyy, .3)
 
     def lazyy(instance, *args):
