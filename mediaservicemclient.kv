@@ -39,17 +39,26 @@
             pos: self.pos
             size: self.size
 
-<GreyBox@BoxLayout>:
+<GreyLighterBox@BoxLayout>:
     canvas.before:
         Color:
-            rgba: hex('#202020')
+            rgba: hex('#3e3e3e')
         Rectangle:
             pos: self.pos
             size: self.size
+
+<GreyBox@BoxLayout>:
+    canvas.before:
+        Color:
+            rgba: hex('#292929')
+        Rectangle:
+            pos: self.pos
+            size: self.size
+
 <GreyLabel@Label>:
     canvas.before:
         Color:
-            rgba: hex('#202020')
+            rgba: hex('#2a2a2a')
         Rectangle:
             pos: self.pos
             size: self.size
@@ -216,7 +225,6 @@
     background_down: "./images/n_b.png"
     background_normal: "./images/n_n.png"
 
-
 <MainView>:
     name: 'main'
     orientation: 'vertical'
@@ -229,7 +237,7 @@
             orientation: 'vertical'
             id: main_view_container
             opacity: 1
-            BlackBox:
+            GreyLighterBox:
                 size_hint_y: .05
                 id: navigation_a
                 orientation: 'horizontal'
@@ -238,6 +246,7 @@
                     size_hint_x: .16
                     RelativeLayout:
                         MainViewButton:
+                            id: settings_button_drop
                             text: ''
                             background_down: "./images/settings_icon.png"
                             background_normal: "./images/settings_icon.png"
@@ -251,7 +260,7 @@
                             id: search_icon_bu
                             background_down: "./images/search_icon.png"
                             background_normal: "./images/search_icon.png"
-                            on_release: root.set_as_current_screen_search('search_view', mov_b, lat_b, ser_b, search_input_in.text, search_input_in)
+                            on_release: root.set_as_current_screen_search('search_view', search_input_in.text, search_input_in)
                 BoxLayout:
                     id: search_input
                     size_hint_x: .36
@@ -296,22 +305,23 @@
                             width: dp(40)
                             height: dp(40)
                             pos_hint: {'center_x': 0.5, 'center_y': 0.5}
-            BoxLayout:
+            GreyBox:
                 id: navigation_b
                 orientation: 'horizontal'
                 size_hint_y: .06
-                MainViewButtonNav:
-                    text: 'Movies'
-                    id: mov_b
-                    on_release: root.set_as_current_screen(self, 'movies_view', ser_b, lat_b)
-                MainViewButtonNav:
-                    text: 'Series'
-                    id: ser_b
-                    on_release: root.set_as_current_screen(self,'series_view', mov_b, lat_b)
-                MainViewButtonNav:
-                    text: 'Latest'
-                    id: lat_b
-                    on_release: root.set_as_current_screen(self,'latest_view', mov_b, ser_b)
+
+#                MainViewButtonNav:
+#                    text: 'Movies'
+#                    id: mov_b
+#                    on_release: root.set_as_current_screen(self, 'movies_view', ser_b, lat_b)
+#                MainViewButtonNav:
+#                    text: 'Series'
+#                    id: ser_b
+#                    on_release: root.set_as_current_screen(self,'series_view', mov_b, lat_b)
+#                MainViewButtonNav:
+#                    text: 'Latest'
+#                    id: lat_b
+#                    on_release: root.set_as_current_screen(self,'latest_view', mov_b, ser_b)
             OkerBox:
                 id: screen_m_container
 
@@ -656,6 +666,32 @@
             id: lat_view_holder
             size_hint_y: 1
 
+<FavouritesViewMain>:
+    OkerBox:
+        orientation: 'vertical'
+        id: favourites_view_main_container
+        opacity: 1
+        GreyLabel:
+            id: search_typee
+            size_hint_y: .09
+            text: ''
+        BoxLayout:
+            id: favourites_view_main_container_holder
+            padding: 5,5,5,5
+            size_hint_y: .91
+
+
+<FavouritesView>:
+    name: 'favourites_view'
+#    on_enter: root.refresh_on_enter()
+    BlackBox:
+        orientation: 'vertical'
+        id: favourites_view_container
+        opacity: 1
+        OkerBox:
+            id: fav_view_holder
+            size_hint_y: 1
+
 
 <Item>:
     id: ite
@@ -667,6 +703,34 @@
         Rectangle:
             pos: self.pos
             size: self.size
+    BoxLayout:
+        id: item_im_holder
+        size_hint_y: .9
+        FloatLayout:
+            id: item_im_holder_float
+            AsyncImage:
+                id: item_im_holder_float_i
+                pos_hint: {'center_x': 0.5, 'center_y': .5}
+                no_cache: True
+            Button:
+                id: item_im_holder_float_b
+                pos_hint: {'center_x': .85, 'center_y': .85}
+                size_hint: (None,None)
+                size:(dp(45),dp(45))
+                background_normal: "./images/favno.png"
+                background_down: "./images/fav.png"
+
+
+    BoxLayout:
+        id: item_title_b_holder
+        size_hint_y: .1
+        Button:
+            id: item_title_b
+            text: ''
+            shorten_from:'right'
+            halign: 'center'
+            shorten: True
+#            on_press: root.change_to_series_single(self._items.megs)
 
 <ScanViewItem>:
     id: scan_view_i
@@ -774,3 +838,11 @@
     height: dp(50)
 #    background_color:hex('#ffa500')
 #
+<MainNavButton>:
+    size_hint_x: None
+    size_hint_y: None
+    width: dp(250)
+    height: dp(45)
+    background_down: "./images/n_b.png"
+    background_normal: "./images/n_n.png"
+    on_release:

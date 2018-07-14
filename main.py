@@ -3,9 +3,11 @@ from kivy.clock import Clock
 from kivy.core.window import Window
 from kivy.metrics import dp
 from kivy.properties import ObjectProperty, BooleanProperty, StringProperty, partial
+from kivy.storage.jsonstore import JsonStore
 from kivy.uix.accordion import Accordion, AccordionItem
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.button import Button
+from kivy.uix.dropdown import DropDown
 from kivy.uix.gridlayout import GridLayout
 from kivy.uix.image import AsyncImage, Image
 from kivy.uix.modalview import ModalView
@@ -501,17 +503,29 @@ class MoviesViewMain(Screen):
         self.ids.movies_view_main_container.add_widget(movies_scroll_list)
 
         for _movie in hashed_dic_movies:
-            self._items = Item(hashed_dic_movies[_movie]['_id'])
+            movie_is_favourite = MainView.favourites.exists(_movie)
+
+            self._items = Item(hashed_dic_movies[_movie]['_id'], movie_is_favourite)
             self._items.size = ((Window.size[0] / 3) - 30, (Window.size[1] / 2) - 300)
+            self._items.ids.item_im_holder_float_b.bind(
+                on_press=partial(self.sf, _movie, 'movie', hashed_dic_movies[_movie], self._items))
+
+            if self._items._favourite:
+                self._items.ids.item_im_holder_float_b.background_normal = './images/fav.png'
+
             try:
-                self._items.add_widget(AsyncImage(source=hashed_dic_movies[_movie]['images']['poster'], nocache=True, on_error=self.async_image_error_load))
+                self._items.ids.item_im_holder_float_i.source = hashed_dic_movies[_movie]['images']['poster']
+                self._items.ids.item_im_holder_float_i.bind(on_error=self.async_image_error_load)
+
             except:
                 Logger.info('No image setting default')
 
-                self._items.add_widget(Image(source='images/logo.png'))
+                self._items.ids.item_im_holder_float.add_widget(Image(source='images/logo.png',pos_hint={'center_x': 0.5, 'center_y': .5}))
                 pass
 
-            self._items.add_widget(Button(text=hashed_dic_movies[_movie]['title'], size_hint_y=.1, text_size=(((Window.size[0] / 3)-45), None), shorten_from='right', halign='center', shorten=True, on_press=partial(self.change_to_movies_single, self._items.megs)))
+            self._items.ids.item_title_b.text = hashed_dic_movies[_movie]['title']
+            self._items.ids.item_title_b.text_size = (((Window.size[0] / 3) - 45), None)
+            self._items.ids.item_title_b.bind(on_release=partial(self.change_to_movies_single, self._items.megs))
 
             movies_layout.add_widget(self._items)
 
@@ -531,6 +545,21 @@ class MoviesViewMain(Screen):
         get_api(Movies(_id=__s_id).get_search_by_id())
         self.manager.add_widget(MoviesViewMainSingle(__s_id))
         self.manager.current = 'mvms'
+
+    def sf(self, hash_key, type_key, json_val, *args):
+        Logger.info('MoviesViewMain: movie is favourite {}'.format(args[0]._favourite))
+
+        if args[0]._favourite:
+            Logger.info('MoviesViewMain: movie removing from favourite')
+
+            MainView.favourites.delete(hash_key)
+            args[1].background_normal = "./images/favno.png"
+        else:
+            Logger.info('MoviesViewMain: movie setting as favourite')
+
+            MainView.favourites.put(hash_key, _type_key=type_key, _json_val=json_val)
+            args[0]._favourite = True
+            args[1].background_normal = "./images/fav.png"
 
 
 class ScMaMovies(ScreenManager):
@@ -620,12 +649,14 @@ class MoviesView(Screen):
 
 
 class Item(BoxLayout):
-    def __init__(self, sname, **kwargs):
+    def __init__(self, sname, favo, **kwargs):
         super(Item, self).__init__(**kwargs)
         Logger.info('Item: Initialized {}'.format(self))
 
         self.megs = sname
+        self._favourite = favo
         Logger.info('Item: sname {}'.format(self.megs))
+        Logger.info('Item: favourite {}'.format(self._favourite))
 
 
 class SeriesViewMainSingleTop(BoxLayout):
@@ -813,8 +844,8 @@ class SeriesViewMainSingle(Screen):
 
     def sch_lazy(self, *args):
         scroller = args[0].scroll_y
-        if 0.09 < scroller < 0.2:
-            Clock.schedule_once(self.lazyy, .3)
+        if scroller < -0.2:
+            Clock.schedule_once(self.lazyy, 1.2)
 
     def lazyy(instance, *args):
         if instance.buffe:
@@ -856,18 +887,29 @@ class SeriesViewMain(Screen):
         self.ids.series_view_main_container.add_widget(series_scroll_list)
 
         for _show in hashed_dic_shows:
-            self._items = Item(hashed_dic_shows[_show]['_id'])
+            show_is_favourite = MainView.favourites.exists(_show)
+
+            self._items = Item(hashed_dic_shows[_show]['_id'], show_is_favourite)
             self._items.size = ((Window.size[0] / 3) - 30, (Window.size[1] / 2) - 300)
+            self._items.ids.item_im_holder_float_b.bind(
+                on_press=partial(self.sf, _show, 'show', hashed_dic_shows[_show], self._items))
+
+            if self._items._favourite:
+                self._items.ids.item_im_holder_float_b.background_normal = './images/fav.png'
 
             try:
-                self._items.add_widget(AsyncImage(source=hashed_dic_shows[_show]['images']['poster'], nocache=True, on_error=self.async_image_error_load))
+                self._items.ids.item_im_holder_float_i.source = hashed_dic_shows[_show]['images']['poster']
+                self._items.ids.item_im_holder_float_i.bind(on_error=self.async_image_error_load)
+
             except Exception:
                 Logger.info('No image setting default')
 
-                self._items.add_widget(Image(source='/images/logo.png'))
+                self._items_latest_s.ids.item_im_holder_float.add_widget(Image(source='/images/logo.png', pos_hint={'center_x': 0.5, 'center_y': .5}))
                 pass
 
-            self._items.add_widget(Button(text=hashed_dic_shows[_show]['title'], size_hint_y=.1, text_size=(((Window.size[0] / 3)-45), None), shorten_from='right', halign='center', shorten=True, on_press=partial(self.change_to_series_single, self._items.megs)))
+            self._items.ids.item_title_b.text = hashed_dic_shows[_show]['title']
+            self._items.ids.item_title_b.text_size = (((Window.size[0] / 3)-45), None)
+            self._items.ids.item_title_b.bind(on_release=partial(self.change_to_series_single, self._items.megs))
 
             series_layout.add_widget(self._items)
 
@@ -888,6 +930,21 @@ class SeriesViewMain(Screen):
 
         self.manager.add_widget(SeriesViewMainSingle(__s_id))
         self.manager.current = 'svms'
+
+    def sf(self, hash_key, type_key, json_val, *args):
+        Logger.info('SeriesViewMain: show is favourite {}'.format(args[0]._favourite))
+
+        if args[0]._favourite:
+            Logger.info('SeriesViewMain: show removing from favourite')
+
+            MainView.favourites.delete(hash_key)
+            args[1].background_normal = "./images/favno.png"
+        else:
+            Logger.info('SeriesViewMain: show setting as favourite')
+
+            MainView.favourites.put(hash_key, _type_key=type_key, _json_val=json_val)
+            args[0]._favourite = True
+            args[1].background_normal = "./images/fav.png"
 
 
 class ScMaSeries(ScreenManager):
@@ -995,19 +1052,30 @@ class SearchViewMain(Screen):
             self.ids.search_view_main_container_holder.add_widget(search_series_scroll_list)
 
             for _search_item_show in hashed_dic_search:
+                search_show_is_favourite = MainView.favourites.exists(_search_item_show)
 
-                self._items_search_s = Item(hashed_dic_search[_search_item_show]['_id'])
+                self._items_search_s = Item(hashed_dic_search[_search_item_show]['_id'], search_show_is_favourite)
                 self._items_search_s.size = ((Window.size[0] / 3) - 30, (Window.size[1] / 2) - 300)
+                self._items_search_s.ids.item_im_holder_float_b.bind(
+                    on_press=partial(self.sf, _search_item_show, 'show', hashed_dic_search[_search_item_show],
+                                     self._items_search_s))
+
+                if self._items_search_s._favourite:
+                    self._items_search_s.ids.item_im_holder_float_b.background_normal = './images/fav.png'
 
                 try:
-                    self._items_search_s.add_widget(AsyncImage(source=hashed_dic_search[_search_item_show]['images']['poster'], nocache=True, on_error=self.async_image_error_load))
+                    self._items_search_s.ids.item_im_holder_float_i.source = hashed_dic_search[_search_item_show]['images']['poster']
+                    self._items_search_s.ids.item_im_holder_float_i.bind(on_error=self.async_image_error_load)
+
                 except Exception:
                     Logger.info('No image setting default')
 
-                    self._items_search_s.add_widget(Image(source='/images/logo.png'))
+                    self._items_search_s.add_widget(Image(source='/images/logo.png', pos_hint={'center_x': 0.5, 'center_y': .5}))
                     pass
 
-                self._items_search_s.add_widget(Button(text=hashed_dic_search[_search_item_show]['title'], size_hint_y=.1, text_size=(((Window.size[0] / 3)-45), None), shorten_from='right', halign='center', shorten=True, on_press=partial(self.change_to_series_single, self._items_search_s.megs)))
+                self._items_search_s.ids.item_title_b.text = hashed_dic_search[_search_item_show]['title']
+                self._items_search_s.ids.item_title_b.text_size = (((Window.size[0] / 3) - 45), None)
+                self._items_search_s.ids.item_title_b.bind(on_release=partial(self.change_to_series_single, self._items_search_s.megs))
 
                 search_series_layout.add_widget(self._items_search_s)
 
@@ -1025,21 +1093,30 @@ class SearchViewMain(Screen):
             self.ids.search_view_main_container_holder.add_widget(search_movies_scroll_list)
 
             for _search_item_movie in hashed_dic_search:
-                self._items_search_m = Item(hashed_dic_search[_search_item_movie]['_id'])
+                search_movie_is_favourite = MainView.favourites.exists(_search_item_movie)
+
+                self._items_search_m = Item(hashed_dic_search[_search_item_movie]['_id'], search_movie_is_favourite)
                 self._items_search_m.size = ((Window.size[0] / 3) - 30, (Window.size[1] / 2) - 300)
+                self._items_search_m.ids.item_im_holder_float_b.bind(
+                    on_press=partial(self.sf, _search_item_movie, 'movie', hashed_dic_search[_search_item_movie],
+                                     self._items_search_m))
+
+                if self._items_search_m._favourite:
+                    self._items_search_m.ids.item_im_holder_float_b.background_normal = './images/fav.png'
+
                 try:
-                    self._items_search_m.add_widget(AsyncImage(source=hashed_dic_search[_search_item_movie]['images']['poster'], nocache=True,
-                                                      on_error=self.async_image_error_load))
+                    self._items_search_m.ids.item_im_holder_float_i.source = hashed_dic_search[_search_item_movie]['images']['poster']
+                    self._items_search_m.ids.item_im_holder_float_i.bind(on_error=self.async_image_error_load)
+
                 except Exception:
                     Logger.info('No image setting default')
 
-                    self._items_search_m.add_widget(Image(source='images/logo.png'))
+                    self._items_search_m.add_widget(Image(source='images/logo.png', pos_hint={'center_x': 0.5, 'center_y': .5}))
                     pass
 
-                self._items_search_m.add_widget(
-                    Button(text=hashed_dic_search[_search_item_movie]['title'], size_hint_y=.1,
-                                             text_size=(((Window.size[0] / 3) - 45), None), shorten_from='right',
-                                             halign='center', shorten=True, on_press=partial(self.change_to_movies_single, self._items_search_m.megs)))
+                self._items_search_m.ids.item_title_b.text = hashed_dic_search[_search_item_movie]['title']
+                self._items_search_m.ids.item_title_b.text_size = (((Window.size[0] / 3) - 45), None)
+                self._items_search_m.ids.item_title_b.bind(on_release=partial(self.change_to_movies_single, self._items_search_m.megs))
 
                 search_movies_layout.add_widget(self._items_search_m)
 
@@ -1056,7 +1133,7 @@ class SearchViewMain(Screen):
         Clock.schedule_once(partial(stop_loade, instance), 4)
 
     def change_to_movies_single(instance, __movie_id, *args):
-        Logger.info('MoviesViewMain: change_to_movies_single {}'.format(__movie_id))
+        Logger.info('SearchViewMain: change_to_movies_single {}'.format(__movie_id))
 
         Clock.schedule_once(partial(start_loade, instance), -1)
         Clock.schedule_once(partial(instance.add_scmm, __movie_id), 0.5)
@@ -1073,6 +1150,21 @@ class SearchViewMain(Screen):
 
         self.manager.add_widget(MoviesViewMainSingle(__s_id))
         self.manager.current = 'mvms'
+
+    def sf(self, hash_key, type_key, json_val, *args):
+        Logger.info('SearchViewMain: {} is favourite {}'.format(type_key, args[0]._favourite))
+
+        if args[0]._favourite:
+            Logger.info('SearchViewMain: {} removing from favourite'.format(type_key))
+
+            MainView.favourites.delete(hash_key)
+            args[1].background_normal = "./images/favno.png"
+        else:
+            Logger.info('SearchViewMain: {} setting as favourite'.format(type_key))
+
+            MainView.favourites.put(hash_key, _type_key=type_key, _json_val=json_val)
+            args[0]._favourite = True
+            args[1].background_normal = "./images/fav.png"
 
 
 class ScMaSearch(ScreenManager):
@@ -1155,19 +1247,31 @@ class LatestViewMain(Screen):
 
         latest_show_counter = 0
         for _show in hashed_dic_shows:
+
             if latest_show_counter < 15:
-                self._items_latest_s = Item(hashed_dic_shows[_show]['_id'])
+                latest_show_is_favourite = MainView.favourites.exists(_show)
+
+                self._items_latest_s = Item(hashed_dic_shows[_show]['_id'], latest_show_is_favourite)
                 self._items_latest_s.size = ((Window.size[0] / 3) - 30, (Window.size[1] / 2) - 300)
+                self._items_latest_s.ids.item_im_holder_float_b.bind(
+                    on_press=partial(self.sf, _show, 'show', hashed_dic_shows[_show], self._items_latest_s))
+
+                if self._items_latest_s._favourite:
+                    self._items_latest_s.ids.item_im_holder_float_b.background_normal = './images/fav.png'
 
                 try:
-                    self._items_latest_s.add_widget(AsyncImage(source=hashed_dic_shows[_show]['images']['poster'], nocache=True, on_error=self.async_image_error_load))
+                    self._items_latest_s.ids.item_im_holder_float_i.source = hashed_dic_shows[_show]['images']['poster']
+                    self._items_latest_s.ids.item_im_holder_float_i.bind(on_error=self.async_image_error_load)
+
                 except Exception:
                     Logger.info('No image setting default')
 
-                    self._items_latest_s.add_widget(Image(source='/images/logo.png'))
+                    self._items_latest_s.ids.item_im_holder_float.add_widget(Image(source='/images/logo.png', pos_hint={'center_x': 0.5, 'center_y': .5}))
                     pass
 
-                self._items_latest_s.add_widget(Button(text=hashed_dic_shows[_show]['title'], size_hint_y=.1, text_size=(((Window.size[0] / 3)-45), None), shorten_from='right', halign='center', shorten=True, on_press=partial(self.change_to_series_single, self._items_latest_s.megs)))
+                self._items_latest_s.ids.item_title_b.text = hashed_dic_shows[_show]['title']
+                self._items_latest_s.ids.item_title_b.text_size = (((Window.size[0] / 3) - 45), None)
+                self._items_latest_s.ids.item_title_b.bind(on_release=partial(self.change_to_series_single, self._items_latest_s.megs))
 
                 latest_series_layout.add_widget(self._items_latest_s)
                 latest_show_counter += 1
@@ -1187,21 +1291,29 @@ class LatestViewMain(Screen):
         latest_movie_counter = 0
         for _movie in hashed_dic_movies:
             if latest_movie_counter < 15:
-                self._items_latest_m = Item(hashed_dic_movies[_movie]['_id'])
+                latest_movie_is_favourite = MainView.favourites.exists(_movie)
+
+                self._items_latest_m = Item(hashed_dic_movies[_movie]['_id'], latest_movie_is_favourite)
                 self._items_latest_m.size = ((Window.size[0] / 3) - 30, (Window.size[1] / 2) - 300)
+                self._items_latest_m.ids.item_im_holder_float_b.bind(
+                    on_press=partial(self.sf, _movie, 'movie', hashed_dic_movies[_movie], self._items_latest_m))
+
+                if self._items_latest_m._favourite:
+                    self._items_latest_m.ids.item_im_holder_float_b.background_normal = './images/fav.png'
+
                 try:
-                    self._items_latest_m.add_widget(AsyncImage(source=hashed_dic_movies[_movie]['images']['poster'], nocache=True,
-                                                      on_error=self.async_image_error_load))
+                    self._items_latest_m.ids.item_im_holder_float_i.source = hashed_dic_movies[_movie]['images']['poster']
+                    self._items_latest_m.ids.item_im_holder_float_i.bind(on_error=self.async_image_error_load)
+
                 except Exception:
                     Logger.info('No image setting default')
 
-                    self._items_latest_m.add_widget(Image(source='images/logo.png'))
+                    self._items_latest_m.ids.item_im_holder_float.add_widget(Image(source='images/logo.png',pos_hint={'center_x': 0.5, 'center_y': .5}))
                     pass
 
-                self._items_latest_m.add_widget(
-                    Button(text=hashed_dic_movies[_movie]['title'], size_hint_y=.1,
-                                             text_size=(((Window.size[0] / 3) - 45), None), shorten_from='right',
-                                             halign='center', shorten=True, on_press=partial(self.change_to_movies_single, self._items_latest_m.megs)))
+                self._items_latest_m.ids.item_title_b.text = hashed_dic_movies[_movie]['title']
+                self._items_latest_m.ids.item_title_b.text_size = (((Window.size[0] / 3) - 45), None)
+                self._items_latest_m.ids.item_title_b.bind(on_release=partial(self.change_to_movies_single, self._items_latest_m.megs))
 
                 latest_movies_layout.add_widget(self._items_latest_m)
                 latest_movie_counter += 1
@@ -1219,7 +1331,7 @@ class LatestViewMain(Screen):
         Clock.schedule_once(partial(stop_loade, instance), 4)
 
     def change_to_movies_single(instance, __movie_id, *args):
-        Logger.info('MoviesViewMain: change_to_movies_single {}'.format(__movie_id))
+        Logger.info('LatestViewMain: change_to_movies_single {}'.format(__movie_id))
 
         Clock.schedule_once(partial(start_loade, instance), -1)
         Clock.schedule_once(partial(instance.add_scmm, __movie_id), 0.5)
@@ -1236,6 +1348,21 @@ class LatestViewMain(Screen):
 
         self.manager.add_widget(MoviesViewMainSingle(__s_id))
         self.manager.current = 'mvms'
+
+    def sf(self, hash_key, type_key, json_val, *args):
+        Logger.info('LatestViewMain: {} is favourite {}'.format(type_key, args[0]._favourite))
+
+        if args[0]._favourite:
+            Logger.info('LatestViewMain: {} removing from favourite'.format(type_key))
+
+            MainView.favourites.delete(hash_key)
+            args[1].background_normal = "./images/favno.png"
+        else:
+            Logger.info('LatestViewMain: {} setting as favourite'.format(type_key))
+
+            MainView.favourites.put(hash_key, _type_key=type_key, _json_val=json_val)
+            args[0]._favourite = True
+            args[1].background_normal = "./images/fav.png"
 
 
 class ScMaLatest(ScreenManager):
@@ -1290,6 +1417,109 @@ class LatestView(Screen):
             Logger.info('LatestView: refresh skipped {}'.format(self))
 
 
+class FavouritesViewMain(Screen):
+
+    def __init__(self, **kwargs):
+        super(FavouritesViewMain, self).__init__(**kwargs)
+        self.name = 'favourites view main screen'
+        Logger.info('FavouritesViewMain: Initialized {}'.format(self.name))
+        Logger.info('FavouritesViewMain: items {}'.format(MainView.favourites.keys()))
+        self.temp_f_dict = MainView.favourites.keys()
+
+
+        favourites_layout = GridLayout(cols=3, padding=25, spacing=15,
+                                   size_hint=(None, None), width=ViewControl.width_x - 30)
+        favourites_layout.bind(minimum_height=favourites_layout.setter('height'))
+
+        favourites_scroll_list = ScrollView(size_hint=(None, None),
+                                        size=(ViewControl.width_x - 20, ViewControl.height_x * 0.44),
+                                        pos_hint={'center_x': 0.5, 'center_y': .5}, do_scroll_x=False)
+
+        favourites_scroll_list.add_widget(favourites_layout)
+        self.ids.favourites_view_main_container_holder.add_widget(favourites_scroll_list)
+
+        for key in self.temp_f_dict:
+            print(key)
+            print(MainView.favourites[key])
+
+            favourite_item = MainView.favourites[key]['_json_val']
+            print(favourite_item)
+            favourite_is_favourite = MainView.favourites.exists(key)
+
+            self._items_favourite = Item(favourite_item['_id'], favourite_is_favourite)
+            self._items_favourite.size = ((Window.size[0] / 3) - 30, (Window.size[1] / 2) - 300)
+
+            # self._items_favourite.ids.item_im_holder_float_b.bind(
+            #     on_press=partial(self.sf, key, 'show', favourite_item, self._items_favourite))
+
+            if self._items_favourite._favourite:
+                self._items_favourite.ids.item_im_holder_float_b.background_normal = './images/fav.png'
+
+            try:
+                self._items_favourite.ids.item_im_holder_float_i.source = favourite_item['images']['poster']
+                self._items_favourite.ids.item_im_holder_float_i.bind(on_error=self.async_image_error_load)
+
+            except Exception:
+                Logger.info('No image setting default')
+
+                self._items_favourite.ids.item_im_holder_float.add_widget(
+                    Image(source='/images/logo.png', pos_hint={'center_x': 0.5, 'center_y': .5}))
+                pass
+
+            self._items_favourite.ids.item_title_b.text = favourite_item['title']
+            self._items_favourite.ids.item_title_b.text_size = (((Window.size[0] / 3) - 45), None)
+            # self._items_favourite.ids.item_title_b.bind(
+            #     on_release=partial(self.change_to_series_single, self._items_latest_s.megs))
+
+            favourites_layout.add_widget(self._items_favourite)
+
+    # pass
+
+
+class ScMaFavourites(ScreenManager):
+
+    def __init__(self, **kwargs):
+        super(ScMaFavourites, self).__init__(**kwargs)
+        Logger.info('ScMaFavourites: Initialized {}'.format(self))
+
+        if FavouritesView.skipper:
+            Clock.schedule_once(self.add_scmf, 0)
+        else:
+
+            Clock.schedule_once(partial(start_loade, self), -1)
+            Clock.schedule_once(self.add_scmf, 0.5)
+            Clock.schedule_once(partial(stop_loade, self), 4)
+
+    def add_scmf(self, *args):
+        self.add_widget(FavouritesViewMain())
+        FavouritesView.skipper = False
+
+
+class FavouritesView(Screen):
+    skipper = BooleanProperty(True)
+    _filter_order = StringProperty(None)
+    _filter_sort = StringProperty(None)
+    _filter_genre = StringProperty(None)
+    _filter_type = StringProperty(None)
+
+    def __init__(self, **kwargs):
+        super(FavouritesView, self).__init__(**kwargs)
+        Logger.info('FavouritesView: Initialized {}'.format(self))
+
+        self.ids.fav_view_holder.add_widget(ScMaFavourites())
+
+    def refresh_on_enter(self, *args):
+        Logger.info('FavouritesView: refresh invoked {}'.format(self))
+
+        if not FavouritesView.skipper:
+            self.ids.fav_view_holder.remove_widget(self.ids.fav_view_holder.children[0])
+            Logger.info('FavouritesView: refresh not skipped {}'.format(self))
+            self.ids.fav_view_holder.add_widget(ScMaLatest())
+
+        else:
+            Logger.info('FavouritesView: refresh skipped {}'.format(self))
+
+
 class MainViewScManager(ScreenManager):
     def __init__(self, **kwargs):
         super(MainViewScManager, self).__init__(**kwargs)
@@ -1298,6 +1528,7 @@ class MainViewScManager(ScreenManager):
         self.add_widget(SearchView())
         self.add_widget(MoviesView())
         self.add_widget(SeriesView())
+        self.add_widget(FavouritesView())
 
 
 class FilterModalView(ModalView):
@@ -1353,16 +1584,50 @@ class FilterModalView(ModalView):
         _filter_dropdown_focused.opacity = 1
 
 
+class MainNavButton(Button):
+    def __init__(self, set_as_text, **kwargs):
+        super(MainNavButton, self).__init__(**kwargs)
+        self.text = set_as_text
+
+
 class MainView(Screen):
     connection_status_indicator = ObjectProperty(None)
+    favourites = JsonStore('favourites.json')
 
     def __init__(self, **kwargs):
         super(MainView, self).__init__(**kwargs)
         Logger.info('MainView: Initialized {}'.format(self))
+
         self.view = FilterModalView()
 
         self.main_scm = MainViewScManager()
         self.ids.screen_m_container.add_widget(self.main_scm)
+
+        self.main_nav_p = GridLayout(rows=1, cols=50, padding=5, spacing=5, size_hint=(None, None))
+        self.main_nav_p.bind(minimum_width=self.main_nav_p.setter('width'))
+
+        self.n_m = MainNavButton('Movies')
+        self.n_s = MainNavButton('Series')
+        self.n_l = MainNavButton('Latest')
+        self.n_f = MainNavButton('Favourites')
+
+        self.n_m.bind(on_press=partial(self.set_as_current_screen, 'movies_view', self.n_l, self.n_s, self.n_f))
+        self.main_nav_p.add_widget(self.n_m)
+
+        self.n_s.bind(on_press=partial(self.set_as_current_screen, 'series_view', self.n_l, self.n_m, self.n_f))
+        self.main_nav_p.add_widget(self.n_s)
+
+        self.n_l.bind(on_press=partial(self.set_as_current_screen, 'latest_view', self.n_m, self.n_s, self.n_f))
+        self.main_nav_p.add_widget(self.n_l)
+
+        self.n_f.bind(on_press=partial(self.set_as_current_screen, 'favourites_view', self.n_l, self.n_s, self.n_m))
+        self.main_nav_p.add_widget(self.n_f)
+
+        self.scroll = ScrollView(size_hint=(1, 1), do_scroll_x=True, do_scroll_y=False, bar_color=[0,0,0,0], bar_inactive_color=[0,0,0,0])
+
+        self.scroll.add_widget(self.main_nav_p)
+        self.ids.navigation_b.add_widget(self.scroll)
+
 
     def connect_on_enter(self, *args):
         Logger.info('MainView: on enter create connector')
@@ -1383,21 +1648,23 @@ class MainView(Screen):
 
         self.view.open()
 
-    def set_as_current_screen(self, button_instance, scn, other_but_f, other_but_s, *args):
+    def set_as_current_screen(self, scn, other_but_f, other_but_s, other_but_m, *args):
         Logger.info('MainView: setting active screen {}'.format(scn))
 
-        button_instance.background_normal = "./images/n_b.png"
+        args[0].background_normal = "./images/n_b.png"
         other_but_f.background_normal = "./images/n_n.png"
         other_but_s.background_normal = "./images/n_n.png"
+        other_but_m.background_normal = "./images/n_n.png"
 
         self.main_scm.current = scn
 
-    def set_as_current_screen_search(self, scn, ot_1, ot_2, ot_3, search_in, search_in_container,  *args):
+    def set_as_current_screen_search(self, scn, search_in, search_in_container,  *args):
         Logger.info('MainView: setting active screen for search {}'.format(scn))
 
-        ot_1.background_normal = "./images/n_n.png"
-        ot_2.background_normal = "./images/n_n.png"
-        ot_3.background_normal = "./images/n_n.png"
+        self.n_f.background_normal = "./images/n_n.png"
+        self.n_m.background_normal = "./images/n_n.png"
+        self.n_s.background_normal = "./images/n_n.png"
+        self.n_l.background_normal = "./images/n_n.png"
         if search_in:
             if 'search_view' in str(self.main_scm.current_screen):
                 Logger.info('MainView: current screen is  {}'.format(str(self.main_scm.current_screen)))
