@@ -216,8 +216,8 @@
 <MainViewButton@Button>:
     size_hint_x: None
     size_hint_y: None
-    width: dp(40)
-    height: dp(40)
+    width: dp(44)
+    height: dp(44)
     pos_hint: {'center_x': 0.5, 'center_y': 0.5}
 
 
@@ -238,7 +238,7 @@
             id: main_view_container
             opacity: 1
             GreyLighterBox:
-                size_hint_y: .05
+                size_hint_y: .06
                 id: navigation_a
                 orientation: 'horizontal'
                 BoxLayout:
@@ -274,8 +274,8 @@
                         foreground_color: hex('#ffa500')
                         on_focus: root.searchInput_on_focus_effect(self, self.focus)
                         multiline: False
-                        padding: 15,10,15,0
-                        font_size: dp(17)
+                        padding: 15,35,15,0
+                        font_size: dp(18)
                         opacity: .2
                 BoxLayout:
                     id: filter_modal
@@ -311,7 +311,7 @@
                 size_hint_y: .06
             OkerBox:
                 id: screen_m_container
-                size_hint_y: .89
+                size_hint_y: .88
 
 
 <Progression>:
@@ -360,12 +360,12 @@
         opacity: 1
         GreyLabel:
             id: search_typee
-            size_hint_y: .09
+            size_hint_y: .06
             text: ''
         BoxLayout:
             id: search_view_main_container_holder
             padding: 5,5,5,5
-            size_hint_y: .91
+            size_hint_y: .94
 
 
 <SearchView>:
@@ -478,10 +478,10 @@
         opacity: 1
         BlackBox:
             id: series_pag_holder
-            size_hint_y: .09
+            size_hint_y: .05
         BlackBox:
             id: ser_view_holder
-            size_hint_y: .91
+            size_hint_y: .95
 
 
 <Tor>:
@@ -593,10 +593,10 @@
         opacity: 1
         BlackBox:
             id: movies_pag_holder
-            size_hint_y: .09
+            size_hint_y: .05
         BlackBox:
             id: mov_view_holder
-            size_hint_y: .91
+            size_hint_y: .95
 
 
 <LatestViewMain>:
@@ -631,14 +631,10 @@
         orientation: 'vertical'
         id: favourites_view_main_container
         opacity: 1
-        GreyLabel:
-            id: search_typee
-            size_hint_y: .09
-            text: ''
-        BoxLayout:
+        GreyBox:
             id: favourites_view_main_container_holder
             padding: 5,5,5,5
-            size_hint_y: .91
+            size_hint_y: 1
 
 
 <FavouritesView>:
@@ -680,9 +676,9 @@
                 nocache: True
             Button:
                 id: item_im_holder_float_b
-                pos_hint: {'center_x': .85, 'center_y': .85}
+                pos_hint: {'center_x': .85, 'center_y': .93}
                 size_hint: (None,None)
-                size:(dp(45),dp(45))
+                size:(dp(25),dp(25))
                 background_normal: "./images/favno.png"
                 background_down: "./images/fav.png"
 
@@ -815,8 +811,8 @@
 <PaginationButton>:
     size_hint_x: None
     size_hint_y: None
-    width: dp(60)
-    height: dp(50)
+    width: dp(40)
+    height: dp(30)
 
 <MainNavButton>:
     size_hint_x: None
@@ -825,4 +821,3 @@
     height: dp(45)
     background_down: "./images/n_b.png"
     background_normal: "./images/n_n.png"
-    on_release:

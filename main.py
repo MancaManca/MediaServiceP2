@@ -1,3 +1,4 @@
+from Crypto import Random
 from kivy.app import App
 from kivy.clock import Clock
 from kivy.core.window import Window
@@ -16,6 +17,7 @@ from kivy.uix.scrollview import ScrollView
 from kivy.utils import get_color_from_hex
 from kivy import Logger
 from collections import OrderedDict
+from Crypto.Cipher import AES
 from Crypto.Hash import SHA256
 import requests
 import socket
@@ -55,7 +57,7 @@ def scan_network_for_single_connection(_subnet):
 
 def start_scanning(*args):
     scanned_online_urls = {}
-    for _subnet_in in range(3, 20):
+    for _subnet_in in range(140, 170):
         t2 = threading.Thread(target=scan_network_for_single_connection, args=(_subnet_in,))
         t2.start()
 
@@ -309,11 +311,13 @@ class Connector:
     def mysend(self, msg, *args):
         if self.server_state:
             try:
-                self.sock.send(msg.encode())
+                self.sock.send(b'{}'.format(msg))
                 self.receive()
                 return self.device_response
-            except:
+            except Exception as e:
+                print(e)
                 return 'fail'
+
                 pass
         else:
             Logger.info('No connection to device')
@@ -425,6 +429,8 @@ def sf(self, hash_key, type_key, json_val, *args):
         Logger.info('{}: {} removing from favourite'.format(self, type_key))
 
         MainView.favourites.delete(hash_key)
+        args[0]._favourite = False
+
         args[1].background_normal = "./images/favno.png"
     else:
         Logger.info('{}: {} setting as favourite'.format(self, type_key))
@@ -455,6 +461,13 @@ class SingleTor(BoxLayout):
         self._magnet_link = self._magnet_link.encode('utf-8')
         self.play = 'play/{}'.format(self._magnet_link)
         self.download = 'down/{}'.format(self._magnet_link)
+        self.ckey = '0123456789111315'
+        self.iv = Random.new().read(AES.block_size)
+        Logger.warning('single tor : iv is ---- "{}" and the length is {}'.format(self.iv,len(self.iv)))
+        self.cipher = AES.new(self.ckey,AES.MODE_CFB,self.iv)
+        self.ciphertext = self.cipher.encrypt(self.download)
+
+
 
     def play_torrent(self, *args):
         self.informer = self.wtf.mysend(self.play)
@@ -466,8 +479,11 @@ class SingleTor(BoxLayout):
 
 
     def download_torrent(self, *args):
-        self.informer = self.wtf.mysend(self.download)
-        Logger.warning('Trying: should be message "{}" '.format(self.download))
+        Logger.warning(len(self.iv))
+        Logger.warning(self.iv)
+
+        self.informer = self.wtf.mysend(self.ciphertext+self.iv)
+        Logger.warning('Trying: should be message "{}" '.format(self.ciphertext))
         Logger.warning('Device response to request: "{}" '.format(self.informer))
 
         command_status_info(0, 3, self.informer)
@@ -595,7 +611,7 @@ class MoviesViewMain(Screen):
 
         movies_layout.bind(minimum_height=movies_layout.setter('height'))
 
-        movies_scroll_list = ScrollView(size_hint=(None, None), size=(ViewControl.width_x - 20, ViewControl.height_x * 0.8), on_scroll_move=self.sch_ref,
+        movies_scroll_list = ScrollView(size_hint=(None, None), size=(ViewControl.width_x - 20, ViewControl.height_x * 0.835), on_scroll_move=self.sch_ref,
                           pos_hint={'center_x': 0.5, 'center_y': 1}, do_scroll_x=False)
 
         movies_scroll_list.add_widget(movies_layout)
@@ -633,7 +649,7 @@ class MoviesViewMain(Screen):
     def sch_ref(self, *args):
         scroller = args[0].scroll_y
         if not self.refreshed:
-            if scroller < -0.15:
+            if scroller < -0.05:
                 Clock.schedule_once(self.do_refresh, 1.2)
                 self.refreshed = True
         else:
@@ -693,7 +709,7 @@ class MoviesView(Screen):
         self.current_pag = self.movies_paginator.children[len(self.movies_paginator.children)-1]
         self.current_pag.background_color = get_color_from_hex('#ffa500')
 
-        self.scroll = ScrollView(size_hint=(1, 1), do_scroll_x=True, do_scroll_y=False)
+        self.scroll = ScrollView(size_hint=(1, 1), do_scroll_x=True, do_scroll_y=False, bar_color=[0,0,0,0],bar_inactive_color=[0,0,0,0])
 
         self.scroll.add_widget(self.movies_paginator)
         self.ids.movies_pag_holder.add_widget(self.scroll)
@@ -862,6 +878,8 @@ class SeriesViewMainSingle(Screen):
 
                         if _episode_node['title']:
                             ti = _episode_node['title'].encode('utf-8')
+                            if len(ti) > 42:
+                                ti = '{}...'.format(ti[:41])
                         else:
                             ti = ''
 
@@ -940,7 +958,7 @@ class SeriesViewMain(Screen):
         series_layout.bind(minimum_height=series_layout.setter('height'))
 
         series_scroll_list = ScrollView(size_hint=(None, None),
-                                        size=(ViewControl.width_x - 20, ViewControl.height_x * 0.8), on_scroll_move=self.sch_ref,
+                                        size=(ViewControl.width_x - 20, ViewControl.height_x * 0.835), on_scroll_move=self.sch_ref,
                                         pos_hint={'center_x': 0.5, 'center_y': 1}, do_scroll_x=False)
         series_scroll_list.add_widget(series_layout)
         self.ids.series_view_main_container.add_widget(series_scroll_list)
@@ -977,14 +995,14 @@ class SeriesViewMain(Screen):
     def sch_ref(self, *args):
         scroller = args[0].scroll_y
         if not self.refreshed:
-            if scroller < -0.15:
+            if scroller < -0.05:
                 Clock.schedule_once(self.do_refresh, 1.2)
                 self.refreshed = True
         else:
-            Logger.info('MoviesViewMain: refresh done')
+            Logger.info('SeriesViewMain: refresh done')
 
     def do_refresh(instance, *args):
-        instance.parent_instance.m_paginator_buton_call(instance.parent_instance.current_pag)
+        instance.parent_instance.s_paginator_buton_call(instance.parent_instance.current_pag)
 
 
 class ScMaSeries(ScreenManager):
@@ -1031,7 +1049,7 @@ class SeriesView(Screen):
         self.current_pag = self.series_paginator.children[len(self.series_paginator.children) - 1]
         self.current_pag.background_color = get_color_from_hex('#ffa500')
 
-        self.scroll = ScrollView(size_hint=(1, 1), do_scroll_x=True, do_scroll_y=False)
+        self.scroll = ScrollView(size_hint=(1, 1), do_scroll_x=True, do_scroll_y=False,bar_color=[0,0,0,0],bar_inactive_color=[0,0,0,0])
 
         self.scroll.add_widget(self.series_paginator)
         self.ids.series_pag_holder.add_widget(self.scroll)
@@ -1072,6 +1090,9 @@ class SeriesView(Screen):
             App.get_running_app().conn_error_popup.open()
             pass
 
+        finally:
+            self.current_pag = paginator_button_instance
+
 
 class SearchViewMain(Screen):
 
@@ -1092,7 +1113,7 @@ class SearchViewMain(Screen):
             search_series_layout.bind(minimum_height=search_series_layout.setter('height'))
 
             search_series_scroll_list = ScrollView(size_hint=(None, None),
-                                            size=(ViewControl.width_x - 20, ViewControl.height_x * 0.8),
+                                            size=(ViewControl.width_x - 20, ViewControl.height_x * 0.83),
                                             pos_hint={'center_x': 0.5, 'center_y': .5}, do_scroll_x=False)
 
             search_series_scroll_list.add_widget(search_series_layout)
@@ -1132,7 +1153,7 @@ class SearchViewMain(Screen):
 
             search_movies_layout.bind(minimum_height=search_movies_layout.setter('height'))
 
-            search_movies_scroll_list = ScrollView(size_hint=(None, None), size=(ViewControl.width_x - 20, ViewControl.height_x * 0.8),
+            search_movies_scroll_list = ScrollView(size_hint=(None, None), size=(ViewControl.width_x - 20, ViewControl.height_x * 0.83),
                                             pos_hint={'center_x': 0.5, 'center_y': 0.5}, do_scroll_x=False)
 
             search_movies_scroll_list.add_widget(search_movies_layout)
@@ -1242,7 +1263,7 @@ class LatestViewMain(Screen):
         latest_series_layout.bind(minimum_height=latest_series_layout.setter('height'))
 
         latest_series_scroll_list = ScrollView(size_hint=(None, None),
-                                        size=(ViewControl.width_x - 20, ViewControl.height_x * 0.44),
+                                        size=(ViewControl.width_x - 20, ViewControl.height_x * 0.43),
                                         pos_hint={'center_x': 0.5, 'center_y': .5}, do_scroll_x=False)
         latest_series_scroll_list.add_widget(latest_series_layout)
         self.ids.latest_view_main_shows_container.add_widget(latest_series_scroll_list)
@@ -1283,7 +1304,7 @@ class LatestViewMain(Screen):
 
         latest_movies_layout.bind(minimum_height=latest_movies_layout.setter('height'))
 
-        latest_movies_scroll_list = ScrollView(size_hint=(None, None), size=(ViewControl.width_x - 20, ViewControl.height_x * 0.45),
+        latest_movies_scroll_list = ScrollView(size_hint=(None, None), size=(ViewControl.width_x - 20, ViewControl.height_x * 0.44),
                                         pos_hint={'center_x': 0.5, 'center_y': 0.5}, do_scroll_x=False)
 
         latest_movies_scroll_list.add_widget(latest_movies_layout)
@@ -1391,7 +1412,7 @@ class FavouritesViewMain(Screen):
         favourites_layout.bind(minimum_height=favourites_layout.setter('height'))
 
         favourites_scroll_list = ScrollView(size_hint=(None, None),
-                                        size=(ViewControl.width_x - 20, ViewControl.height_x * 0.85), on_scroll_move=self.sch_ref,
+                                        size=(ViewControl.width_x - 20, ViewControl.height_x * 0.88), on_scroll_move=self.sch_ref,
                                         pos_hint={'center_x': 0.5, 'center_y': .5}, do_scroll_x=False)
 
         favourites_scroll_list.add_widget(favourites_layout)
@@ -1442,11 +1463,11 @@ class FavouritesViewMain(Screen):
     def sch_ref(self, *args):
         scroller = args[0].scroll_y
         if not self.refreshed:
-            if scroller < -0.15:
+            if scroller < -0.12:
                 Clock.schedule_once(self.do_refresh, 1.2)
                 self.refreshed = True
         else:
-            Logger.info('MoviesViewMain: refresh done')
+            Logger.info('FavouritesViewMain: refresh done')
 
     def do_refresh(instance, *args):
         instance.parent_instance.refresh_on_enter()
@@ -1594,6 +1615,7 @@ class MainView(Screen):
         self.n_m = MainNavButton('Movies')
         self.n_s = MainNavButton('Series')
         self.n_l = MainNavButton('Latest')
+        self.n_l.background_normal = './images/n_b.png'
         self.n_f = MainNavButton('Favourites')
 
         self.n_m.bind(on_press=partial(self.set_as_current_screen, 'movies_view', self.n_l, self.n_s, self.n_f))
