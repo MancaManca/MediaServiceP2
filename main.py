@@ -559,9 +559,10 @@ class MoviesViewMainSingle(Screen):
             _movie_r = _movie_r.encode('utf-8')
 
             try:
-                Logger.info('MoviesViewMainSingle: Movie image {}'.format(hashed_dic_movie[_single_movie_item_in_dic]['images']['poster']))
+                Logger.info('MoviesViewMainSingle: Movie image {}'.format(hashed_dic_movie[_single_movie_item_in_dic]['images']['poster'].replace('https', 'http')))
                 _movie_im = str(hashed_dic_movie[_single_movie_item_in_dic]['images']['poster'])
                 _movie_im = _movie_im.encode('utf-8')
+                _movie_im = _movie_im.replace('https', 'http')
             except KeyError:
                 Logger.info('MoviesViewMainSingle: Movie image fallback')
                 _movie_im = './images/logo.png'
@@ -632,7 +633,7 @@ class MoviesViewMain(Screen):
                 self._items.ids.item_im_holder_float_b.background_normal = './images/fav.png'
 
             try:
-                self._items.ids.item_im_holder_float_i.source = hashed_dic_movies[_movie]['images']['poster']
+                self._items.ids.item_im_holder_float_i.source = hashed_dic_movies[_movie]['images']['poster'].replace('https', 'http')
 
             except:
                 Logger.info('No image setting default')
@@ -845,9 +846,9 @@ class SeriesViewMainSingle(Screen):
                     _show_r = _show_r.encode('utf-8')
 
                     try:
-                        Logger.info('SeriesViewMainSingle: Show image {}'.format(hashed_dic_show[_single_show_item_in_dic]['images']['poster']))
+                        Logger.info('SeriesViewMainSingle: Show image {}'.format(hashed_dic_show[_single_show_item_in_dic]['images']['poster'].replace('https', 'http')))
                         _show_im = str(hashed_dic_show[_single_show_item_in_dic]['images']['poster'])
-                        _show_im = _show_im.encode('utf-8')
+                        _show_im = _show_im.encode('utf-8').replace('https', 'http')
                     except KeyError:
                         Logger.info('SeriesViewMainSingle: Show image fallback{}')
                         _show_im = './images/logo.png'
@@ -978,7 +979,7 @@ class SeriesViewMain(Screen):
                 self._items.ids.item_im_holder_float_b.background_normal = './images/fav.png'
 
             try:
-                self._items.ids.item_im_holder_float_i.source = hashed_dic_shows[_show]['images']['poster']
+                self._items.ids.item_im_holder_float_i.source = hashed_dic_shows[_show]['images']['poster'].replace('https', 'http')
 
             except Exception:
                 Logger.info('No image setting default')
@@ -1132,7 +1133,7 @@ class SearchViewMain(Screen):
                     self._items_search_s.ids.item_im_holder_float_b.background_normal = './images/fav.png'
 
                 try:
-                    self._items_search_s.ids.item_im_holder_float_i.source = hashed_dic_search[_search_item_show]['images']['poster']
+                    self._items_search_s.ids.item_im_holder_float_i.source = hashed_dic_search[_search_item_show]['images']['poster'].replace('https', 'http')
 
                 except Exception:
                     Logger.info('SearchViewMain: No image setting default')
@@ -1172,7 +1173,7 @@ class SearchViewMain(Screen):
                     self._items_search_m.ids.item_im_holder_float_b.background_normal = './images/fav.png'
 
                 try:
-                    self._items_search_m.ids.item_im_holder_float_i.source = hashed_dic_search[_search_item_movie]['images']['poster']
+                    self._items_search_m.ids.item_im_holder_float_i.source = hashed_dic_search[_search_item_movie]['images']['poster'].replace('https', 'http')
 
                 except Exception:
                     Logger.info('SearchViewMain: No image setting default')
@@ -1283,7 +1284,7 @@ class LatestViewMain(Screen):
                     self._items_latest_s.ids.item_im_holder_float_b.background_normal = './images/fav.png'
 
                 try:
-                    self._items_latest_s.ids.item_im_holder_float_i.source = hashed_dic_shows[_show]['images']['poster']
+                    self._items_latest_s.ids.item_im_holder_float_i.source = hashed_dic_shows[_show]['images']['poster'].replace('https', 'http')
 
                 except Exception:
                     Logger.info('No image setting default')
@@ -1324,7 +1325,7 @@ class LatestViewMain(Screen):
                     self._items_latest_m.ids.item_im_holder_float_b.background_normal = './images/fav.png'
 
                 try:
-                    self._items_latest_m.ids.item_im_holder_float_i.source = hashed_dic_movies[_movie]['images']['poster']
+                    self._items_latest_m.ids.item_im_holder_float_i.source = hashed_dic_movies[_movie]['images']['poster'].replace('https', 'http')
 
                 except Exception:
                     Logger.info('No image setting default')
@@ -1433,7 +1434,7 @@ class FavouritesViewMain(Screen):
                 self._items_favourite.ids.item_im_holder_float_b.background_normal = './images/fav.png'
 
             try:
-                self._items_favourite.ids.item_im_holder_float_i.source = favourite_item['images']['poster']
+                self._items_favourite.ids.item_im_holder_float_i.source = favourite_item['images']['poster'].replace('https', 'http')
 
             except Exception:
                 Logger.info('No image setting default')
