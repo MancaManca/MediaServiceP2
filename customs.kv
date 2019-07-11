@@ -1,0 +1,217 @@
+#:kivy 1.11.1
+#:import hex kivy.utils.get_color_from_hex
+#:import Factory kivy.factory.Factory
+#:set yel hex('#FFBA1B')
+#:set gre hex('#212121')
+#:set black hex('#000000')
+#:set butt_g_y "./images/bpr1.png"
+#:set grey_high hex('#212121')
+#:set grey_mid hex('#393939')
+#:set grey_low hex('#424242')
+
+<TextInputYellow@TextInput>
+    readonly: True
+    multiline: True
+    color: 0,0,0,0
+    cursor_color: 0,0,0,0
+    padding: 20,20,20,20
+    foreground_color: hex('#ffa500')
+    background_color: (0,0,0,0)
+
+<TextInputLogin@TextInput>
+    text: ''
+    background_down: "./images/ti.png"
+    background_normal: "./images/ti.png"
+    background_active: "./images/ti.png"
+    cursor_color: yel
+    foreground_color: yel
+    multiline: False
+#                    padding: 15,35,15,0
+    font_size: dp(18)
+    size_hint:(None,None)
+    size: (dp(300),dp(40))
+    opacity: .8
+
+<InputError@Image>
+    source: 'images/war.png'
+    size_hint_x: None
+    size_hint_y: None
+    width: dp(40)
+    height: dp(40)
+
+<FancyCheckbox@CheckBox>
+#    size_hint_x: .2
+    background_radio_down: "./images/list_it_d.png"
+    background_radio_normal: "./images/list_it.png"
+
+<ScannerGrid@GridLayout>
+    cols:1
+    rows: 6
+    size_hint_y: 1
+    padding: 45,45,45,45
+    spacing: 45,45
+
+<LoginButton@Button>
+
+    size_hint:(None,None)
+    size: (dp(150),dp(50))
+    background_down: "./images/bpr2.png"
+    background_normal: "./images/bpr1.png"
+    color: 1,1,1,1
+
+<BlackBox@BoxLayout>:
+    canvas.before:
+        Color:
+            rgba: hex('#000000')
+        Rectangle:
+            pos: self.pos
+            size: self.size
+
+<OkerBox@BoxLayout>:
+    canvas.before:
+        Color:
+            rgba: hex('#ffa500')
+        Rectangle:
+            pos: self.pos
+            size: self.size
+
+<GreyLighterBox@BoxLayout>:
+    canvas.before:
+        Color:
+            rgba: hex('#3e3e3e')
+        Rectangle:
+            pos: self.pos
+            size: self.size
+
+<GreyBox@BoxLayout>:
+    canvas.before:
+        Color:
+            rgba: hex('#292929')
+        Rectangle:
+            pos: self.pos
+            size: self.size
+
+<GreyLabel@Label>:
+    canvas.before:
+        Color:
+            rgba: hex('#2a2a2a')
+        Rectangle:
+            pos: self.pos
+            size: self.size
+
+<Scanner@Image>:
+    source: './images/scan.png'
+    size_hint_x: None
+    size_hint_y: None
+    width: dp(150)
+    height: dp(150)
+    pos_hint:{'center_x': 0.5, 'center_y': 0.3}
+
+<DownloadButton@Button>:
+    size_hint_x: None
+    size_hint_y: None
+    width: dp(50)
+    height: dp(50)
+    pos_hint:{'center_x': 0.5, 'center_y': 0.5}
+    background_down: "./images/downl.png"
+    background_normal: "./images/downl.png"
+    color: 0,0,0,0
+
+<PlayButton@Button>:
+    size_hint_x: None
+    size_hint_y: None
+    width: dp(50)
+    height: dp(50)
+    pos_hint:{'center_x': 0.5, 'center_y': 0.5}
+    background_down: "./images/play.png"
+    background_normal: "./images/play.png"
+    color: 0,0,0,0
+
+<ProgressBarLabel@Label>
+    size_hint_y: None
+    height: dp(400)
+    size_hint_x: None
+    width: dp(400)
+    pos_hint:{'center_x': 0.5, 'center_y': 0.5}
+
+<SettingsViewButton@Button>
+    size_hint_x: None
+    size_hint_y: None
+    width: dp(150)
+    height: dp(60)
+    pos_hint:{'center_x': 0.5, 'center_y': 0.5}
+    background_down: "./images/b_b.png"
+    background_normal: "./images/b_a.png"
+
+
+<MainViewButton@Button>:
+    size_hint_x: None
+    size_hint_y: None
+    width: dp(44)
+    height: dp(44)
+    pos_hint: {'center_x': 0.5, 'center_y': 0.5}
+
+
+<MainViewButtonNav@Button>:
+    background_down: "./images/texti.png"
+    background_normal: "./images/texti.png"
+    size_hint_x: None
+    width: dp(100)
+
+
+<MainSingleTopLabel@Label>:
+    color: hex('#ffa500')
+
+
+<MCQCheckBox@CheckBox>:
+    color: 1, 1, 1, 1
+    size_hint: 0.15, 1
+
+
+<MCQLabel@ButtonBehavior+Label>:
+    text_size: self.size
+    valign: 'center'
+    font_size: '13sp'
+    color: 1, 1, 1, 1
+
+
+<TemplSpinnerOption@SpinnerOption>
+    background_down: "./images/ti.png"
+    background_normal: "./images/ti.png"
+
+
+<FilterSpinner@Spinner>
+    size_hint_x: None
+    size_hint_y: None
+    width: dp(200)
+    height: dp(50)
+    background_down: "./images/ti.png"
+    background_normal: "./images/ti.png"
+    option_cls: Factory.TemplSpinnerOption
+    text_autoupdate: True
+    sync_height: True
+
+
+<PaginationButton>:
+    size_hint_x: None
+    size_hint_y: None
+    width: dp(40)
+    height: dp(30)
+    text: ''
+    group: 'pagination'
+    background_down: "./images/ti.png"
+    background_normal: "./images/ti.png"
+    on_state: root._paginator_buton_call_wrap()
+
+
+<MainNavButton>:
+    group: 'nav_buttons'
+    size_hint_x: None
+    size_hint_y: None
+    width: dp(200)
+    height: dp(40)
+    background_down: "./images/ti.png"
+    background_normal: "./images/ti.png"
+    on_state: root.stater()
+
+

@@ -1,103 +1,14 @@
-#:kivy 1.10.0
+#:kivy 1.11.1
 #:import hex kivy.utils.get_color_from_hex
 #:import Factory kivy.factory.Factory
-
-<TextInputYellow@TextInput>
-    readonly: True
-    multiline: True
-    color: 0,0,0,0
-    cursor_color: 0,0,0,0
-    padding: 20,20,20,20
-    foreground_color: hex('#ffa500')
-    background_color: (0,0,0,0)
-
-<FancyCheckbox@CheckBox>
-    size_hint_x: .2
-    background_radio_down: "./images/chprd.png"
-    background_radio_normal: "./images/chpr.png"
-
-<ScannerGrid@GridLayout>
-    cols:1
-    rows: 6
-    size_hint_y: 1
-    padding: 45,45,45,45
-    spacing: 45,45
-
-<BlackBox@BoxLayout>:
-    canvas.before:
-        Color:
-            rgba: hex('#000000')
-        Rectangle:
-            pos: self.pos
-            size: self.size
-
-<OkerBox@BoxLayout>:
-    canvas.before:
-        Color:
-            rgba: hex('#ffa500')
-        Rectangle:
-            pos: self.pos
-            size: self.size
-
-<GreyLighterBox@BoxLayout>:
-    canvas.before:
-        Color:
-            rgba: hex('#3e3e3e')
-        Rectangle:
-            pos: self.pos
-            size: self.size
-
-<GreyBox@BoxLayout>:
-    canvas.before:
-        Color:
-            rgba: hex('#292929')
-        Rectangle:
-            pos: self.pos
-            size: self.size
-
-<GreyLabel@Label>:
-    canvas.before:
-        Color:
-            rgba: hex('#2a2a2a')
-        Rectangle:
-            pos: self.pos
-            size: self.size
-
-<Scanner@Image>:
-    source: './images/scan.png'
-    size_hint_x: None
-    size_hint_y: None
-    width: dp(150)
-    height: dp(150)
-    pos_hint:{'center_x': 0.5, 'center_y': 0.3}
-
-<DownloadButton@Button>:
-    size_hint_x: None
-    size_hint_y: None
-    width: dp(50)
-    height: dp(50)
-    pos_hint:{'center_x': 0.5, 'center_y': 0.5}
-    background_down: "./images/downl.png"
-    background_normal: "./images/downl.png"
-    color: 0,0,0,0
-
-<PlayButton@Button>:
-    size_hint_x: None
-    size_hint_y: None
-    width: dp(50)
-    height: dp(50)
-    pos_hint:{'center_x': 0.5, 'center_y': 0.5}
-    background_down: "./images/play.png"
-    background_normal: "./images/play.png"
-    color: 0,0,0,0
-
-
-<ProgressBarLabel@Label>
-    size_hint_y: None
-    height: dp(400)
-    size_hint_x: None
-    width: dp(400)
-    pos_hint:{'center_x': 0.5, 'center_y': 0.5}
+#:set yel hex('#FFBA1B')
+#:set gre hex('#212121')
+#:set black hex('#000000')
+#:set butt_g_y "./images/bpr1.png"
+#:set grey_high hex('#212121')
+#:set grey_mid hex('#393939')
+#:set grey_low hex('#424242')
+#:include customs.kv
 
 
 <SettingsViewItem>:
@@ -116,16 +27,6 @@
         id: settings_view_i_check
         group: 'settings_address_setter'
         on_press: root.return_on_active_name(self.active, settings_view_i_name.text)
-
-
-<SettingsViewButton@Button>
-    size_hint_x: None
-    size_hint_y: None
-    width: dp(150)
-    height: dp(60)
-    pos_hint:{'center_x': 0.5, 'center_y': 0.5}
-    background_down: "./images/b_b.png"
-    background_normal: "./images/b_a.png"
 
 
 <SettingsView>:
@@ -186,20 +87,26 @@
     orientation: 'vertical'
     id: scan_view
     save_button: save_chosen_device_and_go_to_main.disabled
-    GreyBox:
+    BoxLayout:
         orientation: 'vertical'
         id: scan_view_container
         opacity: 1
+        canvas.before:
+            Rectangle:
+                pos: self.pos
+                size: self.size
+                source: './images/background_b.png'
         BoxLayout:
             size_hint_y: .2
-            RelativeLayout:
-                Scanner:
+            Label:
+                font_size: dp(22)
+                color: yel
+                text: 'Local network Plex servers'
         BoxLayout:
-            id: scanned_devices_list
+            id: plex_server_list
             size_hint_y: .6
             ScannerGrid:
-                id: scanned_devices_list_grid
-
+                id: plex_server_list_grid
         BoxLayout:
             id: scan_view_button_container
             size_hint_y: .2
@@ -211,24 +118,14 @@
                     width: dp(200)
                     height: dp(70)
                     on_release: root.save_and_go_to_main()
+                    background_down: "./images/bpr2.png"
+                    background_normal: "./images/bpr1.png"
+                    color: 1,1,1,1
 
-
-<MainViewButton@Button>:
-    size_hint_x: None
-    size_hint_y: None
-    width: dp(44)
-    height: dp(44)
-    pos_hint: {'center_x': 0.5, 'center_y': 0.5}
-
-
-<MainViewButtonNav@Button>:
-    background_down: "./images/n_b.png"
-    background_normal: "./images/n_n.png"
 
 <MainView>:
     name: 'main'
     orientation: 'vertical'
-    connection_status_indicator: status_flagger
     on_enter: root.connect_on_enter()
     BoxLayout:
         id: main_view_c
@@ -237,81 +134,123 @@
             orientation: 'vertical'
             id: main_view_container
             opacity: 1
-            GreyLighterBox:
+            BlackBox:
                 size_hint_y: .06
                 id: navigation_a
                 orientation: 'horizontal'
                 BoxLayout:
-                    id: settings_button
-                    size_hint_x: .16
+                    id: slide_menu_button_container
+                    size_hint_x: .13
                     RelativeLayout:
                         MainViewButton:
-                            id: settings_button_drop
+                            id: filter
+                            group: 'nav_buttons'
+                            text: ''
+                            background_down: "./images/logon.png"
+                            background_normal: "./images/logon.png"
+                            pos_hint: {'center_x': 0.5, 'center_y': 0.5}
+                            on_release: root.open_filter_view()
+#                        Image:
+#                            source: 'images/logon.png'
+#                            pos_hint:{'center_x': .5, 'center_y': 0.5}
+#                            size_hint_x: None
+#                            size_hint_y: None
+#                            width: dp(40)
+#                            height: dp(40)
+                BoxLayout:
+                    id: search_holder
+                    size_hint_x: .60
+                    RelativeLayout:
+                        BoxLayout:
+                            id: search_input
+                            pos_hint:{'center_x': .6, 'center_y': 0.5}
+                            size_hint_x: None
+                            size_hint_y: None
+                            width: dp(200)
+                            height: dp(40)
+                            TextInput:
+                                id: search_input_in
+                                text: ''
+                                background_down: "./images/ti.png"
+                                background_normal: "./images/ti.png"
+                                background_active: "./images/ti.png"
+                                cursor_color: hex('#ffa500')
+                                foreground_color: hex('#ffa500')
+                                on_focus: root.searchInput_on_focus_effect(self, self.focus)
+                                multiline: False
+                                padding: 15,5,15,0
+                                font_size: dp(18)
+                                opacity: .2
+                BoxLayout:
+                    id: search_button_holder
+                    size_hint_x: .13
+                    RelativeLayout:
+                        ToggleButton:
+                            text: ''
+                            id: search_icon_bu
+                            group: 'nav_buttons'
+
+                            width: dp(44)
+                            height: dp(44)
+                            size_hint_y: None
+                            size_hint_x: None
+                            background_down: "./images/search_icon.png"
+                            background_normal: "./images/search_icon.png"
+                            pos_hint: {'center_x': 0.5, 'center_y': 0.5}
+        #                            on_release: root.set_as_current_screen_search('search_view')
+                            on_release: root._search(search_input_in.text)
+                BoxLayout:
+                    id: slide_menu_button_holder
+                    size_hint_x: .13
+                    RelativeLayout:
+                        MainViewButton:
+                            id: slide_menu_button
                             text: ''
                             background_down: "./images/settings_icon.png"
                             background_normal: "./images/settings_icon.png"
-                            on_release: root.navigate_to_settings()
-                BoxLayout:
-                    id: search
-                    size_hint_x: .16
-                    RelativeLayout:
-                        MainViewButton:
-                            text: ''
-                            id: search_icon_bu
-                            background_down: "./images/search_icon.png"
-                            background_normal: "./images/search_icon.png"
-                            on_release: root.set_as_current_screen_search('search_view', search_input_in.text, search_input_in)
-                BoxLayout:
-                    id: search_input
-                    size_hint_x: .36
-                    TextInput:
-                        id: search_input_in
-                        text: ''
-                        background_down: "./images/n_b.png"
-                        background_normal: "./images/n_b.png"
-                        background_active: "./images/n_b.png"
-                        cursor_color: hex('#ffa500')
-                        foreground_color: hex('#ffa500')
-                        on_focus: root.searchInput_on_focus_effect(self, self.focus)
-                        multiline: False
-                        padding: 15,35,15,0
-                        font_size: dp(18)
-                        opacity: .2
-                BoxLayout:
-                    id: filter_modal
-                    size_hint_x: .16
-                    RelativeLayout:
-                        MainViewButton:
-                            text: ''
-                            background_down: "./images/filter_icon.png"
-                            background_normal: "./images/filter_icon.png"
-                            on_release: root.open_filter_view()
-                BoxLayout:
-                    id: connection_status_ind
-                    size_hint_x: .16
-                    orientation: 'vertical'
-                    RelativeLayout:
-                        Switch:
-                            id: status_flagger
-                            opacity: 0
-                            size_hint_y:0
-                            active: False
-                            on_active: root.update_status_in(self.active)
-                        Image:
-                            id: connection_status_ind_l
-                            source: 'images/on_connection.png'
-                            size_hint_x: None
-                            size_hint_y: None
-                            width: dp(40)
-                            height: dp(40)
                             pos_hint: {'center_x': 0.5, 'center_y': 0.5}
-            GreyBox:
+                            on_release: root.open_slide_menu()
+#                BoxLayout:
+#                    id: search
+#                    size_hint_x: .16
+#                    RelativeLayout:
+#                        MainViewButton:
+#                            text: ''
+#                            id: search_icon_bu
+#                            background_down: "./images/search_icon.png"
+#                            background_normal: "./images/search_icon.png"
+#                            on_release: root.set_as_current_screen_search('search_view')
+
+#                BoxLayout:
+#                    id: filter_modal
+#                    size_hint_x: .16
+#                    RelativeLayout:
+#                        MainViewButton:
+#                            text: ''
+#                            background_down: "./images/filter_icon.png"
+#                            background_normal: "./images/filter_icon.png"
+#                            on_release: root.open_filter_view()
+#                BoxLayout:
+#                    id: connection_status_ind
+#                    size_hint_x: .16
+#                    orientation: 'vertical'
+#                    RelativeLayout:
+#
+#                        Image:
+#                            id: connection_status_ind_l
+#                            source: './images/on_connection.png'
+#                            size_hint_x: None
+#                            size_hint_y: None
+#                            width: dp(40)
+#                            height: dp(40)
+#                            pos_hint: {'center_x': 0.5, 'center_y': 0.5}
+            BlackBox:
                 id: navigation_b
                 orientation: 'horizontal'
                 size_hint_y: .06
-            OkerBox:
+            BlackBox:
                 id: screen_m_container
-                size_hint_y: .88
+                size_hint_y: .85
 
 
 <Progression>:
@@ -321,36 +260,50 @@
         orientation: 'vertical'
         id: progress_bar_container
         opacity: 1
+        canvas.before:
+            Rectangle:
+                pos: self.pos
+                size: self.size
+                source: './images/mm.png'
         FloatLayout:
             ProgressBarLabel:
                 id: progress_bar_main_image
-                opacity: 0.0
+                opacity: 0
+                pos_hint:{'center_x': 0.5, 'center_y': 0.3}
                 canvas.before:
                     Rectangle:
                         pos: self.pos
                         size: self.size
-                        source: 'images/load_seco.png'
-            ProgressBarLabel:
-                id: progress_bar_overlay_image
-                opacity: 1
-                canvas.before:
-                    Rectangle:
-                        pos: self.pos
-                        size: self.size
-                        source: 'images/load_mai.png'
-            ProgressBarLabel:
-                id: progress_bar_overlay_image_t
-                opacity: 1
+                        source: './images/ll1.png'
+            BoxLayout:
+                orientation: 'vertical'
                 size_hint_x: None
+                size_hint_y: None
                 width: dp(400)
-                height: dp(50)
-                pos_hint:{'center_x': 0.5, 'center_y': 0.39}
-                canvas.before:
-                    Color:
-                        rgba: hex('#000000')
-                    Rectangle:
-                        pos: self.pos
-                        size: self.size
+                height: dp(400)
+                pos_hint:{'center_x': 0.5, 'center_y': 0.3}
+                ProgressBarLabel:
+                    id: progress_bar_overlay_image_t
+                    opacity: 1
+                    size_hint_x: 1
+                    size_hint_y: 1
+                    canvas.before:
+                        Color:
+                            rgba: black
+                        Rectangle:
+                            pos: self.pos
+                            size: self.size
+                ProgressBarLabel:
+                    id: progress_bar_overlay_image_ti
+                    opacity: 0
+                    size_hint_x: 1
+                    size_hint_y: 0
+                    canvas.before:
+                        Color:
+                            rgba: black
+                        Rectangle:
+                            pos: self.pos
+                            size: self.size
 
 
 <SearchViewMain>:
@@ -386,9 +339,6 @@
     TextInputYellow:
         id: show_episode_syn
 
-
-<MainSingleTopLabel@Label>:
-    color: hex('#ffa500')
 
 <SeriesViewMainSingleTop>:
     orientation: 'horizontal'
@@ -464,7 +414,7 @@
 
 
 <SeriesViewMain>:
-    OkerBox:
+    BlackBox:
         orientation: 'vertical'
         id: series_view_main_container
         opacity: 1
@@ -472,7 +422,9 @@
 
 <SeriesView>:
     name: 'series_view'
-    OkerBox:
+    on_enter: root.load_on_enter()
+
+    BlackBox:
         orientation: 'vertical'
         id: series_view_container
         opacity: 1
@@ -587,7 +539,8 @@
 
 <MoviesView>:
     name: 'movies_view'
-    OkerBox:
+#    on_enter: root._add_movies()
+    BlackBox:
         orientation: 'vertical'
         id: movies_view_container
         opacity: 1
@@ -600,16 +553,23 @@
 
 
 <LatestViewMain>:
-    OkerBox:
+    BlackBox:
         orientation: 'vertical'
         id: latest_view_main_container
         opacity: 1
-        BoxLayout:
-            id: latest_view_main_movies_container
-            size_hint_y: .49
         BlackBox:
             size_hint_y: 0.02
             opacity: 1
+            Label:
+                text: 'Movies'
+        BoxLayout:
+            id: latest_view_main_movies_container
+            size_hint_y: .48
+        BlackBox:
+            size_hint_y: 0.02
+            opacity: 1
+            Label:
+                text: 'Shows'
         BoxLayout:
             id: latest_view_main_shows_container
             size_hint_y: .48
@@ -617,7 +577,7 @@
 
 <LatestView>:
     name: 'latest_view'
-    on_enter: root.refresh_on_enter()
+#    on_enter: root.refresh_on_enter()
     BlackBox:
         orientation: 'vertical'
         id: latest_view_container
@@ -627,11 +587,11 @@
             size_hint_y: 1
 
 <FavouritesViewMain>:
-    OkerBox:
+    BlackBox:
         orientation: 'vertical'
         id: favourites_view_main_container
         opacity: 1
-        GreyBox:
+        BlackBox:
             id: favourites_view_main_container_holder
             padding: 5,5,5,5
             size_hint_y: 1
@@ -639,12 +599,12 @@
 
 <FavouritesView>:
     name: 'favourites_view'
-    on_enter: root.refresh_on_enter()
+    on_enter: root.load_on_enter()
     BlackBox:
         orientation: 'vertical'
         id: favourites_view_container
         opacity: 1
-        OkerBox:
+        BlackBox:
             id: fav_view_holder
             size_hint_y: 1
 
@@ -681,8 +641,6 @@
                 size:(dp(25),dp(25))
                 background_normal: "./images/favno.png"
                 background_down: "./images/fav.png"
-
-
     BoxLayout:
         id: item_title_b_holder
         size_hint_y: .1
@@ -692,50 +650,59 @@
             shorten_from:'right'
             halign: 'center'
             shorten: True
+            background_normal: "./images/bpr1.png"
+            background_down: "./images/bpr2.png"
+
 
 <ScanViewItem>:
     id: scan_view_i
     orientation: 'horizontal'
-    size_hint_y: .4
-    Label:
-        id: scan_view_i_name
-        size_hint_x: .8
-        font_size: dp(16)
-        padding: 15,15
-        color: hex('#ffa500')
-        text: ''
-        font_hinting: 'mono'
-    FancyCheckbox:
-        id: scan_view_i_check
-        group: 'address_setter'
-        on_press: root.return_on_active_name(self.active, scan_view_i_name.text)
+    FloatLayout:
+        BoxLayout:
+            id: scan_view_it_id
+            size_hint: (None,None)
+            width: dp(300)
+            height: dp(120)
+            pos_hint: {'center_x': .5, 'center_y': .5}
+            group: 'boom'
+            canvas.before:
+                Rectangle:
+                    pos: self.pos
+                    size: self.size
+                    source: 'images/list_it.png'
+            MCQCheckBox:
+                id: cb
+                group: 'boom'
+                on_active: root.scan_i_checked(scan_view_it_id, self)
+                on_state: root.scan_i_checked(scan_view_it_id, self)
+            MCQLabel:
+                id: scan_i_label
+                on_press: root.scan_i_pressed(scan_view_it_id, cb)
+                text: ''
 
-
-<FilterSpinner@Spinner>
-    size_hint_x: None
-    size_hint_y: None
-    width: dp(200)
-    height: dp(50)
-    background_down: "./images/b_b.png"
-    background_normal: "./images/filter_list_i.png"
-    option_cls: Factory.TemplSpinnerOption
-    text_autoupdate: True
-    sync_height: True
-
-
-<TemplSpinnerOption@SpinnerOption>
-    background_down: "./images/b_b.png"
-    background_normal: "./images/filter_list_i.png"
 
 
 <FilterModalView>:
     auto_dismiss: True
     size_hint: (None, None)
     on_dismiss: root.close_filter(filter_type.text, filter_genre.text, filter_order.text, filter_sort.text)
+    canvas.before:
+        Color:
+            rgba: grey_high
+        Rectangle:
+            pos: self.pos
+            size: self.size
     BoxLayout:
         id: filter_view_container
         orientation: 'vertical'
+        canvas.before:
+            Color:
+                rgba: grey_high
+            Rectangle:
+                pos: self.pos
+                size: self.size
         RelativeLayout:
+
             FilterSpinner:
                 id: filter_sort
                 text: 'Sort'
@@ -785,11 +752,10 @@
     auto_dismiss: True
     size_hint: (None, None)
     background: './images/tb.png'
+    on_open: root._add_animation_on_enter()
+    on_dismiss: root.reset_on_dismiss()
     BoxLayout:
         id: lo_container
-        Image:
-            allow_stretch: True
-            source: './images/loa_over.png'
 
 <CommandStatus>:
     auto_dismiss: True
@@ -800,24 +766,216 @@
         size_hint:(None,None)
         size: (dp(150),dp(150))
         pos_hint: {'center_x': 0.5, 'center_y': 0.5}
-
         Image:
-
             id: command_status_info_i_holder
             allow_stretch: True
 #            source: './images/loa_over.png'
 
 
-<PaginationButton>:
-    size_hint_x: None
-    size_hint_y: None
-    width: dp(40)
-    height: dp(30)
+<LoginView>:
+    BoxLayout:
+        orientation: 'vertical'
+        id: login_view
+        opacity: 1
+        canvas.before:
+            Rectangle:
+                pos: self.pos
+                size: self.size
+                source: 'images/lin.png'
+        BoxLayout:
+            size_hint_y: .8
+            orientation: 'vertical'
+            FloatLayout:
+                TextInputLogin:
+                    id: local_network_input_in
+                    hint_text: 'Server password'
+                    on_focus: root.login_focus(self.focus)
+                    pos_hint: {'center_x': 0.5, 'center_y': 0.3}
+                InputError:
+                    id: local_network_input_in_er
+                    pos_hint: {'center_x': 0.8, 'center_y': 0.3}
+                    opacity: 0
+                TextInputLogin:
+                    id: puser_input_in
+                    hint_text: 'Plex user'
+                    on_focus: root.login_focus(self.focus)
+                    pos_hint: {'center_x': 0.5, 'center_y': 0.2}
+                InputError:
+                    id: puser_input_in_er
+                    pos_hint: {'center_x': 0.8, 'center_y': 0.2}
+                    opacity: 0
+                TextInputLogin:
+                    id: ppass_input_in
+                    hint_text: 'Plex password'
+                    password: True
+                    password_mask: 'x'
+                    on_focus: root.login_focus(self.focus)
+                    pos_hint: {'center_x': 0.5, 'center_y': 0.1}
+                InputError:
+                    id: ppass_input_in_er
+                    pos_hint: {'center_x': 0.8, 'center_y': 0.1}
+                    opacity: 0
+        BoxLayout:
+            size_hint_y: .2
+            RelativeLayout:
+                LoginButton:
+                    text: 'Skip'
+                    pos_hint: {'center_x': 0.7, 'center_y': 0.5}
+                    id: login_b
+                    on_release: root.skip_login()
+                LoginButton:
+                    text: 'Login'
+                    pos_hint: {'center_x': 0.3, 'center_y': 0.5}
+                    id: login_b
+                    on_release: root.get_plex(puser_input_in.text, ppass_input_in.text)
 
-<MainNavButton>:
+
+<SlideMenu>:
+    canvas.before:
+        Color:
+            rgba: black
+        Rectangle:
+            pos: self.pos
+            size: self.size
     size_hint_x: None
     size_hint_y: None
-    width: dp(250)
-    height: dp(45)
-    background_down: "./images/n_b.png"
-    background_normal: "./images/n_n.png"
+    pos_hint:{'center_x': -0.5, 'center_y': 0.5}
+    orientation: 'vertical'
+    BoxLayout:
+        id: logo_back_container
+        size_hint_y: .06
+        orientation: 'horizontal'
+        canvas.before:
+            Color:
+                rgba: grey_mid
+            Rectangle:
+                pos: self.pos
+                size: self.size
+        BoxLayout:
+            RelativeLayout:
+                Image:
+                    source: 'images/logon.png'
+                    pos_hint:{'center_x': .5, 'center_y': 0.5}
+                    size_hint_x: None
+                    size_hint_y: None
+                    width: dp(80)
+                    height: dp(80)
+        BoxLayout:
+            RelativeLayout:
+                Button:
+                    size_hint_x: None
+                    size_hint_y: None
+        #            text: 'menu'
+                    width: dp(30)
+                    height: dp(30)
+                    pos_hint:{'center_x': .5, 'center_y': 0.5}
+                    on_release: root.close_slide_menu()
+                    background_down: "./images/back_icon.png"
+                    background_normal: "./images/back_icon.png"
+    BoxLayout:
+        id: bobi
+        size_hint_y: .94
+
+#
+#    BoxLayout:
+#        id: slide_menu_items_container
+#        size_hint_y: .8
+#        orientation: 'vertical'
+#
+#        BoxLayout:
+#            orientation: 'horizontal'
+#            size_hint_y: .4
+#            canvas.before:
+#                Color:
+#                    rgba: grey_high
+#                Rectangle:
+#                    pos: self.pos
+#                    size: self.size
+
+
+#            BoxLayout:
+#                Label:
+#                    text: 'Server Connection'
+#            BoxLayout:
+#                RelativeLayout:
+#                    Image:
+#                        id: connection_status_ind_ll
+#                        source: './images/on_connection.png'
+#                        size_hint_x: None
+#                        size_hint_y: None
+#                        width: dp(40)
+#                        height: dp(40)
+#                        pos_hint: {'center_x': 0.5, 'center_y': 0.5}
+#        BoxLayout:
+#            orientation: 'horizontal'
+#            size_hint_y: .4
+#            canvas.before:
+#                Color:
+#                    rgba: grey_low
+#                Rectangle:
+#                    pos: self.pos
+#                    size: self.size
+#
+#            BoxLayout:
+#                Label:
+#                    id: account
+#                    text: 'Account '
+#            BoxLayout:
+#                RelativeLayout:
+#                    Button:
+#                        id: sign_in_out
+#                        size_hint_x: None
+#                        size_hint_y: None
+#                        text: ''
+#                        width: dp(40)
+#                        height: dp(40)
+#                        pos_hint:{'center_x': .5, 'center_y': 0.5}
+#                        on_release: root.sign_in_out()
+#                        background_down: butt_g_y
+#                        background_normal: butt_g_y
+
+<SlideMenuScrollUpper>:
+    BoxLayout:
+        id: upper_holder
+        orientation: 'vertical'
+        BoxLayout:
+            id: account_container
+            size_hint_y: .2
+            orientation: 'horizontal'
+            BoxLayout:
+                id: account_name_container
+                Label:
+                    id: account_name_l
+                    text: ''
+            BoxLayout:
+                id: account_button_container
+                Button:
+                    id: account_butt
+                    text: ''
+                    on_press: root._sign_in_out()
+        BoxLayout:
+            id: upper_grid_container
+            size_hint_y: .8
+            GridLayout:
+                id: upper_grid
+                cols: 3
+                rows: 3
+                padding: 25
+                spacing: 15
+
+
+
+<LoaderAnimation>:
+    Image:
+        id: loader_animation_image
+        size_hint_x: None
+        size_hint_y: None
+        width: dp(400)
+        height: dp(400)
+        source: './images/ll1.png'
+        pos_hint:{'center_x': .5, 'center_y': 0.5}
+
+
+
+
+

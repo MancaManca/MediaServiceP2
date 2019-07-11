@@ -1,0 +1,50 @@
+#:kivy 1.10.0
+#:import hex kivy.utils.get_color_from_hex
+#:import Factory kivy.factory.Factory
+#:set yel hex('#FFBA1B')
+#:set gre hex('#212121')
+#:set black hex('#000000')
+#:set butt_g_y "./images/bpr1.png"
+#:set grey_high hex('#212121')
+#:set grey_mid hex('#393939')
+#:set grey_low hex('#424242')
+
+<Main>:
+    canvas.before:
+        Color:
+            rgba: (0,0,0)
+#        Rectangle:
+#            pos: self.pos
+#            size: (self.width, dp(400))
+#            source: './images/ll1.png'
+#        orientation:'vertical'
+#        FloatLayout:
+#            BoxLayout:
+#
+#            Label:
+#                id: kk
+#                size_hint_x: None
+#                size_hint_y: None
+#                width: dp(400)
+#                height: dp(400)
+#                pos_hint:{'center_x': 0.5, 'center_y': 0.4}
+#                canvas.before:
+#                    Rectangle:
+#                        pos: self.pos
+#                        size: (self.width, dp(400))
+#                        source: './images/ll1.png'
+#            Label:
+#                id: ll
+#                size_hint_x: None
+#                size_hint_y: None
+#                width: dp(400)
+#                height: dp(400)
+#                pos_hint:{'center_x': 0.5, 'center_y': 0.3}
+#                canvas.before:
+#
+#                    Rectangle:
+#                        pos: self.pos
+#                        size: self.size
+#                        source: './images/ll2.png'
+
+
