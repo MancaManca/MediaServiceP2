@@ -9,8 +9,9 @@ from kivy.properties import ObjectProperty, BooleanProperty, StringProperty, par
 from kivy.uix.accordion import Accordion, AccordionItem
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.button import Button
+from kivy.uix.floatlayout import FloatLayout
 from kivy.uix.gridlayout import GridLayout
-from kivy.uix.image import Image
+from kivy.uix.image import Image, AsyncImage
 from kivy.uix.label import Label
 from kivy.uix.modalview import ModalView
 from kivy.uix.popup import Popup
@@ -359,23 +360,53 @@ class Item(BoxLayout):
         Logger.info('Item: favourite {}'.format(self._favourite))
 
 
-class SeriesViewMainSingleTop(BoxLayout):
-    def __init__(self, sh_year, sh_synopsis, sh_runtime, sh_image, sh_status, **kwargs):
-        super(SeriesViewMainSingleTop, self).__init__(**kwargs)
-        Logger.info('SeriesViewMainSingleTop: Initialized {}'.format(self))
+# class SeriesViewMainSingleTop(BoxLayout):
+#     def __init__(self, sh_year, sh_synopsis, sh_runtime, sh_image, sh_status, **kwargs):
+#         super(SeriesViewMainSingleTop, self).__init__(**kwargs)
+#         Logger.info('SeriesViewMainSingleTop: Initialized {}'.format(self))
+#
+#         self._sh_year = sh_year
+#         self._sh_synopsis = sh_synopsis
+#         self._sh_runtime = sh_runtime
+#         self._sh_image = sh_image
+#         self._sh_status = sh_status
+#
+#         self.ids.series_view_main_single_top_im_holder_IM.source = self._sh_image
+#         self.ids.series_view_main_single_top_other_YE.text = 'Year {}'.format(str(self._sh_year))
+#         self.ids.series_view_main_single_top_other_RU.text = 'Runtime {}'.format(str(self._sh_runtime))
+#         self.ids.series_view_main_single_top_other_ST.text = 'Status : {}'.format(str(self._sh_status))
+#         self.ids.series_view_main_single_top_other_DE.text = self._sh_synopsis
 
-        self._sh_year = sh_year
-        self._sh_synopsis = sh_synopsis
-        self._sh_runtime = sh_runtime
-        self._sh_image = sh_image
-        self._sh_status = sh_status
 
-        self.ids.series_view_main_single_top_im_holder_IM.source = self._sh_image
-        self.ids.series_view_main_single_top_other_YE.text = 'Year {}'.format(str(self._sh_year))
-        self.ids.series_view_main_single_top_other_RU.text = 'Runtime {}'.format(str(self._sh_runtime))
-        self.ids.series_view_main_single_top_other_ST.text = 'Status : {}'.format(str(self._sh_status))
-        self.ids.series_view_main_single_top_other_DE.text = self._sh_synopsis
+class SeriesViewMainSingleTopBox(BoxLayout):
+    def __init__(self, parent_instance, **kwargs):
+        super(SeriesViewMainSingleTopBox, self).__init__(**kwargs)
+        Logger.info('SeriesViewMainSingleTopBox: Initialized {}'.format(self))
 
+        self.size_hint = (None, None)
+        self.parent_instance = parent_instance
+        self.w = self.parent_instance.single_series_layout.width
+        self.size = (self.w - 20, c_i.height_x)
+        self.pos_hint = {'center_x': 0.5, 'center_y': .5}
+        self._sh_year = self.parent_instance._year
+        self._sh_image = self.parent_instance._image
+        self.b = FloatLayout()
+        self.add_widget(self.b)
+
+        self.b.add_widget(AsyncImage(source=self._sh_image,
+                           size_hint=(None, None), width=self.w - 20 - 30, height=c_i.height_x * 0.80, pos_hint={'center_x': 0.5, 'center_y': .7}))
+        self._sh_synopsis = self.parent_instance._synopsis
+        self.b.add_widget(Label(text=self._sh_synopsis, size_hint=(None, None), width=self.w - 20 - 30, height=c_i.height_x * 0.80, pos_hint={'center_x': 0.5, 'center_y': .2}))
+
+        self.b.add_widget(Button(text='back',  size_hint=(None, None), width=50, height=50, pos_hint={'center_x': 0.1, 'center_y': .9}, on_press=lambda x: util_f.go_back_to_series(self.parent_instance)))
+        # self._sh_runtime = sh_runtime
+        # self._sh_status = sh_status
+
+        # self.ids.series_view_main_single_top_im_holder_IM.source = self._sh_image
+        # self.ids.series_view_main_single_top_other_YE.text = 'Year {}'.format(str(self._sh_year))
+        # self.ids.series_view_main_single_top_other_RU.text = 'Runtime {}'.format(str(self._sh_runtime))
+        # self.ids.series_view_main_single_top_other_ST.text = 'Status : {}'.format(str(self._sh_status))
+        # self.ids.series_view_main_single_top_other_DE.text = self._sh_synopsis
 
 class ShowEpSyn(BoxLayout):
 
@@ -387,27 +418,190 @@ class ShowEpSyn(BoxLayout):
         self.ids.show_episode_syn.text = self._show_episode_synopsis_text_in
 
 
+class Episode:
+    # def __init__(self, overview, episode, season, tor, title, imdb_id):
+    def __init__(self):
+        # self.overview = overview
+        # self.episode = episode
+        # self.season = season
+        # self.tor = tor
+        # self. title = title
+        # self.imdb_id = imdb_id
+        self.overview = None
+        self.episode = None
+        self.season = None
+        self.tor = None
+        self.title = None
+        self.imdb_id = None
+        self.torrents = None
+
+class EpisodeView(BoxLayout):
+    def __init__(self, ob, **kwargs):
+        super(EpisodeView, self).__init__(**kwargs)
+        # Logger.error(self.ids)
+        self.ob = ob
+        self.ids.episode_title.text = str(self.ob.title)
+        Logger.error(self.ob.title)
+        self.ids.episode_overview.text = str(self.ob.overview)
+        Logger.error(self.ob.overview)
+
+
+
+
 class SeriesViewMainSingle(Screen):
 
     def __init__(self, series_id, **kwargs):
         super(SeriesViewMainSingle, self).__init__(**kwargs)
-        self.series_single_connector = c_i.Connector()
-
-        self.series_id = series_id
-        print(self.series_id)
         self.name = 'svms'
-        self.series_main_singe_screen_instance = self
-        self.media = App.get_running_app().media
-
         Logger.info('SeriesViewMainSingle: Initialized {}'.format(self.name))
 
+        self.series_single_connector = c_i.Connector()
+        self.series_id = series_id
+        self.media = App.get_running_app().media
+
+        self.single_series_layout, self.single_series_grid = util_f.create_scroll_view(50, c_i.SHO_V_H-.01, cols=1)
+        self.ids.series_view_main_single_container.add_widget(self.single_series_layout)
+
+
         self.buffe = []
-        hashed_dic_show = self.media._get('hashed_dic_show')
+
+
+        # ssclayout = GridLayout(cols=1, rows=2, padding=25, spacing=15,
+        #                        size_hint=(None, None), width=self.width - 30)
+        # self.pi = SlideMenuScrollUpper(self)
+        # ssclayout.add_widget(self.pi)
+        # for i in range(5):
+        #     self.pi.ids.upper_grid.add_widget(Label(text=str(i)))
+
+
+
+        # slide_scroll_content_layout.add_widget(Label(text='kurac', size_hint=(None, None), width=500, height=600))
+
+        # for i in range(25):
+        #     slide_scroll_content_layout.add_widget(Button(text=str(i), size_hint=(None, None), width=500, height=250))
+
+        l =  self.media._get(key='hashed_dic_show', child_key='val')[hash_item_m(self.series_id)]
+
+
+                # print(dir(self))
+
+
+        did = {
+            # '1' : [{'1': object}, {'2': object}],
+            # '2': [{'1': object}, {'2': object}],
+
+        }
+        # for i in did:
+        #     print(i)
+        #     print(did[i])
+        #     for z in did[i]:
+        #         print(z)
+        #         for b in z:
+        #             print(b)
+        #             print(z[b])
+        #
+        for _key in l:
+            # print('{} --> {}'.format(_key, self[_key]))
+            if _key == 'episodes':
+
+                for i in l[_key]:
+                    krok = Episode()
+
+                    # print(' i {} '.format(i))
+                    for z in i:
+                        # print('{} --> {}'.format(z, i[z]))
+
+                        if 'title' in z:
+                            # print('title --> {}'.format(i[z]))
+                            krok.title = i[z]
+                        elif 'season' in z:
+                            # print('season --> {}'.format(i[z]))
+                            krok.season = i[z]
+                        elif 'episode' in z:
+                            # print('episode --> {}'.format(i[z]))
+                            krok.episode = i[z]
+
+                        elif 'overview' in z:
+                            # print('overview --> {}'.format(i[z]))
+                            krok.overview = i[z]
+
+                        elif 'tvdb_id' in z:
+                            # print('tvdb_id --> {}'.format(i[z]))
+                            krok.imdb_id = i[z]
+
+                        elif 'torrents' in z:
+                            krok.torrents = i[z]
+
+                            # print('')
+                            # print('torrent --> {}'.format(i[z]))
+                    try:
+                        # print(krok.season)
+                        if did[krok.season]:
+                            x = 9
+                            # print(krok.season)
+                            # print('postiji')
+                    except KeyError:
+                        did[krok.season] = []
+                    did[krok.season].append({krok.episode: krok})
+                    # print('<<<<<<<<<>>>>>>>>>>')
+
+                    # print(krok.title)
+                    # print(krok.imdb_id)
+                    # print(krok.overview)
+                    # print(krok.season)
+                    # print(krok.episode)
+                    # print('<<<<<<<<<>>>>>>>>>>')
+            # if _key == 'images':
+            #     self._image = l[_key]['poster']
+            #     print(self._image)
+        self._image = l['images']['poster']
+        self._synopsis = l['synopsis']
+        self._year = l['year']
+        self._runtime = l['runtime']
+        print()
+        self._status = l['status']
+
+        self.single_series_grid.add_widget(SeriesViewMainSingleTopBox(self))
+                # scroll_content_layout.add_widget(
+                #     AsyncImage(source=l[_key]['poster'],
+                #                size_hint=(None, None), width=c_i.width_x - 30, height=c_i.height_x * 0.80))
+
+        # print(did)
+        # for i in did:
+        #     print('Season {}'.format(i))
+        #     for k in did[i]:
+        #         for b in k:
+        #             print('-------Episode {}'.format(b))
+        #             print('--------------Title {}'.format(k[b].title))
+        #             print('--------------Overview {}'.format(k[b].overview))
+        #             print('--------------Season {}'.format(k[b].season))
+        #             print('--------------Episode {}'.format(k[b].episode))
+        #             print('--------------IMDB_ID {}'.format(k[b].imdb_id))
+        #             print('--------------Torrents {}'.format(k[b].torrents))
+
+        self.accord_height = dp((len(did) * 44) + (90*13))
+        Logger.info(' ss la w {}'.format(self.single_series_layout.width))
+        self._single_show_accordion = Accordion(orientation='vertical', width=self.single_series_layout.width-80, height=self.accord_height, size_hint_y=None,
+                                                min_space=dp(44))
+
+        for i in sorted(did.keys()):
+            acc_item = AccordionItem(collapse=True, orientation='vertical', background_normal='./images/ti.png', background_selected='./images/ti.png', title='Season {}'.format(str(i)))
+            acc_item.container.orientation = 'vertical'
+
+            for k in did[i]:
+                for b in k:
+                    # print(b)
+                    # print(k)
+                    acc_item.add_widget(EpisodeView(k[b]))
+            self._single_show_accordion.add_widget(acc_item)
+            # scroll_content_layout.add_widget(Button(text=str(i), size_hint=(None, None), width=600, height=300))
+        self.single_series_grid.add_widget(self._single_show_accordion)
+        # hashed_dic_show = self.media._get('hashed_dic_show')
         # print(hashed_dic_show)
         # for i in hashed_dic_show:
         #     print(i)
-        hash_map = self.media._get(key='hashed_dic_show', child_key='val')[hash_item_m(self.series_id)]
-        print(hash_map)
+        # hash_map = self.media._get(key='hashed_dic_show', child_key='val')[hash_item_m(self.series_id)]
+        # print(hash_map)
 
         # for _single_show_item_in_dic in hashed_dic_show:
         #     for show_node in hashed_dic_show[_single_show_item_in_dic]:
@@ -1275,6 +1469,11 @@ class ScanView(Screen):
 
 
 class LoginView(Screen):
+    """
+        LoginView screen is used to display login fields
+        LoginView screen uses plex instance to check Plex login
+    """
+
     def __init__(self, **kwargs):
         super(LoginView, self).__init__(**kwargs)
         Logger.info('LoginView: Initialized {}'.format(self))
@@ -1283,6 +1482,11 @@ class LoginView(Screen):
         self.plex_inst = App.get_running_app().plex_inst
 
     def login_focus(self,  *args):
+        """
+            method used to re position input fields depending if any is in focus
+            method is following focus on input field instead on keyboard opened
+
+        """
         self.close_plex_login_error()
 
         if args[0]:
@@ -1327,6 +1531,12 @@ class LoginView(Screen):
 
 
 class Progression(Screen):
+    """
+        Progression screen is used to display on app start animation
+        Progression screen is instantiated in parrelel with calling apis on ViewControl
+        Progressions start loading animation with constant speed 'c_i.pr_speed' from config
+        After animation finish screen resolver is called to decide next screen
+    """
 
     def __init__(self, **kwargs):
         super(Progression, self).__init__(**kwargs)
@@ -1348,20 +1558,25 @@ class Progression(Screen):
             Logger.info('Progression: Progress bar scheduler event stopped')
 
             self.sch_event.cancel()
-            self.skip_login()
+            self.next_screen_resolver()
 
-    def skip_login(self):
-        # check if plex credentials are stored and if server is stored
-        # if true screen manager -> MainView and start busy overlay
+    def next_screen_resolver(self):
+
         if self.plex_instance.check_stored_credentials() and self.plex_instance.check_stored_server():
+            """
+                check if plex credentials are stored and if server is stored
+                if true screen manager -> MainView and start busy overlay
+            """
             self.connector.url = self.plex_instance.get_stored_server()[1]
             util_f.scm_switch_to_transition(self, MainView())
             util_f.busy_loading_overlay(0, 8)
             Logger.info('Progression: switching to MainView')
 
-        # check if only plex credentials are store if true screen manager -> ScanView and pass method which retrieves
-        # either stored plex servers or does the api request
         elif self.plex_instance.check_stored_credentials():
+            """
+                check if only plex credentials are store if true screen manager -> ScanView and pass method which retrieves
+                either stored plex servers or does the api request
+            """
             util_f.scm_switch_to_transition(self, ScanView(self.plex_instance.get_servers_handler()))
             Logger.info('Progression: switching to ScanView')
 
@@ -1371,6 +1586,12 @@ class Progression(Screen):
 
 
 class ViewControl(ScreenManager):
+    """
+        ViewControl is main controlling view
+        Screen manager holds loading, main, scan , login screens
+        On init app loader is called
+        On init media content api are called with schedule time
+    """
 
     Logger.info('Window size {}'.format(Window.size))
 
@@ -1381,8 +1602,8 @@ class ViewControl(ScreenManager):
         self.media = App.get_running_app().media
         self.scheduled_start_progression()
 
-        self.get_media_content(Movies(order='-1', sort='last added').get_search(), 2)
-        self.get_media_content(Shows(order='-1', sort='updated').get_search(), 4)
+        self.get_media_content(Movies(order='-1', sort='last added').get_search(), 2)  # passing Movies instance with keywords
+        self.get_media_content(Shows(order='-1', sort='updated').get_search(), 4)  # passing Shows instance with keywords
 
     @util_f.schedule_once_no_args(timing=1)
     def scheduled_start_progression(self, *args):
@@ -1390,14 +1611,26 @@ class ViewControl(ScreenManager):
 
     @util_f.schedule_once_two_arg_timing(timing=None)
     def get_media_content(self, api_instance, *args):
-        Logger.info('ViewControl: get_media_content invoked')
+        """
+            get inital latest movies and series, populate shows dictionary populate movies dicionary
+        """
 
-        """get inital latest movies and series, populate shows dictionary populate movies dicionary"""
+        Logger.info('ViewControl: get_media_content invoked')
 
         util_f._get_api(self, api_instance, self.media)
 
 
 class LoaderAnimation(StencilView):
+    """
+        LoaderAnimation is class inheriting Stencil View
+        Pitfall is positioning the loading animation
+        self.p_w: argument passed parent instance
+        self.size: takes size from parent instance
+        self.ids.loader_animation_image.center_x: animated image
+            position center_x taken from parent widget to follow correct positioning
+        On init method for animation is scheduled and invoked with interval
+    """
+
     def __init__(self, parent_widget, **kwargs):
         super(LoaderAnimation, self).__init__(**kwargs)
         Logger.info('LoaderAnimation: Initialized {}'.format(self))
@@ -1418,17 +1651,25 @@ class LoaderAnimation(StencilView):
 
     def _start_animation(self, *args):
 
-        self.size[1] -= c_i.animation_height_decrese
+        self.size[1] -= c_i.animation_height_decrese  # decreasing the image size to look like image is cut from the top
         # Logger.info('LoaderAnimation: animation started {}'.format(self))
 
 
 class LoaderOverlay(ModalView):
+    """
+        LoaderOverlay ModalView used to dislay loader animation
+        Called before navigating to the next screen or addition of next screen
+        also used when heavy loading is scheduled.
+        Widget uses child widget to display loader animation.
+        On_open method is called to add animation widget and start animation.
+        On_dismiss method to clear modal view widget is called and child method to stop animation.
+    """
 
     def __init__(self, **kwargs):
         super(LoaderOverlay, self).__init__(**kwargs)
         Logger.info('LoaderOverlay: Initialized {}'.format(self))
 
-        self.size = (c_i.height_x / 1.5, c_i.height_x / 1.5)
+        util_f.set_modal_size(self)
 
     def reset_on_dismiss(self, *args):
         # Logger.info('LoaderOverlay: child class of animation {}'.format(self.children[0].children[0]))
@@ -1445,21 +1686,28 @@ class LoaderOverlay(ModalView):
 
 
 class CommandStatus(ModalView):
+    """
+        ComandStatus Modal View used to display the success state of commands sent towards server
+    """
 
     def __init__(self, **kwargs):
         super(CommandStatus, self).__init__(**kwargs)
         Logger.info('CommandStatus: Initialized {}'.format(self))
 
-        self.size = (c_i.height_x / 1.5, c_i.height_x / 1.5)
+        util_f.set_modal_size(self)
 
 
 class ConnectionErrorPopup(Popup):
+    """
+        ConnectionErrorPopup is used to display popup with quit and retry options
+        when error connection happends in runtime
+    """
 
     def __init__(self, **kwargs):
         super(ConnectionErrorPopup, self).__init__(**kwargs)
         Logger.info('ConnectionErrorPopup: Initialized {}'.format(self))
 
-        self.size = (c_i.height_x / 1.5, c_i.height_x / 1.5)
+        util_f.set_modal_size(self)
 
     def quit_app_cl(self, *args):
         Logger.info('Quit app')
@@ -1467,6 +1715,10 @@ class ConnectionErrorPopup(Popup):
         App.stop(App.get_running_app())
 
     def retry(self, *args):
+        """
+            If connection error occurs in runtime retry will clear App root widget
+            and re instantiate ViewControl class
+        """
         Logger.info('ConnectionErrorPopup: retry to connection')
 
         self.dismiss()
@@ -1482,17 +1734,17 @@ class MediaServiceMclientApp(App):
 
         self.root = BoxLayout(orientation='vertical')
         self.root.bind(on_keyboard=self.key_input)
-        self.loader_overlay = LoaderOverlay()
-        self.command_status = CommandStatus()
-        self.conn_error_popup = ConnectionErrorPopup()
-        self.connection_inst = c_i.Connector()
-        self.plex_inst = Plex()
-        self.network_inst = Network()
-        self.media = Media()
-        self.filter = Filter()
-        self.favourites = Favourites()
-        self.filter_modal = FilterModalView()
-        Cache.register('screen_cache', limit=10, timeout=c_i.CACHE_TIME)
+        self.loader_overlay = LoaderOverlay()  # LoaderOverlay modal view instance
+        self.command_status = CommandStatus()  # CommandStatus modal view instance
+        self.conn_error_popup = ConnectionErrorPopup()  # ConnectionErrorPopup popup instance
+        self.connection_inst = c_i.Connector()  # Connector instance
+        self.plex_inst = Plex()  # Plex instance
+        self.network_inst = Network()  # Network instance
+        self.media = Media()  # Media DB  instance
+        self.filter = Filter()  # Filter DB instance
+        self.favourites = Favourites()  # Favourites DB instance
+        self.filter_modal = FilterModalView()  # Filter modal view instance
+        Cache.register('screen_cache', limit=10, timeout=c_i.CACHE_TIME)  # Cache object with default group naming, timeout and limit
         Logger.debug('Application: Created Cache object {}'.format(Cache))
 
         return self.root

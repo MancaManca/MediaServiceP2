@@ -26,7 +26,7 @@ UNIQUE_V_W = 20
 LAT_V_H = 0.4
 FAV_V_H = 0.88
 SHO_V_H = 0.835
-ITEM_ANIM_DUR = 1.0
+ITEM_ANIM_DUR = .1
 ITEM_A_W = (width_x / 3) - 30
 ITEM_A_H = (height_x / 2) - 300
 CACHE_TIME = 20
@@ -36,10 +36,11 @@ sm_anim_time = 0.7
 
 class ScrollGrid(GridLayout):
 
-    def __init__(self, **kwargs):
+    def __init__(self, cols=3, **kwargs):
         super(ScrollGrid, self).__init__(**kwargs)
         Logger.info('ScrollGrid: Initialized {}'.format(self))
-        self.cols = 3
+
+        self.cols = cols
         self.padding = 25
         self.spacing = 15
         self.size_hint = (None, None)
@@ -48,13 +49,10 @@ class ScrollGrid(GridLayout):
 
 class ScrollGridHorizontal(GridLayout):
 
-    def __init__(self, cols=None, **kwargs):
+    def __init__(self, cols=50, **kwargs):
         super(ScrollGridHorizontal, self).__init__(**kwargs)
         Logger.info('ScrollGridHorizontal: Initialized {}'.format(self))
-        if cols:
-            self.cols = cols
-        else:
-            self.cols = 50
+        self.cols = cols
         self.rows = 1
         self.padding = 5
         self.spacing = 5

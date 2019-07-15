@@ -382,35 +382,35 @@
     BlackBox:
         id: svmsingle
         orientation: 'vertical'
-        GreyBox:
-            orientation: 'horizontal'
-            id: series_view_main_single_nav
-            size_hint_y:.05
-            BoxLayout:
-                size_hint_x: .2
-                FloatLayout:
-                    SettingsViewButton:
-                        width: dp(25)
-                        height: dp(25)
-                        background_down: "./images/back_icon.png"
-                        background_normal: "./images/back_icon.png"
-                        on_press : root.go_back_to_series()
-            BoxLayout:
-                id: series_view_main_single_nav_title
-                size_hint_x: .6
-                Label:
-                    id: series_view_main_single_nav_title_t
-                    text: ''
-            BoxLayout:
-                size_hint_x: .2
+#        GreyBox:
+#            orientation: 'horizontal'
+#            id: series_view_main_single_nav
+#            size_hint_y:.05
+#            BoxLayout:
+#                size_hint_x: .2
+#                FloatLayout:
+#                    SettingsViewButton:
+#                        width: dp(25)
+#                        height: dp(25)
+#                        background_down: "./images/back_icon.png"
+#                        background_normal: "./images/back_icon.png"
+#                        on_press : root.go_back_to_series()
+#            BoxLayout:
+#                id: series_view_main_single_nav_title
+#                size_hint_x: .6
+#                Label:
+#                    id: series_view_main_single_nav_title_t
+#                    text: ''
+#            BoxLayout:
+#                size_hint_x: .2
         BlackBox:
             orientation: 'vertical'
-            size_hint_y: .45
+            size_hint_y: 1
             id: series_view_main_single_container
-        BlackBox:
-            orientation: 'vertical'
-            size_hint_y: .5
-            id: series_view_main_single_container_se
+#        BlackBox:
+#            orientation: 'vertical'
+#            size_hint_y: .5
+#            id: series_view_main_single_container_se
 
 
 <SeriesViewMain>:
@@ -975,7 +975,42 @@
         source: './images/ll1.png'
         pos_hint:{'center_x': .5, 'center_y': 0.5}
 
-
-
+<EpisodeView>:
+    BoxLayout:
+        orientation: 'vertical'
+        canvas.before:
+            Rectangle:
+                pos: self.pos
+                size: self.size
+                source: './images/bpr1.png'
+        BoxLayout:
+            size_hint_y: .3
+            Label:
+                id: episode_title
+                color: yel
+                halign: 'center'
+                valign: 'middle'
+                text: ''
+        BoxLayout:
+            size_hint_y: .7
+            orientation: 'horizontal'
+            BoxLayout:
+                size_hint_x: .9
+                Label:
+                    id: episode_overview
+                    text: ''
+                    text_size: self.size
+                    halign: 'center'
+                    valign: 'middle'
+                    font_size: '10sp'
+                    padding_x: 5
+            BoxLayout:
+                size_hint_x: .1
+                FloatLayout:
+                    DownloadButton:
+                        id: tor_modal
+                        text: 'to'
+                        background_down: "./images/ll2.png"
+                        background_normal: "./images/ll2.png"
 
 
